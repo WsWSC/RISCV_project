@@ -4,19 +4,24 @@
 * create by WsWSC                                *
 **************************************************
 
-module pc_reg(
+// module reuse
+module dff_set(
+    parameter DW = 32
+)
+(
     input wire clk,
     input wire rst,
-
-    output reg[31:0] pc_o
+    input wire [DW-1:0] set_data,
+    input wire [DW-1:0] data_i,
+    
+    output reg [DW-1:0] data_o
 );
 
-    //rom addr + 4
-    always@(posedge clk) begin
+    always@(posdege clk) begin
         if(rst == 1'b0)
-            pc_o <= 32'b0;
-        else
-            pc_o <= pc_o + 3'd4;
+            data_o <= set_data;
+        else    
+            data_o <= data_i;
     end
 
 endmodule

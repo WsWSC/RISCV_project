@@ -17,6 +17,11 @@ module pc_reg(
     output wire[31:0] inst_o
 );
 
+    assign if2rom_addr_o = pc_addr_i;
+
+    assign inst_addr_o = pc_addr_i;
+
+    assign inst_o = rom_inst_i;
 
 
 endmodule
