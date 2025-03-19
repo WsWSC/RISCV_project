@@ -49,6 +49,7 @@ module(
 
     // opcode, identify R-type or I-type
     always@(*) begin
+        // send instr. to next stage
         isnt_o = inst_i;
         inst_addr_o = inst_addr_i;
 
@@ -62,7 +63,7 @@ module(
                         op1_o       = rs1_data_i;
                         op2_o       = {20{imm[11]}, imm};
                         rd_addr_o   = rd;
-                        reg_wen     = 1'b1;
+                        reg_wen     = `WriteEnable;
                     end
 
                     /*`INST_SLTI : begin
