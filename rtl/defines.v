@@ -4,9 +4,11 @@
 // create by WsWSC                              //
 //////////////////////////////////////////////////
 
-// global define
+// reg-related
 `define WriteEnable     1'b1
-`define WriteDisable    1'b1
+`define WriteDisable    1'b0
+`define ZeroWord        32'h0
+`define ZeroReg         5'b0
 
 // I type inst
 `define INST_TYPE_I     7'b0010011
@@ -68,7 +70,7 @@
 `define INST_FENCE      7'b0001111
 `define INST_ECALL      32'h73
 `define INST_EBREAK     32'h00100073
-    
+
 // J type inst  
 `define INST_TYPE_B     7'b1100011
 `define INST_BEQ        3'b000

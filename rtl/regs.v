@@ -28,11 +28,11 @@ module regs(
     // id stage, read rs1 data
     always@(*) begin
         if(rst == 1'b0) 
-            reg1_rdata_o <= 32'b0;
-        else if (reg1_raddr_i == 5'b0)
-            reg1_rdata_o <= 32'b0;
-        else if (reg_wen && (reg_1_raddr_i == reg_waddr_i) )    // hazard detection
-            reg1_rdata_o <= reg[reg1_raddr_i];
+            reg1_rdata_o <= `ZeroWord;
+        else if (reg1_raddr_i == `ZeroReg)
+            reg1_rdata_o <= `ZeroWord;
+        else if (reg_wen && (reg_1_raddr_i == reg_waddr_i) )    // hazard detection & forwarding
+            reg1_rdata_o <= reg_wdata_i;
         else 
             reg1_rdata_o <= regs[reg1_raddr_i];
     end
@@ -40,11 +40,11 @@ module regs(
     // id stage, read rs2 data
     always@(*) begin
         if(rst == 1'b0) 
-            reg2_rdata_o <= 32'b0;
-        else if (reg2_raddr_i == 5'b0)
-            reg2_rdata_o <= 32'b0;
-        else if (reg_wen && (reg_2_raddr_i == reg_waddr_i) )    // hazard detection
-            reg2_rdata_o <= reg[reg2_raddr_i];
+            reg2_rdata_o <= `ZeroWord;
+        else if (reg2_raddr_i == `ZeroReg)
+            reg2_rdata_o <= `ZeroWord;
+        else if (reg_wen && (reg_2_raddr_i == reg_waddr_i) )    // hazard detection & forwarding
+            reg2_rdata_o <= reg_wdata_i;
         else 
             reg2_rdata_o <= regs[reg2_raddr_i];
     end
@@ -53,10 +53,10 @@ module regs(
     always@(posedge clk) begin
         if(rst == 1'b0) begin
             for (i = 1; i <= 31; i = i + 1) begin     // reg x0 is always 0, no need reset
-                reg[i] <= 32'b0;
+                regs[i] <= `ZeroWord;
             end
-        end else 
-            reg[reg_waddr_i] <= reg_wdata_i;
+        end else if(reg_wen && (reg_waddr_i != `ZeroReg) )
+            regs[reg_waddr_i] <= reg_wdata_i;
     end
 
 endmodule

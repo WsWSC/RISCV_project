@@ -44,7 +44,7 @@ module(
     assign rs1      = inst_i[19:15];
     assign rs2      = inst_i[24:20];
     assign funct7   = inst_i[31:25];
-
+    // I-type
     assign imm      = inst_i[31:20];
 
     // opcode, identify R-type or I-type
@@ -58,7 +58,7 @@ module(
                 case(funct3)
                     `INST_ADDI : begin      // I-type, addi
                         rs1_addr_o  = rs1;
-                        rs2_addr_o  = 5'b0;
+                        rs2_addr_o  = `ZeroReg;
 
                         op1_o       = rs1_data_i;
                         op2_o       = {20{imm[11]}, imm};
@@ -88,15 +88,56 @@ module(
                     end
                     */
                     default    : begin
-                        rs1_addr_o  = 5'b0;
-                        rs2_addr_o  = 5'b0;
+                        rs1_addr_o  = `ZeroReg;
+                        rs2_addr_o  = `ZeroReg;
 
-                        op1_o       = 32'b0;
-                        op2_o       = 32'b0;
-                        rd_addr_o   = 5'b0;
-                        reg_wen     = 1'b0;
+                        op1_o       = `ZeroWord;
+                        op2_o       = `ZeroWord;
+                        rd_addr_o   = `ZeroReg;
+                        reg_wen     = `WriteDisable;
                     end
                     
+                endcase
+            end
+
+            `INST_TYPE_R_M: begin
+                case(funct3)
+                    `INST_ADD_SUB: begin
+                        rs1_addr_o  = rs1;
+                        rs2_addr_o  = rs2;
+
+                        op1_o       = rs1_data_i;
+                        op2_o       = rs2_data_i;
+                        rd_addr_o   = rd;
+                        reg_wen     = `WriteEnable;
+                    end
+/*                     `INST_SLL: begin
+
+                    end
+                    `INST_SLT: begin
+
+                    end
+                    `INST_SLTU: begin
+                    end
+                    `INST_XOR: begin
+                    end
+                    `INST_SR: begin
+                    end
+                    `INST_OR: begin
+                    end
+                    `INST_AND: begin
+                    end 
+                    */
+
+                     default: begin
+                        rs1_addr_o  = `ZeroReg;
+                        rs2_addr_o  = `ZeroReg;
+
+                        op1_o       = `ZeroWord;
+                        op2_o       = `ZeroWord;
+                        rd_addr_o   = `ZeroReg;
+                        reg_wen     = `WriteDisable;
+                    end
                 endcase
             end
 
