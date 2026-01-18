@@ -17,7 +17,7 @@ module dff_set(
     output reg [DW-1:0] data_o
 );
 
-    always@(posdege clk) begin
+    always @(posedge clk) begin
         if(rst == 1'b0)
             data_o <= set_data;     //reset data_o
         else    
