@@ -48,7 +48,7 @@ module(
     assign imm      = inst_i[31:20];
 
     // opcode, identify R-type or I-type
-    always@(*) begin
+    always @(*) begin
         // send instr. to next stage
         isnt_o = inst_i;
         inst_addr_o = inst_addr_i;
@@ -61,7 +61,7 @@ module(
                         rs2_addr_o  = `ZeroReg;
 
                         op1_o       = rs1_data_i;
-                        op2_o       = {20{imm[11]}, imm};
+                        op2_o       = {{20{imm[11]}},imm};
                         rd_addr_o   = rd;
                         reg_wen     = `WriteEnable;
                     end

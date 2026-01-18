@@ -26,31 +26,31 @@ module regs(
     integer i;              // initial for loop
 
     // id stage, read rs1 data
-    always@(*) begin
+    always @(*) begin
         if(rst == 1'b0) 
-            reg1_rdata_o <= `ZeroWord;
+            reg1_rdata_o = `ZeroWord;
         else if (reg1_raddr_i == `ZeroReg)
-            reg1_rdata_o <= `ZeroWord;
-        else if (reg_wen && (reg_1_raddr_i == reg_waddr_i) )    // hazard detection & forwarding
-            reg1_rdata_o <= reg_wdata_i;
+            reg1_rdata_o = `ZeroWord;
+        else if (reg_wen && (reg1_raddr_i == reg_waddr_i) )    // hazard detection & forwarding
+            reg1_rdata_o = reg_wdata_i;
         else 
-            reg1_rdata_o <= regs[reg1_raddr_i];
+            reg1_rdata_o = regs[reg1_raddr_i];
     end
 
     // id stage, read rs2 data
-    always@(*) begin
+    always @(*) begin
         if(rst == 1'b0) 
-            reg2_rdata_o <= `ZeroWord;
+            reg2_rdata_o = `ZeroWord;
         else if (reg2_raddr_i == `ZeroReg)
-            reg2_rdata_o <= `ZeroWord;
-        else if (reg_wen && (reg_2_raddr_i == reg_waddr_i) )    // hazard detection & forwarding
-            reg2_rdata_o <= reg_wdata_i;
+            reg2_rdata_o = `ZeroWord;
+        else if (reg_wen && (reg2_raddr_i == reg_waddr_i) )    // hazard detection & forwarding
+            reg2_rdata_o = reg_wdata_i;
         else 
-            reg2_rdata_o <= regs[reg2_raddr_i];
+            reg2_rdata_o = regs[reg2_raddr_i];
     end
 
     // ex stage, wirte reg 
-    always@(posedge clk) begin
+    always @(posedge clk) begin
         if(rst == 1'b0) begin
             for (i = 1; i <= 31; i = i + 1) begin     // reg x0 is always 0, no need reset
                 regs[i] <= `ZeroWord;

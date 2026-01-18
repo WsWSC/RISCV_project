@@ -12,7 +12,7 @@ module pc_reg(
 );
 
     //rom addr + 4
-    always@(posedge clk) begin
+    always @(posedge clk) begin
         if(rst == 1'b0)
             pc_o <= 32'b0;
         else
