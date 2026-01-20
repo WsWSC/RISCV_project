@@ -1,2 +1,4 @@
 # risc_v_project
-tiny risc v implementation
+3-stage pipeline RISC-V CPU implementation
+## Architecture
+![RISC-V Pipeline](img/Architecture.drawio.png)
