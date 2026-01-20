@@ -5,7 +5,7 @@
 //////////////////////////////////////////////////
 
 // module reuse
-module dff_set(
+module dff_set #(
     parameter DW = 32
 )
 (

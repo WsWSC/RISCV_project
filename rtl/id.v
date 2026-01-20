@@ -6,7 +6,7 @@
 
 `include "defines.v"
 
-module(
+module id(
     // from if_id
     input wire[31:0]    inst_i,         // return from "if_id"
     input wire[31:0]    inst_addr_i,    // return from "if_id"
@@ -50,7 +50,7 @@ module(
     // opcode, identify R-type or I-type
     always @(*) begin
         // send instr. to next stage
-        isnt_o = inst_i;
+        inst_o = inst_i;
         inst_addr_o = inst_addr_i;
 
         case(opcode) 

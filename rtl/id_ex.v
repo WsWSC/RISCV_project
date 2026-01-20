@@ -4,9 +4,10 @@
 // create by WsWSC                              //
 //////////////////////////////////////////////////
 
+`include "defines.v"
 `include "dff_set.v"
 
-module(
+module id_ex(
     input wire clk,
     input wire rst,
 
@@ -28,11 +29,11 @@ module(
 );
 
     // no op 
-    dff_set #(32) dff1(.clk(clk), .rst(rst), .set_data(`INST_NOP),      .data_i(inst_i),         .data_o(inst_o) );
-    dff_set #(32) dff2(.clk(clk), .rst(rst), .set_data(`ZeroWord),      .data_i(inst_addr_i),    .data_o(inst_addr_o) );
-    dff_set #(32) dff3(.clk(clk), .rst(rst), .set_data(`ZeroWord),      .data_i(op1_i),          .data_o(op1_o) );
-    dff_set #(32) dff4(.clk(clk), .rst(rst), .set_data(`ZeroWord),      .data_i(op2_i),          .data_o(op2_o) );
-    dff_set #(5)  dff5(.clk(clk), .rst(rst), .set_data(`ZeroReg),       .data_i(rd_addr_i),      .data_o(rd_addr_o) );
-    dff_set #(1)  dff6(.clk(clk), .rst(rst), .set_data(`WriteDisable),  .data_i(reg_wen_i),      .data_o(reg_wen_o) );
+    dff_set #(.DW(32)) dff1(.clk(clk), .rst(rst), .set_data(`INST_NOP),      .data_i(inst_i),         .data_o(inst_o) );
+    dff_set #(.DW(32)) dff2(.clk(clk), .rst(rst), .set_data(`ZeroWord),      .data_i(inst_addr_i),    .data_o(inst_addr_o) );
+    dff_set #(.DW(32)) dff3(.clk(clk), .rst(rst), .set_data(`ZeroWord),      .data_i(op1_i),          .data_o(op1_o) );
+    dff_set #(.DW(32)) dff4(.clk(clk), .rst(rst), .set_data(`ZeroWord),      .data_i(op2_i),          .data_o(op2_o) );
+    dff_set #(.DW(5))  dff5(.clk(clk), .rst(rst), .set_data(`ZeroReg),       .data_i(rd_addr_i),      .data_o(rd_addr_o) );
+    dff_set #(.DW(1))  dff6(.clk(clk), .rst(rst), .set_data(`WriteDisable),  .data_i(reg_wen_i),      .data_o(reg_wen_o) );
 
 endmodule
