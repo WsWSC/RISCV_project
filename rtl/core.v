@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////
+//  RISC-V CPU Side Project
+//  Author  : WsWSC
+//  Created : 2026
+//  License : Personal / Educational Use
+////////////////////////////////////////////////////////////
+
 module core(
     input  wire         clk,
     input  wire         rst_n,
