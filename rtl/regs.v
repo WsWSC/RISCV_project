@@ -8,7 +8,7 @@
 
 module regs(
     input wire clk,
-    input wire rst,
+    input wire rst_n,
 
     // from id
     input wire[4:0]     reg1_raddr_i,
@@ -29,7 +29,7 @@ module regs(
 
     // id stage, read rs1 data
     always@(*) begin
-        if(rst == 1'b0) 
+        if(rst_n == 1'b0) 
             reg1_rdata_o <= `ZeroWord;
         else if (reg1_raddr_i == `ZeroReg)
             reg1_rdata_o <= `ZeroWord;
@@ -41,7 +41,7 @@ module regs(
 
     // id stage, read rs2 data
     always@(*) begin
-        if(rst == 1'b0) 
+        if(rst_n == 1'b0) 
             reg2_rdata_o <= `ZeroWord;
         else if (reg2_raddr_i == `ZeroReg)
             reg2_rdata_o <= `ZeroWord;
@@ -53,7 +53,7 @@ module regs(
 
     // ex stage, wirte reg 
     always@(posedge clk) begin
-        if(rst == 1'b0) begin
+        if(rst_n == 1'b0) begin
             for (i = 1; i <= 31; i = i + 1) begin     // reg x0 is always 0, no need reset
                 regs[i] <= `ZeroWord;
             end

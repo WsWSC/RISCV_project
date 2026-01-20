@@ -10,7 +10,7 @@ module dff_set #(
 )
 (
     input wire clk,
-    input wire rst,
+    input wire rst_n,
     input wire [DW-1:0] set_data,
     input wire [DW-1:0] data_i,
     
@@ -18,7 +18,7 @@ module dff_set #(
 );
 
     always @(posedge clk) begin
-        if(rst == 1'b0)
+        if(rst_n == 1'b0)
             data_o <= set_data;     //reset data_o
         else    
             data_o <= data_i;
