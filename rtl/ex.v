@@ -8,8 +8,8 @@
 
 module ex(
     // from id_ex
-    input wire[31:0]   inst_i,
     input wire[31:0]   inst_addr_i,
+    input wire[31:0]   inst_i,
     input wire[31:0]   op1_i,
     input wire[31:0]   op2_i,
     input wire[4:0]    rd_addr_i,

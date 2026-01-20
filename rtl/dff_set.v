@@ -19,7 +19,7 @@ module dff_set #(
 
     always @(posedge clk) begin
         if(rst_n == 1'b0)
-            data_o <= set_data;     //reset data_o
+            data_o <= set_data;     // reset data_o
         else    
             data_o <= data_i;
     end

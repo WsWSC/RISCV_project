@@ -8,9 +8,9 @@
 
 module id(
     // from if_id
-    input wire[31:0]    inst_i,         // return from "if_id"
     input wire[31:0]    inst_addr_i,    // return from "if_id"
-
+    input wire[31:0]    inst_i,         // return from "if_id"
+    
     // to regs
     output reg[4:0]     rs1_addr_o,     // send to "regs", it's reg addr. output
     output reg[4:0]     rs2_addr_o,     // send to "regs", it's reg addr. output
@@ -20,8 +20,8 @@ module id(
     input wire[31:0]    rs2_data_i,     // return from "regs", it's actual data input
 
     // to id_ex
-    output reg[31:0]    inst_o,
     output reg[31:0]    inst_addr_o,
+    output reg[31:0]    inst_o,
     output reg[31:0]    op1_o,          // send to "id_ex" DFF, = rs1_data_o
     output reg[31:0]    op2_o,          // send to "id_ex" DFF, = rs2_data_o
     output reg[4:0]     rd_addr_o,      // send to "id_ex" DFF, rd register addr.

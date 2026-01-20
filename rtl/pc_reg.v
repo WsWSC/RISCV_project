@@ -5,13 +5,13 @@
 //////////////////////////////////////////////////
 
 module pc_reg(
-    input wire clk,
-    input wire rst_n,
+    input   wire        clk,
+    input   wire        rst_n,
 
-    output reg[31:0] pc_o
+    output  reg[31:0]   pc_o
 );
 
-    //rom addr + 4
+    // rom addr + 4
     always @(posedge clk) begin
         if(rst_n == 1'b0)
             pc_o <= 32'b0;
