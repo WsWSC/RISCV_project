@@ -1,4 +1,4 @@
-module top(
+module core(
     input  wire         clk,
     input  wire         rst_n,
     input  wire[31:0]   inst_i,
