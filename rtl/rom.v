@@ -5,9 +5,9 @@
 //////////////////////////////////////////////////
 
 module rom(
-    input   wire[31:0] inst_addr_i,
+    input   wire[31:0]  inst_addr_i,
 
-    output  reg[31:0] inst_o
+    output  reg[31:0]   inst_o
 );
 
     // rom memory, 32 * 4096 bit
