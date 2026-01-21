@@ -9,13 +9,13 @@
 `include "dff_set.v"
 
 module if_id(
-    input wire clk,
-    input wire rst_n,
-    input wire[31:0] inst_addr_i,
-    input wire[31:0] inst_i,
+    input   wire        clk,
+    input   wire        rst_n,
+    input   wire[31:0]  inst_addr_i,
+    input   wire[31:0]  inst_i,
 
-    output reg[31:0] inst_addr_o,
-    output reg[31:0] inst_o
+    output wire[31:0]   inst_addr_o,
+    output wire[31:0]   inst_o
 );
 
     // no op

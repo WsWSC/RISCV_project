@@ -26,7 +26,7 @@ module id(
     output reg[31:0]    op1_o,          // send to "id_ex" DFF, = rs1_data_o
     output reg[31:0]    op2_o,          // send to "id_ex" DFF, = rs2_data_o
     output reg[4:0]     rd_addr_o,      // send to "id_ex" DFF, rd register addr.
-    output reg          reg_wen_i       // send to "id_ex" DFF, reg_wen_i = reg write enable 
+    output reg          reg_wen_o       // send to "id_ex" DFF, reg_wen_o = reg write enable 
 );
 
     // R-type
@@ -64,7 +64,7 @@ module id(
                         op1_o       = rs1_data_i;
                         op2_o       = {{20{imm[11]}},imm};
                         rd_addr_o   = rd;
-                        reg_wen_i   = `WriteEnable;
+                        reg_wen_o   = `WriteEnable;
                     end
 
                     /*`INST_SLTI : begin
@@ -95,7 +95,7 @@ module id(
                         op1_o       = `ZeroWord;
                         op2_o       = `ZeroWord;
                         rd_addr_o   = `ZeroReg;
-                        reg_wen_i   = `WriteDisable;
+                        reg_wen_o   = `WriteDisable;
                     end
                     
                 endcase
@@ -110,7 +110,7 @@ module id(
                         op1_o       = rs1_data_i;
                         op2_o       = rs2_data_i;
                         rd_addr_o   = rd;
-                        reg_wen_i   = `WriteEnable;
+                        reg_wen_o   = `WriteEnable;
                     end
 /*                     `INST_SLL: begin
 
@@ -137,7 +137,7 @@ module id(
                         op1_o       = `ZeroWord;
                         op2_o       = `ZeroWord;
                         rd_addr_o   = `ZeroReg;
-                        reg_wen_i   = `WriteDisable;
+                        reg_wen_o   = `WriteDisable;
                     end
                 endcase
             end
