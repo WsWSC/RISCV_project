@@ -1,11 +1,4 @@
-////////////////////////////////////////////////////////////
-//  RISC-V CPU Side Project
-//  Author  : WsWSC
-//  Created : 2026
-//  License : Personal / Educational Use
-////////////////////////////////////////////////////////////
-
-module core(
+module top(
     input  wire         clk,
     input  wire         rst_n,
     input  wire[31:0]   inst_i,
@@ -29,8 +22,8 @@ module core(
     wire[31:0]  if_id_inst_o;
 
     // id to regs
-    wire[4:0]   id_rs1_addr_o;
-    wire[4:0]   id_rs2_addr_o;
+    wire[5:0]   id_rs1_addr_o;
+    wire[5:0]   id_rs2_addr_o;
 
     // regs to id
     wire[31:0]  regs_reg1_rdata_o;
@@ -101,7 +94,7 @@ module core(
         
         // to regs
         .rs1_addr_o     (id_rs1_addr_o),
-        .rs2_addr_o     (id_rs2_addr_o),
+        .rs2_addr_o     (id_rs1_addr_o),
 
         // from regs
         .rs1_data_i     (regs_reg1_rdata_o),
@@ -144,7 +137,7 @@ module core(
         .op1_i          (id_op1_o),
         .op2_i          (id_op2_o),
         .rd_addr_i      (id_rd_addr_o),
-        .reg_wen_i      (id_reg_wen_o),  
+        .reg_wen_i      (id_reg_wen),  
 
         // to ex
         .inst_addr_o    (id_ex_inst_addr_o),
