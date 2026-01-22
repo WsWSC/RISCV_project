@@ -16,6 +16,7 @@
   - [EX — Execute / Memory / Write Back](#3-ex--execute--memory--write-back)
 - [Implementation Status](#implementation-status)
 - [Repository Layout](#repository-layout)
+- [Reference](#reference)
 
 ---
 
@@ -71,3 +72,13 @@
 - `rtl/` ：RISC-V CPU 核心 RTL（Verilog）實作  
 - `tb/`  ：測試平台（Testbench）  
 - `img/` ：架構圖與相關圖片  
+
+---
+
+## Reference
+
+本專案在架構設計與實作過程中，參考以下相關研究與開源專案：
+
+[1] SI-RISCV Project,  
+    *e200 Open Source RISC-V Core*,  
+    https://github.com/SI-RISCV/e200_opensource.git
