@@ -53,6 +53,6 @@
 
 ## Repository Layout
 
-- `rtl/`：RISC-V CPU 核心 RTL（Verilog）實作
-- `tb/` ：測試平台（Testbench）
-- `img/`：相關圖片
+- `rtl/`    ：RISC-V CPU 核心 RTL（Verilog）實作
+- `tb/`     ：測試平台（Testbench）
+- `img/`    ：相關圖片
