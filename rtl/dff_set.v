@@ -5,6 +5,9 @@
 //  License : Personal / Educational Use
 ////////////////////////////////////////////////////////////
 
+`ifndef __DFF_SET_V__
+`define __DFF_SET_V__
+
 // module reuse
 module dff_set #(
     parameter DW = 32
@@ -26,3 +29,5 @@ module dff_set #(
     end
 
 endmodule
+
+`endif

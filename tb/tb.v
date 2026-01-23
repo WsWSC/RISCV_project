@@ -24,7 +24,7 @@ module tb;
 
     // rom default val
     initial begin
-        $readmemb("../tb/test_data.txt", tb.soc_inst.rom_inst.rom_mem);
+        $readmemb("../tb/test_input.txt", tb.soc_inst.rom_inst.rom_mem);
     end
 
     initial begin

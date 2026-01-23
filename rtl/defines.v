@@ -80,3 +80,9 @@
 `define INST_BGE        3'b101
 `define INST_BLTU       3'b110
 `define INST_BGEU       3'b111
+
+`define ZeroAddr        32'b0
+`define JumpEnable      1'b1
+`define JumpDisable     1'b0
+`define HoldEnable      1'b1
+`define HoldDisable     1'b0

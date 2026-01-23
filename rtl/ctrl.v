@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////
+//  RISC-V CPU Side Project
+//  Author  : WsWSC
+//  Created : 2026
+//  License : Personal / Educational Use
+////////////////////////////////////////////////////////////
+
 module ctrl(
     input   wire        jump_flag_i ,
     input   wire        hold_flag_i ,
