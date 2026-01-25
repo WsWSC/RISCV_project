@@ -27,7 +27,6 @@ module ex(
     output reg          hold_flag_o    
 );
 
-
     // R-type
     wire[6:0]   opcode;
     wire[4:0]   rd;
@@ -47,7 +46,10 @@ module ex(
     // I-type
     assign imm      = inst_i[31:20];
 
-    // calculate
+
+    // ============================================================
+    //  Calculators
+    // ============================================================
     // add
     wire [31:0] op1_add_op2_res;
     assign op1_add_op2_res = op1_i + op2_i;
