@@ -18,7 +18,7 @@ module core(
     // ============================================================
 
     // pc_reg to if
-    wire[31:0]  pc_reg_pc_o;
+    wire[31:0]  pc_reg_pc_addr_o;
 
     // if to if_id
     wire[31:0]  ifetch_inst_addr_o;
@@ -77,21 +77,25 @@ module core(
         // input
         .clk            (clk),
         .rst_n          (rst_n),
+
+        // from ctrl
         .jump_addr_i    (ctrl_jump_addr_o),    
         .jump_en_i      (ctrl_jump_en_o  ),
 
         // output
-        .pc_o           (pc_reg_pc_o)
+        .pc_addr_o      (pc_reg_pc_addr_o)
     );
 
     ifetch ifetch_inst(
         // from pc
-        .pc_addr_i       (pc_reg_pc_o),
+        .pc_addr_i       (pc_reg_pc_addr_o),
+        
         // from rom
         .rom_inst_i      (inst_i), 
         
         // to rom 
         .if2rom_addr_o   (inst_addr_o),
+
         // to if_id
         .inst_addr_o     (ifetch_inst_addr_o),
         .inst_o          (ifetch_inst_o)
@@ -198,10 +202,12 @@ module core(
     );
 
     ctrl ctrl_inst(
+        // from ex
         .jump_addr_i    (ex_jump_addr_o),
         .jump_en_i      (ex_jump_en_o  ),
         .hold_flag_i    (ex_hold_flag_o),
             
+        // to pc_reg & if_id & id_ex    
         .jump_addr_o    (ctrl_jump_addr_o),
         .jump_en_o      (ctrl_jump_en_o  ),
         .hold_flag_o    (ctrl_hold_flag_o)
