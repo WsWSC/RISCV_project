@@ -5,17 +5,27 @@
 //  License : Personal / Educational Use
 ////////////////////////////////////////////////////////////
 
-module ctrl(
-    input   wire        jump_flag_i ,
-    input   wire        hold_flag_i ,
-    input   wire[31:0]  jump_addr_i ,
+`include "defines.v"
 
-    output  wire        hold_flag_o ,
-    output  wire        jump_flag_o ,
-    output  wire[31:0]  jump_addr_o ,
-    output  wire        jump_en     
+module ctrl(
+    input  wire[31:0]   jump_addr_i ,
+    input  wire         jump_en_i   ,
+    input  wire         hold_flag_i ,
+
+    output reg[31:0]    jump_addr_o ,
+    output reg          jump_en_o   ,
+    output reg          hold_flag_o 
 );
 
+    always @(*) begin
+        jump_addr_o = jump_addr_i ;
+        jump_en_o   = jump_en_i   ;
 
+        if (jump_en_i || hold_flag_i) begin
+            hold_flag_o = `HoldEnable  ;
+        end else begin
+            hold_flag_o = `HoldDisable ;
+        end
+    end
 
 endmodule

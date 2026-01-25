@@ -9,13 +9,13 @@
 
 module ex(
     // from id_ex
-    input wire[31:0]   inst_addr_i  ,
-    input wire[31:0]   inst_i       ,  
-    input wire[31:0]   op1_i        ,
-    input wire[31:0]   op2_i        ,
-    input wire[4:0]    rd_addr_i    ,
-    input wire         reg_wen_i    ,
-
+    input  wire[31:0]   inst_addr_i ,
+    input  wire[31:0]   inst_i      ,  
+    input  wire[31:0]   op1_i       ,
+    input  wire[31:0]   op2_i       ,
+    input  wire[4:0]    rd_addr_i   ,
+    input  wire         reg_wen_i   ,
+ 
     // to regs
     output reg[4:0]     rd_addr_o   ,
     output reg[31:0]    rd_data_o   ,
@@ -25,8 +25,6 @@ module ex(
     output reg[31:0]    jump_addr_o ,
     output reg          jump_en_o   ,
     output reg          hold_flag_o    
-
-
 );
 
 
@@ -156,7 +154,9 @@ module ex(
                     end
 
                     default: begin
-
+                        jump_addr_o = `ZeroAddr    ;
+                        jump_en_o   = `JumpDisable ;
+                        hold_flag_o = `HoldDisable ;
                     end
 
                 
