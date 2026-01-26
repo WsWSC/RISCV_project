@@ -8,7 +8,7 @@
 // reg-related
 `define WriteEnable     1'b1
 `define WriteDisable    1'b0
-`define ZeroWord        32'h0
+`define ZeroWord        32'b0
 `define ZeroReg         5'b0
 
 // I type inst

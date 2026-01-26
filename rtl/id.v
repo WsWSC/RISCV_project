@@ -54,6 +54,15 @@ module id(
         inst_o = inst_i;
         inst_addr_o = inst_addr_i;
 
+        // defaults
+        //rs1_addr_o  = `ZeroReg      ;
+        //rs2_addr_o  = `ZeroReg      ;
+//
+        //op1_o       = `ZeroWord     ;
+        //op2_o       = `ZeroWord     ;
+        //rd_addr_o   = `ZeroReg      ;
+        //reg_wen_o   = `WriteDisable ;
+
         case(opcode) 
             `INST_TYPE_I: begin
                 case(funct3)
@@ -154,7 +163,7 @@ module id(
                         reg_wen_o   = `WriteDisable ;
                     end*/
 
-                    `INST_BNE: begin
+                    `INST_BEQ, `INST_BNE: begin
                         rs1_addr_o  = rs1           ;
                         rs2_addr_o  = rs2           ;
 
@@ -177,6 +186,16 @@ module id(
                 
                 endcase
             end
+
+            `INST_JAL: begin
+                rs1_addr_o  = `ZeroReg                                                           ;
+                rs2_addr_o  = `ZeroReg                                                           ;
+
+                op1_o       = {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0} ;
+                op2_o       = `ZeroWord                                                          ;
+                rd_addr_o   = rd                                                                 ; 
+                reg_wen_o   = `WriteEnable                                                       ;
+            end   
 
             default: begin
                 rs1_addr_o  = `ZeroReg      ;
