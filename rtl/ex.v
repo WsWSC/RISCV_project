@@ -64,8 +64,9 @@ module ex(
     wire [31:0] jump_pc_imm;
     assign jump_pc_imm = inst_addr_i + jump_imm ;
 
-    // 1 = equal, 0 = not equal
+    // for INST_BEQ & INST_BNE, 1 = equal, 0 = not equal
     wire branch_eq = (op1_i == op2_i);
+    
 
 
 
@@ -145,9 +146,11 @@ module ex(
 
             `INST_TYPE_B: begin
                 case(funct3)
-                    /*`INST_BLT: begin
-                        
-                    end*/
+                    `INST_BEQ: begin
+                        jump_addr_o = jump_pc_imm  ;
+                        jump_en_o   = branch_eq    ;
+                        hold_flag_o = `HoldDisable ;
+                    end
 
                     `INST_BNE: begin
                         jump_addr_o = jump_pc_imm  ;
@@ -165,14 +168,26 @@ module ex(
                 endcase
             end
 
-            default: begin
-                    rd_addr_o   = `ZeroReg      ;
-                    rd_data_o   = `ZeroWord     ;
-                    rd_wen_o    = `WriteDisable ;
-                    jump_addr_o = `ZeroAddr     ;
-                    jump_en_o   = `JumpDisable  ;
-                    hold_flag_o = `HoldDisable  ;
+            `INST_JAL: begin
+                rd_addr_o   = rd_addr_i           ;
+                rd_data_o   = inst_addr_i + 32'h4 ;
+                rd_wen_o    = `WriteEnable        ;
+
+                jump_addr_o = inst_addr_i + op1_i ;
+                jump_en_o   = `JumpEnable         ;
+                hold_flag_o = `HoldDisable        ;
             end
+
+            default: begin
+                rd_addr_o   = `ZeroReg      ;
+                rd_data_o   = `ZeroWord     ;
+                rd_wen_o    = `WriteDisable ;
+                
+                jump_addr_o = `ZeroAddr     ;
+                jump_en_o   = `JumpDisable  ;
+                hold_flag_o = `HoldDisable  ;
+            end
+
         endcase
     end
 
