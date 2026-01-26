@@ -141,7 +141,6 @@ module ex(
                         rd_wen_o    = `WriteDisable ;				
 					end
                 endcase
-
             end
 
             `INST_TYPE_B: begin
@@ -178,11 +177,21 @@ module ex(
                 hold_flag_o = `HoldDisable        ;
             end
 
+            `INST_LUI: begin
+                rd_addr_o   = rd_addr_i    ;
+                rd_data_o   = op1_i        ;
+                rd_wen_o    = `WriteEnable ;
+
+                jump_addr_o = `ZeroAddr     ;
+                jump_en_o   = `JumpDisable  ;
+                hold_flag_o = `HoldDisable  ;
+            end
+
             default: begin
                 rd_addr_o   = `ZeroReg      ;
                 rd_data_o   = `ZeroWord     ;
                 rd_wen_o    = `WriteDisable ;
-                
+
                 jump_addr_o = `ZeroAddr     ;
                 jump_en_o   = `JumpDisable  ;
                 hold_flag_o = `HoldDisable  ;

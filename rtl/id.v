@@ -197,6 +197,16 @@ module id(
                 reg_wen_o   = `WriteEnable                                                       ;
             end   
 
+            `INST_LUI: begin
+                rs1_addr_o  = `ZeroReg               ;
+                rs2_addr_o  = `ZeroReg               ;
+
+                op1_o       = {inst_i[31:12], 12'b0} ;
+                op2_o       = `ZeroWord              ;
+                rd_addr_o   = rd                     ;
+                reg_wen_o   = `WriteEnable           ;                                                    
+            end   
+
             default: begin
                 rs1_addr_o  = `ZeroReg      ;
                 rs2_addr_o  = `ZeroReg      ;

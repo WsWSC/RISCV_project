@@ -1,2 +1,4 @@
 .vscode/
 sim/
+tb/generated/
+tb/inst_txt/
