@@ -37,6 +37,7 @@ module id(
     wire[6:0]   funct7;
     // I-type
     wire[11:0]  imm;
+    wire[4:0]   shamt;
 
     // R-type
     assign opcode   = inst_i[6:0];
@@ -47,26 +48,30 @@ module id(
     assign funct7   = inst_i[31:25];
     // I-type
     assign imm      = inst_i[31:20];
+    assign shamt    = inst_i[24:20];
+    
 
-    // opcode, identify R-type or I-type
+    // ============================================================
+    //  Id-stage logic
+    // ============================================================
     always @(*) begin
         // send instr. to next stage
         inst_o = inst_i;
         inst_addr_o = inst_addr_i;
 
         // defaults
-        //rs1_addr_o  = `ZeroReg      ;
-        //rs2_addr_o  = `ZeroReg      ;
-//
-        //op1_o       = `ZeroWord     ;
-        //op2_o       = `ZeroWord     ;
-        //rd_addr_o   = `ZeroReg      ;
-        //reg_wen_o   = `WriteDisable ;
+        rs1_addr_o  = `ZeroReg      ;
+        rs2_addr_o  = `ZeroReg      ;
+
+        op1_o       = `ZeroWord     ;
+        op2_o       = `ZeroWord     ;
+        rd_addr_o   = `ZeroReg      ;
+        reg_wen_o   = `WriteDisable ;
 
         case(opcode) 
             `INST_TYPE_I: begin
                 case(funct3)
-                    `INST_ADDI: begin      // I-type, addi
+                    `INST_ADDI, `INST_SLTI, `INST_SLTIU, `INST_XORI, `INST_ORI, `INST_ANDI: begin 
                         rs1_addr_o  = rs1                   ;
                         rs2_addr_o  = `ZeroReg              ;
 
@@ -76,28 +81,17 @@ module id(
                         reg_wen_o   = `WriteEnable          ;
                     end
 
-                    /*`INST_SLTI : begin
-                    end
+                    `INST_SLLI, `INST_SRI: begin
+                        rs1_addr_o  = rs1            ;
+                        rs2_addr_o  = `ZeroReg       ;
 
-                    `INST_SLTIU: begin
+                        op1_o       = rs1_data_i     ;
+                        op2_o       = {27'b0, shamt} ;
+                        rd_addr_o   = rd             ;   
+                        reg_wen_o   = `WriteEnable   ;
                     end
-
-                    `INST_XORI : begin
-                    end
-
-                    `INST_ORI  : begin
-                    end
-
-                    `INST_ANDI : begin
-                    end
-
-                    `INST_SLLI : begin
-                    end
-
-                    `INST_SRI  : begin
-                    end
-                    */
-                    default    : begin
+                    
+                    default: begin
                         rs1_addr_o  = `ZeroReg      ;
                         rs2_addr_o  = `ZeroReg      ;
 

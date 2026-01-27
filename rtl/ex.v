@@ -50,27 +50,30 @@ module ex(
     // ============================================================
     //  Calculators
     // ============================================================
-    // add
-    wire [31:0] op1_add_op2_res;
-    assign op1_add_op2_res = op1_i + op2_i;
-    // sub
-    wire [31:0] op1_sub_op2_res;
-    assign op1_sub_op2_res = op1_i - op2_i;
 
-    // branch
-    wire [31:0] jump_imm;
-    assign jump_imm = {{19{inst_i[31]}}, inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
-    // branch addr. = pc + imm
-    wire [31:0] jump_pc_imm;
-    assign jump_pc_imm = inst_addr_i + jump_imm ;
+    // I-type
+    wire        op1_i_slti_op2_i  = ($signed(op1_i)  < $signed(op2_i));     // INST_SLTI  
+    wire        op1_i_sltiu_op2_i = (op1_i < op2_i);                        // INST_SLTIU  
+    wire[31:0]  op1_i_xori_op2_i  = (op1_i ^ op2_i);                        // INST_XORI  
+    wire[31:0]  op1_i_ori_op2_i   = (op1_i | op2_i);                        // INST_ORI  
+    wire[31:0]  op1_i_andi_op2_i  = (op1_i & op2_i);                        // INST_ANDI  
+    wire[31:0]  op1_i_slli_op2_i  = (op1_i << op2_i[4:0]);                  // INST_SLLI  
+    wire[31:0]  op1_i_srli_op2_i  = (op1_i >> op2_i[4:0]);                  // INST_SRLI  
+    wire[31:0]  op1_i_srai_op2_i  = ($signed(op1_i) >>> op2_i[4:0]);        // INST_SRAI 
 
-    // for INST_BEQ & INST_BNE, 1 = equal, 0 = not equal
-    wire branch_eq = (op1_i == op2_i);
-    
+    // R-type
+    wire[31:0]  op1_i_add_op2_i   = op1_i + op2_i;     // add  
+    wire[31:0]  op1_i_sub_op2_i   = op1_i - op2_i;     // sub  
 
+    // B-type   
+    wire[31:0]  jump_imm          = {{19{inst_i[31]}}, inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};  
+    wire[31:0]  jump_pc_imm       = inst_addr_i + jump_imm ;   // branch addr. = pc + imm  
+    wire        op1_i_equal_op2_i = ( op1_i == op2_i );        // for INST_BEQ & INST_BNE, 1 = equal, 0 = not equal  
+   
 
-
-    // opcode, identify instruction type
+    // ============================================================
+    //  Ex-stage logic
+    // ============================================================
     always @(*) begin
         // defaults
         rd_addr_o   = `ZeroReg      ;
@@ -84,33 +87,64 @@ module ex(
         case(opcode) 
             `INST_TYPE_I: begin
                 case(funct3)
-                    `INST_ADDI: begin      // I-type, addi
+                    `INST_ADDI: begin      
                         rd_addr_o = rd_addr_i       ;
-                        rd_data_o = op1_add_op2_res ;
+                        rd_data_o = op1_i_add_op2_i ;
                         rd_wen_o  = `WriteEnable    ;
                     end
 
-                    /*`INST_SLTI : begin
+                    `INST_SLTI : begin
+                        rd_addr_o = rd_addr_i                 ;
+                        rd_data_o = {31'b0, op1_i_slti_op2_i} ;
+                        rd_wen_o  = `WriteEnable              ;
                     end
 
                     `INST_SLTIU: begin
+                        rd_addr_o = rd_addr_i                  ;
+                        rd_data_o = {31'b0, op1_i_sltiu_op2_i} ;
+                        rd_wen_o  = `WriteEnable               ;
                     end
 
                     `INST_XORI : begin
+                        rd_addr_o = rd_addr_i        ;
+                        rd_data_o = op1_i_xori_op2_i ;
+                        rd_wen_o  = `WriteEnable     ;
                     end
 
                     `INST_ORI  : begin
+                        rd_addr_o = rd_addr_i       ;
+                        rd_data_o = op1_i_ori_op2_i ;
+                        rd_wen_o  = `WriteEnable    ;
                     end
 
                     `INST_ANDI : begin
+                        rd_addr_o = rd_addr_i        ;
+                        rd_data_o = op1_i_andi_op2_i ;
+                        rd_wen_o  = `WriteEnable     ;
                     end
 
                     `INST_SLLI : begin
+                        rd_addr_o = rd_addr_i        ;
+                        rd_data_o = op1_i_slli_op2_i ;
+                        rd_wen_o  = `WriteEnable     ;
                     end
 
                     `INST_SRI  : begin
+                        if (funct7 == 7'b000_0000) begin            // INST_SRLI
+                            rd_addr_o = rd_addr_i        ;
+                            rd_data_o = op1_i_srli_op2_i ;
+                            rd_wen_o  = `WriteEnable     ;
+                        end else if (funct7 == 7'b010_0000) begin   // INST_SRAI
+                            rd_addr_o = rd_addr_i        ;
+                            rd_data_o = op1_i_srai_op2_i ;
+                            rd_wen_o  = `WriteEnable     ;    
+                        end else begin                              // illegal input, funct7 error 
+                            rd_addr_o = `ZeroReg      ;
+                            rd_data_o = `ZeroWord     ;
+                            rd_wen_o  = `WriteDisable ;
+                        end
                     end
-                    */
+                    
                     default: begin
                         rd_addr_o = `ZeroReg      ;
                         rd_data_o = `ZeroWord     ;
@@ -125,11 +159,11 @@ module ex(
                     `INST_ADD_SUB: begin
                         if(funct7 == 7'b000_0000) begin     // add
                             rd_addr_o = rd_addr_i       ;
-                            rd_data_o = op1_add_op2_res ;
+                            rd_data_o = op1_i_add_op2_i ;
                             rd_wen_o  = `WriteEnable    ;
                         end else begin                      // sub
                             rd_addr_o = rd_addr_i       ;
-                            rd_data_o = op1_sub_op2_res ;
+                            rd_data_o = op1_i_sub_op2_i ;
                             rd_wen_o  = `WriteEnable    ;
                         end
                         
@@ -147,13 +181,13 @@ module ex(
                 case(funct3)
                     `INST_BEQ: begin
                         jump_addr_o = jump_pc_imm  ;
-                        jump_en_o   = branch_eq    ;
+                        jump_en_o   = op1_i_equal_op2_i    ;
                         hold_flag_o = `HoldDisable ;
                     end
 
                     `INST_BNE: begin
                         jump_addr_o = jump_pc_imm  ;
-                        jump_en_o   = ~branch_eq   ;
+                        jump_en_o   = ~op1_i_equal_op2_i   ;
                         hold_flag_o = `HoldDisable ;
                     end
 
