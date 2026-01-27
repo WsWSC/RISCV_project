@@ -24,7 +24,7 @@ module tb;
 
     // rom default val
     initial begin
-        $readmemh("../tb/inst_txt/rv32ui-p-addi.txt", tb.soc_inst.rom_inst.rom_mem);
+        $readmemh("../tb/inst_txt/rv32ui-p-sra.txt", tb.soc_inst.rom_inst.rom_mem);
     end
 
     //initial begin
@@ -52,7 +52,6 @@ module tb;
             $display("##################################\n");
             $display("##########     pass     ##########\n");
             $display("##################################\n");
-
         end else begin
             $display("##################################\n");
             $display("##########     fail     ##########\n");
