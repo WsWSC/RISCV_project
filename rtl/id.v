@@ -108,7 +108,7 @@ module id(
             // R-type
             `INST_TYPE_R_M: begin
                 case(funct3)
-                    `INST_ADD_SUB: begin
+                    `INST_ADD_SUB, `INST_SLT, `INST_SLTU, `INST_XOR, `INST_OR, `INST_AND: begin
                         rs1_addr_o  = rs1;
                         rs2_addr_o  = rs2;
 
@@ -117,25 +117,18 @@ module id(
                         rd_addr_o   = rd;
                         reg_wen_o   = `WriteEnable;
                     end
-                  /*`INST_SLL: begin
 
-                    end
-                    `INST_SLT: begin
+                    `INST_SLL, `INST_SR: begin
+                        rs1_addr_o  = rs1;
+                        rs2_addr_o  = rs2;
 
+                        op1_o       = rs1_data_i;
+                        op2_o       = {27'b0, rs2_data_i[4:0]};
+                        rd_addr_o   = rd;
+                        reg_wen_o   = `WriteEnable;
                     end
-                    `INST_SLTU: begin
-                    end
-                    `INST_XOR: begin
-                    end
-                    `INST_SR: begin
-                    end
-                    `INST_OR: begin
-                    end
-                    `INST_AND: begin
-                    end 
-                    */
 
-                     default: begin
+                    default: begin
                         rs1_addr_o  = `ZeroReg      ;
                         rs2_addr_o  = `ZeroReg      ;
 
