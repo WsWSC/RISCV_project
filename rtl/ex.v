@@ -74,6 +74,7 @@ module ex(
     // ============================================================
     //  Ex-stage logic
     // ============================================================
+    
     always @(*) begin
         // defaults
         rd_addr_o   = `ZeroReg      ;
@@ -85,6 +86,7 @@ module ex(
         hold_flag_o = `HoldDisable  ;
 
         case(opcode) 
+            // I-type
             `INST_TYPE_I: begin
                 case(funct3)
                     `INST_ADDI: begin      
@@ -154,6 +156,7 @@ module ex(
                 endcase
             end
 
+            // R-type
             `INST_TYPE_R_M: begin
                 case(funct3)
                     `INST_ADD_SUB: begin
@@ -177,6 +180,7 @@ module ex(
                 endcase
             end
 
+            // B-type
             `INST_TYPE_B: begin
                 case(funct3)
                     `INST_BEQ: begin
@@ -201,6 +205,7 @@ module ex(
                 endcase
             end
 
+            // J-type
             `INST_JAL: begin
                 rd_addr_o   = rd_addr_i           ;
                 rd_data_o   = inst_addr_i + 32'h4 ;

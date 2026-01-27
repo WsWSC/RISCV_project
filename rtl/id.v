@@ -49,7 +49,7 @@ module id(
     // I-type
     assign imm      = inst_i[31:20];
     assign shamt    = inst_i[24:20];
-    
+
 
     // ============================================================
     //  Id-stage logic
@@ -69,6 +69,7 @@ module id(
         reg_wen_o   = `WriteDisable ;
 
         case(opcode) 
+            // I-type
             `INST_TYPE_I: begin
                 case(funct3)
                     `INST_ADDI, `INST_SLTI, `INST_SLTIU, `INST_XORI, `INST_ORI, `INST_ANDI: begin 
@@ -104,6 +105,7 @@ module id(
                 endcase
             end
 
+            // R-type
             `INST_TYPE_R_M: begin
                 case(funct3)
                     `INST_ADD_SUB: begin
@@ -145,6 +147,7 @@ module id(
                 endcase
             end
 
+            // B-type
             `INST_TYPE_B: begin
                 case(funct3)
                     /*`INST_BLT: begin
@@ -181,6 +184,7 @@ module id(
                 endcase
             end
 
+            // J-type
             `INST_JAL: begin
                 rs1_addr_o  = `ZeroReg                                                           ;
                 rs2_addr_o  = `ZeroReg                                                           ;
