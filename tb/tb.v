@@ -24,7 +24,7 @@ module tb;
 
     // rom default val
     initial begin
-        $readmemh("../tb/inst_txt/rv32ui-p-sra.txt", tb.soc_inst.rom_inst.rom_mem);
+        $readmemh("../tb/inst_txt/rv32ui-p-bne.txt", tb.soc_inst.rom_inst.rom_mem);
     end
 
     //initial begin

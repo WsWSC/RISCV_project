@@ -285,7 +285,6 @@ module ex(
                         hold_flag_o = `HoldDisable      ;
                     end
 
-                
                 endcase
             end
 
