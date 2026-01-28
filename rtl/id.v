@@ -167,23 +167,45 @@ module id(
                 endcase
             end
 
-            // J-type
+            // J-type jump
             `INST_JAL: begin
                 rs1_addr_o  = `ZeroReg                                                           ;
                 rs2_addr_o  = `ZeroReg                                                           ;
 
-                op1_o       = {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0} ;
-                op2_o       = `ZeroWord                                                          ;
+                op1_o       = inst_addr_i                                                        ;      // pc
+                op2_o       = {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0} ;      // imm
                 rd_addr_o   = rd                                                                 ; 
                 reg_wen_o   = `WriteEnable                                                       ;
+            end  
+
+            // I-type jump
+            `INST_JALR: begin
+                rs1_addr_o  = rs1                 ;
+                rs2_addr_o  = `ZeroReg            ;
+
+                op1_o       = rs1_data_i          ;
+                op2_o       = {{20{imm[11]}},imm} ;
+                rd_addr_o   = rd                  ;
+                reg_wen_o   = `WriteEnable        ;
             end   
 
+            // U-type
             `INST_LUI: begin
                 rs1_addr_o  = `ZeroReg               ;
                 rs2_addr_o  = `ZeroReg               ;
 
                 op1_o       = {inst_i[31:12], 12'b0} ;
                 op2_o       = `ZeroWord              ;
+                rd_addr_o   = rd                     ;
+                reg_wen_o   = `WriteEnable           ;                                                    
+            end   
+
+            `INST_AUIPC: begin
+                rs1_addr_o  = `ZeroReg               ;
+                rs2_addr_o  = `ZeroReg               ;
+
+                op1_o       = inst_addr_i            ;
+                op2_o       = {inst_i[31:12], 12'b0} ;
                 rd_addr_o   = rd                     ;
                 reg_wen_o   = `WriteEnable           ;                                                    
             end   

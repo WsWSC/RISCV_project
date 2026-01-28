@@ -237,6 +237,7 @@ module ex(
                         rd_data_o   = `ZeroWord         ;
                         rd_wen_o    = `WriteDisable     ;				
 					end
+
                 endcase
             end
 
@@ -288,21 +289,43 @@ module ex(
                 endcase
             end
 
-            // J-type
+            // J-type jump
             `INST_JAL: begin
                 rd_addr_o   = rd_addr_i           ;
                 rd_data_o   = inst_addr_i + 32'h4 ;
                 rd_wen_o    = `WriteEnable        ;
 
-                jump_addr_o = inst_addr_i + op1_i ;
+                jump_addr_o = op1_i_add_op2_i     ;
                 jump_en_o   = `JumpEnable         ;
                 hold_flag_o = `HoldDisable        ;
             end
 
+            // I-type jump
+            `INST_JALR: begin
+                rd_addr_o   = rd_addr_i                         ;
+                rd_data_o   = inst_addr_i + 32'h4               ;
+                rd_wen_o    = `WriteEnable                      ;
+
+                jump_addr_o = (op1_i_add_op2_i) & 32'hFFFF_FFFE ;       // JALR sets the least-significant bit of the target address to zero.
+                jump_en_o   = `JumpEnable                       ;
+                hold_flag_o = `HoldDisable                      ;
+            end
+
+            // U-type
             `INST_LUI: begin
                 rd_addr_o   = rd_addr_i    ;
                 rd_data_o   = op1_i        ;
                 rd_wen_o    = `WriteEnable ;
+
+                jump_addr_o = `ZeroAddr     ;
+                jump_en_o   = `JumpDisable  ;
+                hold_flag_o = `HoldDisable  ;
+            end
+
+            `INST_AUIPC: begin
+                rd_addr_o   = rd_addr_i       ;
+                rd_data_o   = op1_i_add_op2_i ;
+                rd_wen_o    = `WriteEnable    ;
 
                 jump_addr_o = `ZeroAddr     ;
                 jump_en_o   = `JumpDisable  ;
