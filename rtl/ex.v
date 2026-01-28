@@ -52,8 +52,8 @@ module ex(
     // ============================================================
 
     // I-type
-    wire[31:0]  op1_i_slt_op2_i   = ($signed(op1_i)  < $signed(op2_i)) ? 32'd1 : 32'd0;     // INST_SLTI  & INST_SLT
-    wire[31:0]  op1_i_sltu_op2_i  = (op1_i < op2_i)                    ? 32'd1 : 32'd0;     // INST_SLTIU & INST_SLTU 
+    wire[31:0]  op1_i_slt_op2_i   = ($signed(op1_i) < $signed(op2_i)) ? 32'd1 : 32'd0;      // INST_SLTI  & INST_SLT
+    wire[31:0]  op1_i_sltu_op2_i  = (op1_i < op2_i)                   ? 32'd1 : 32'd0;      // INST_SLTIU & INST_SLTU 
     wire[31:0]  op1_i_xor_op2_i   = (op1_i ^ op2_i);                                        // INST_XORI  & INST_XOR
     wire[31:0]  op1_i_or_op2_i    = (op1_i | op2_i);                                        // INST_ORI   & INST_OR
     wire[31:0]  op1_i_and_op2_i   = (op1_i & op2_i);                                        // INST_ANDI  & INST_AND
@@ -68,7 +68,12 @@ module ex(
     // B-type   
     wire[31:0]  jump_imm          = {{19{inst_i[31]}}, inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};  
     wire[31:0]  jump_pc_imm       = inst_addr_i + jump_imm ;                                // branch addr. = pc + imm  
-    wire        op1_i_equal_op2_i = ( op1_i == op2_i );                                     // for INST_BEQ & INST_BNE, 1 = equal, 0 = not equal  
+    wire        op1_i_eq_op2_i    = (op1_i == op2_i);                                       // INST_BEQ 
+    wire        op1_i_ne_op2_i    = (op1_i != op2_i);                                       // INST_BNE
+    wire        op1_i_lt_op2_i    = ($signed(op1_i) <  $signed(op2_i));                     // INST_BLT,  1 = op1_i <  op2_i, 0 = op1_i >= op2_i
+    wire        op1_i_ge_op2_i    = ($signed(op1_i) >= $signed(op2_i));                     // INST_BGE,  1 = op1_i >= op2_i, 0 = op1_i <  op2_i
+    wire        op1_i_ltu_op2_i   = (op1_i < op2_i );                                       // INST_BLTU, 1 = op1_i <  op2_i, 0 = op1_i >= op2_i
+    wire        op1_i_geu_op2_i   = (op1_i >= op2_i);                                       // INST_BGEU, 1 = op1_i >= op2_i, 0 = op1_i <  op2_i
    
 
     // ============================================================
@@ -90,67 +95,67 @@ module ex(
             `INST_TYPE_I: begin
                 case(funct3)
                     `INST_ADDI: begin      
-                        rd_addr_o = rd_addr_i       ;
-                        rd_data_o = op1_i_add_op2_i ;
-                        rd_wen_o  = `WriteEnable    ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_add_op2_i     ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_SLTI : begin
-                        rd_addr_o = rd_addr_i       ;
-                        rd_data_o = op1_i_slt_op2_i ;
-                        rd_wen_o  = `WriteEnable    ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_slt_op2_i     ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_SLTIU: begin
-                        rd_addr_o = rd_addr_i        ;
-                        rd_data_o = op1_i_sltu_op2_i ;
-                        rd_wen_o  = `WriteEnable     ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_sltu_op2_i    ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_XORI : begin
-                        rd_addr_o = rd_addr_i       ;
-                        rd_data_o = op1_i_xor_op2_i ;
-                        rd_wen_o  = `WriteEnable    ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_xor_op2_i     ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_ORI  : begin
-                        rd_addr_o = rd_addr_i      ;
-                        rd_data_o = op1_i_or_op2_i ;
-                        rd_wen_o  = `WriteEnable   ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_or_op2_i      ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_ANDI : begin
-                        rd_addr_o = rd_addr_i       ;
-                        rd_data_o = op1_i_and_op2_i ;
-                        rd_wen_o  = `WriteEnable    ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_and_op2_i     ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_SLLI : begin
-                        rd_addr_o = rd_addr_i       ;
-                        rd_data_o = op1_i_sll_op2_i ;
-                        rd_wen_o  = `WriteEnable    ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_sll_op2_i     ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_SRI  : begin
                         if (funct7 == 7'b000_0000) begin            // INST_SRLI
-                            rd_addr_o = rd_addr_i        ;
+                            rd_addr_o = rd_addr_i       ;
                             rd_data_o = op1_i_srl_op2_i ;
-                            rd_wen_o  = `WriteEnable     ;
+                            rd_wen_o  = `WriteEnable    ;
                         end else if (funct7 == 7'b010_0000) begin   // INST_SRAI
-                            rd_addr_o = rd_addr_i        ;
+                            rd_addr_o = rd_addr_i       ;
                             rd_data_o = op1_i_sra_op2_i ;
-                            rd_wen_o  = `WriteEnable     ;    
+                            rd_wen_o  = `WriteEnable    ;    
                         end else begin                              // illegal input, funct7 error 
-                            rd_addr_o = `ZeroReg      ;
-                            rd_data_o = `ZeroWord     ;
-                            rd_wen_o  = `WriteDisable ;
+                            rd_addr_o = `ZeroReg        ;
+                            rd_data_o = `ZeroWord       ;
+                            rd_wen_o  = `WriteDisable   ;
                         end
                     end
                     
                     default: begin
-                        rd_addr_o = `ZeroReg      ;
-                        rd_data_o = `ZeroWord     ;
-                        rd_wen_o  = `WriteDisable ;
+                        rd_addr_o = `ZeroReg            ;
+                        rd_data_o = `ZeroWord           ;
+                        rd_wen_o  = `WriteDisable       ;
                     end
                     
                 endcase
@@ -160,77 +165,77 @@ module ex(
             `INST_TYPE_R_M: begin
                 case(funct3)
                     `INST_ADD_SUB: begin
-                        if (funct7 == 7'b000_0000) begin                // add
-                            rd_addr_o   = rd_addr_i       ;
-                            rd_data_o   = op1_i_add_op2_i ;
-                            rd_wen_o    = `WriteEnable    ;
-                        end else if (funct7 == 7'b010_0000) begin       // sub
-                            rd_addr_o   = rd_addr_i       ;
-                            rd_data_o   = op1_i_sub_op2_i ;
-                            rd_wen_o    = `WriteEnable    ;
+                        if (funct7 == 7'b000_0000) begin            // add
+                            rd_addr_o = rd_addr_i       ;
+                            rd_data_o = op1_i_add_op2_i ;
+                            rd_wen_o  = `WriteEnable    ;
+                        end else if (funct7 == 7'b010_0000) begin   // sub
+                            rd_addr_o = rd_addr_i       ;
+                            rd_data_o = op1_i_sub_op2_i ;
+                            rd_wen_o  = `WriteEnable    ;
                         end else begin
-                            rd_addr_o   = `ZeroReg      ;
-                            rd_data_o   = `ZeroWord     ;
-                            rd_wen_o    = `WriteDisable ;
+                            rd_addr_o = `ZeroReg        ;
+                            rd_data_o = `ZeroWord       ;
+                            rd_wen_o  = `WriteDisable   ;
                         end  
                     end
 
                     `INST_SLL: begin
-                        rd_addr_o = rd_addr_i       ;
-                        rd_data_o = op1_i_sll_op2_i ;
-                        rd_wen_o  = `WriteEnable    ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_sll_op2_i     ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_SLT: begin
-                        rd_addr_o = rd_addr_i       ;
-                        rd_data_o = op1_i_slt_op2_i ;
-                        rd_wen_o  = `WriteEnable    ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_slt_op2_i     ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_SLTU: begin
-                        rd_addr_o = rd_addr_i        ;
-                        rd_data_o = op1_i_sltu_op2_i ;
-                        rd_wen_o  = `WriteEnable     ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_sltu_op2_i    ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_XOR: begin
-                        rd_addr_o = rd_addr_i       ;
-                        rd_data_o = op1_i_xor_op2_i ;
-                        rd_wen_o  = `WriteEnable    ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_xor_op2_i     ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_SR: begin
                         if (funct7 == 7'b000_0000) begin            // INST_SRL
-                            rd_addr_o = rd_addr_i        ;
+                            rd_addr_o = rd_addr_i       ;
                             rd_data_o = op1_i_srl_op2_i ;
-                            rd_wen_o  = `WriteEnable     ;
+                            rd_wen_o  = `WriteEnable    ;
                         end else if (funct7 == 7'b010_0000) begin   // INST_SRA
-                            rd_addr_o = rd_addr_i        ;
+                            rd_addr_o = rd_addr_i       ;
                             rd_data_o = op1_i_sra_op2_i ;
-                            rd_wen_o  = `WriteEnable     ;    
+                            rd_wen_o  = `WriteEnable    ;    
                         end else begin                              // illegal input, funct7 error 
-                            rd_addr_o = `ZeroReg      ;
-                            rd_data_o = `ZeroWord     ;
-                            rd_wen_o  = `WriteDisable ;
+                            rd_addr_o = `ZeroReg        ;
+                            rd_data_o = `ZeroWord       ;
+                            rd_wen_o  = `WriteDisable   ;
                         end
                     end
 
                     `INST_OR: begin
-                        rd_addr_o = rd_addr_i      ;
-                        rd_data_o = op1_i_or_op2_i ;
-                        rd_wen_o  = `WriteEnable   ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_or_op2_i      ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     `INST_AND: begin
-                        rd_addr_o = rd_addr_i       ;
-                        rd_data_o = op1_i_and_op2_i ;
-                        rd_wen_o  = `WriteEnable    ;
+                        rd_addr_o = rd_addr_i           ;
+                        rd_data_o = op1_i_and_op2_i     ;
+                        rd_wen_o  = `WriteEnable        ;
                     end
 
                     default: begin
-                        rd_addr_o   = `ZeroReg      ;
-                        rd_data_o   = `ZeroWord     ;
-                        rd_wen_o    = `WriteDisable ;				
+                        rd_addr_o   = `ZeroReg          ;
+                        rd_data_o   = `ZeroWord         ;
+                        rd_wen_o    = `WriteDisable     ;				
 					end
                 endcase
             end
@@ -239,21 +244,45 @@ module ex(
             `INST_TYPE_B: begin
                 case(funct3)
                     `INST_BEQ: begin
-                        jump_addr_o = jump_pc_imm  ;
-                        jump_en_o   = op1_i_equal_op2_i    ;
-                        hold_flag_o = `HoldDisable ;
+                        jump_addr_o = jump_pc_imm       ;
+                        jump_en_o   = op1_i_eq_op2_i    ;
+                        hold_flag_o = `HoldDisable      ;
                     end
 
                     `INST_BNE: begin
-                        jump_addr_o = jump_pc_imm  ;
-                        jump_en_o   = ~op1_i_equal_op2_i   ;
-                        hold_flag_o = `HoldDisable ;
+                        jump_addr_o = jump_pc_imm       ;
+                        jump_en_o   = op1_i_ne_op2_i    ;
+                        hold_flag_o = `HoldDisable      ;
+                    end
+
+                    `INST_BLT: begin
+                        jump_addr_o = jump_pc_imm       ;
+                        jump_en_o   = op1_i_lt_op2_i    ;
+                        hold_flag_o = `HoldDisable      ;
+                    end
+
+                    `INST_BGE: begin
+                        jump_addr_o = jump_pc_imm       ;
+                        jump_en_o   = op1_i_ge_op2_i    ;
+                        hold_flag_o = `HoldDisable      ;
+                    end
+
+                    `INST_BLTU: begin
+                        jump_addr_o = jump_pc_imm       ;
+                        jump_en_o   = op1_i_ltu_op2_i   ;
+                        hold_flag_o = `HoldDisable      ;
+                    end
+
+                    `INST_BGEU: begin
+                        jump_addr_o = jump_pc_imm       ;
+                        jump_en_o   = op1_i_geu_op2_i   ;
+                        hold_flag_o = `HoldDisable      ;
                     end
 
                     default: begin
-                        jump_addr_o = `ZeroAddr    ;
-                        jump_en_o   = `JumpDisable ;
-                        hold_flag_o = `HoldDisable ;
+                        jump_addr_o = `ZeroAddr         ;
+                        jump_en_o   = `JumpDisable      ;
+                        hold_flag_o = `HoldDisable      ;
                     end
 
                 

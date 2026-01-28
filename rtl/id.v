@@ -137,23 +137,14 @@ module id(
                         rd_addr_o   = `ZeroReg      ;
                         reg_wen_o   = `WriteDisable ;
                     end
+
                 endcase
             end
 
             // B-type
             `INST_TYPE_B: begin
                 case(funct3)
-                    /*`INST_BLT: begin
-                        rs1_addr_o  = rs1           ;
-                        rs2_addr_o  = rs2           ;
-
-                        op1_o       = rs1_data_i    ;
-                        op2_o       = rs2_data_i    ;
-                        rd_addr_o   = rd            ;   
-                        reg_wen_o   = `WriteDisable ;
-                    end*/
-
-                    `INST_BEQ, `INST_BNE: begin
+                    `INST_BEQ, `INST_BNE, `INST_BLT, `INST_BGE, `INST_BLTU, `INST_BGEU: begin
                         rs1_addr_o  = rs1           ;
                         rs2_addr_o  = rs2           ;
 
@@ -173,7 +164,6 @@ module id(
                         reg_wen_o   = `WriteDisable ;
                     end
 
-                
                 endcase
             end
 
@@ -207,6 +197,7 @@ module id(
                 rd_addr_o   = `ZeroReg      ;
                 reg_wen_o   = `WriteDisable ;
             end
+
         endcase
     end
 
