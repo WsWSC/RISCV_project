@@ -1,4 +1,3 @@
 .vscode/
-sim/
-tb/generated/
-tb/inst_txt/
+sim_modelsim/
+tb
