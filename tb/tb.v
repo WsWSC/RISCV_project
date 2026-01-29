@@ -24,7 +24,8 @@ module tb;
 
     // rom default val
     initial begin
-        $readmemh("../tb/inst_txt/rv32ui-p-auipc.txt", tb.soc_inst.rom_inst.rom_mem);
+        //$readmemh("../sim/inst_txt/rv32ui-p-auipc.txt", tb.soc_inst.rom_inst.rom_mem);
+        $readmemh("../sim/generated/inst_data.txt", tb.soc_inst.rom_inst.rom_mem);
     end
 
     //initial begin
@@ -63,6 +64,8 @@ module tb;
             end
         end
 
+        $finish();
+        
 	end
 
     soc soc_inst(

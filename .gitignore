@@ -1,3 +1,21 @@
+# VS Code
 .vscode/
+
+# ModelSim runtime artifacts
 sim_modelsim/
-tb
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Icarus Verilog / simulation outputs
+sim/
+
+# Simulation generated data
+sim/generated/
+sim/inst_txt/
+
+# Temporary / log files
+*.log
+*.wlf
+transcript
