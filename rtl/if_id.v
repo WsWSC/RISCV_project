@@ -6,7 +6,6 @@
 ////////////////////////////////////////////////////////////
 
 `include "defines.v"
-`include "dff_set.v"
 
 module if_id(
     input  wire         clk,

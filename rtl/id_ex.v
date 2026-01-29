@@ -6,7 +6,6 @@
 ////////////////////////////////////////////////////////////
 
 `include "defines.v"
-`include "dff_set.v"
 
 module id_ex(
     input  wire         clk,

@@ -24,20 +24,19 @@ module tb;
 
     // rom default val
     initial begin
-        //$readmemh("../sim/inst_txt/rv32ui-p-auipc.txt", tb.soc_inst.rom_inst.rom_mem);
+        // modelsim used
+        //$readmemh("../sim/generated/rv32ui-p-auipc.txt", tb.soc_inst.rom_inst.rom_mem);
+        // python auto test used
         $readmemh("../sim/generated/inst_data.txt", tb.soc_inst.rom_inst.rom_mem);
     end
 
-    //initial begin
-    //    while (1) begin
-    //        @(posedge clk)
-    //        $display("=================\n");
-    //        $display("x3  reg val is %d\n", tb.soc_inst.core_inst.regs_inst.regs[3] );
-    //        $display("x27 reg val is %d\n", tb.soc_inst.core_inst.regs_inst.regs[27]);
-    //        $display("x28 reg val is %d\n", tb.soc_inst.core_inst.regs_inst.regs[28]);
-    //        #10;
-    //    end
-    //end
+    // gtkwave used
+    /*
+    initial begin
+        $dumpfile("tb.vcd");
+        $dumpvars;
+    end
+    */
 
     wire [31:0] x3  = tb.soc_inst.core_inst.regs_inst.regs[3]  ;
     wire [31:0] x26 = tb.soc_inst.core_inst.regs_inst.regs[26] ;
@@ -64,8 +63,11 @@ module tb;
             end
         end
 
+
         $finish();
-        
+        //$stop;
+
+
 	end
 
     soc soc_inst(
