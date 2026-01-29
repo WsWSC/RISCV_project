@@ -1,4 +1,4 @@
-# risc_v_project
+# RISCV_project
 3-stage Pipeline RISC-V CPU Implementation
 
 本專案為一個以 Verilog HDL 實作的 **3-stage Pipeline RISC-V 處理器核心**，  
