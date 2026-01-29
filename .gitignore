@@ -8,12 +8,11 @@ sim_modelsim/
 __pycache__/
 *.pyc
 
-# Icarus Verilog / simulation outputs
-sim/
-
 # Simulation generated data
 sim/generated/
 sim/inst_txt/
+sim/__pycache__/
+sim/*.vvp
 
 # Temporary / log files
 *.log
