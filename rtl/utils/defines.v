@@ -5,6 +5,23 @@
 //  License : Personal / Educational Use
 ////////////////////////////////////////////////////////////
 
+// common regs
+`define RegAddrBus      4:0
+`define RegBus          31:0
+`define DoubleRegBus    63:0
+`define RegWidth        32
+`define RegNum          32          // reg num
+`define RegNumLog2      5
+
+// common mem
+`define RomNum          4096        // rom depth(how many words)
+`define MemNum          4096        // memory depth(how many words)
+`define MemAddrBus      31:0
+`define MemDataBus      31:0
+
+`define InstAddrBus     31:0
+`define InstDataBus     31:0
+
 // reg-related
 `define WriteEnable     1'b1
 `define WriteDisable    1'b0
