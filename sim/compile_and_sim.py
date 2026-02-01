@@ -48,50 +48,53 @@ def bin_to_mem(infile, outfile):
 
     binfile.close()
     datafile.close()
-
+ 
 
 def compile():
-    # get project root directory
-    rtl_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
+    # project root = RISCV_PROJECT
+    root_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
 
-    # build iverilog command 
-    iverilog_cmd = ['iverilog']
+    iverilog_cmd = ['iverilog', '-g2012']
 
-    # output compiled simulation file
-    iverilog_cmd += ['-o', r'out.vvp']
+    # output
+    iverilog_cmd += ['-o', 'out.vvp']
 
-    # RTL headers (e.g., defines.v)
-    iverilog_cmd += ['-I', rtl_dir + r'/rtl']
-    iverilog_cmd += ['-I', rtl_dir + r'/utils'] 
-    iverilog_cmd.append(rtl_dir + r'/rtl/defines.v')
-    # testbench 
-    iverilog_cmd.append(rtl_dir + r'/tb/tb.v')
+    # include paths
+    iverilog_cmd += ['-I', root_dir + '/rtl']
+    iverilog_cmd += ['-I', root_dir + '/rtl/utils']
+    iverilog_cmd += ['-I', root_dir + '/rtl/core']
+    iverilog_cmd += ['-I', root_dir + '/rtl/mem']
+    iverilog_cmd += ['-I', root_dir + '/rtl/soc']
 
-    # core RTL 
-    iverilog_cmd.append(rtl_dir + r'/rtl/core.v')
-    iverilog_cmd.append(rtl_dir + r'/rtl/pc_reg.v')
-    iverilog_cmd.append(rtl_dir + r'/rtl/regs.v')
+    # testbench
+    iverilog_cmd.append(root_dir + '/tb/tb.v')
 
-    iverilog_cmd.append(rtl_dir + r'/rtl/ifetch.v')
-    iverilog_cmd.append(rtl_dir + r'/rtl/if_id.v')
-    iverilog_cmd.append(rtl_dir + r'/rtl/id.v')
-    iverilog_cmd.append(rtl_dir + r'/rtl/id_ex.v')
-    iverilog_cmd.append(rtl_dir + r'/rtl/ex.v')
+    # utils
+    iverilog_cmd.append(root_dir + '/rtl/utils/defines.v')
+    iverilog_cmd.append(root_dir + '/rtl/utils/dff_set.v')
 
-    iverilog_cmd.append(rtl_dir + r'/rtl/ctrl.v')
-    # iverilog_cmd.append(rtl_dir + r'/rtl/ram.v')
-    iverilog_cmd.append(rtl_dir + r'/rtl/rom.v')
+    # core
+    iverilog_cmd.append(root_dir + '/rtl/core/core.v')
+    iverilog_cmd.append(root_dir + '/rtl/core/pc_reg.v')
+    iverilog_cmd.append(root_dir + '/rtl/core/regs.v')
 
-    # common utility modules
-    iverilog_cmd.append(rtl_dir + r'/utils/dff_set.v')
-    # iverilog_cmd.append(rtl_dir + r'/utils/dual_ram.v')
+    iverilog_cmd.append(root_dir + '/rtl/core/if_id.v')
+    iverilog_cmd.append(root_dir + '/rtl/core/id.v')
+    iverilog_cmd.append(root_dir + '/rtl/core/id_ex.v')
+    iverilog_cmd.append(root_dir + '/rtl/core/ex.v')
+    iverilog_cmd.append(root_dir + '/rtl/core/ctrl.v')
 
-    # top-level SoC module
-    iverilog_cmd.append(rtl_dir + r'/rtl/soc.v')
+    # memory
+    iverilog_cmd.append(root_dir + '/rtl/mem/ram_array.v')
+    iverilog_cmd.append(root_dir + '/rtl/mem/dual_ram.v')
+    iverilog_cmd.append(root_dir + '/rtl/mem/inst_mem.v')
 
-    # compile RTL and testbench
+    # SoC top
+    iverilog_cmd.append(root_dir + '/rtl/soc/soc.v')
+
+    # compile
     process = subprocess.Popen(iverilog_cmd)
-    process.wait(timeout=5)
+    process.wait(timeout=10)
 
 
 def sim():
