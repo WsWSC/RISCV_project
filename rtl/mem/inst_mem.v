@@ -20,7 +20,7 @@ module inst_mem(
     input  wire                 r_en_i      ,
     input  wire[`MemAddrBus]    r_addr_i    ,
 
-    output reg [`MemDataBus]    r_data_o    
+    output wire[`MemDataBus]    r_data_o    
 );
 
     wire [11:0] w_idx = w_addr_i[13:2];
@@ -36,12 +36,12 @@ module inst_mem(
         .rst_n       (rst_n     ),
 
         // write data   
-        .w_en        (w_en_i    ),
+        .w_en_i      (w_en_i    ),
         .w_addr_i    (w_idx     ),
         .w_data_i    (w_data_i  ),
 
         // read data    
-        .r_en        (r_en_i    ),
+        .r_en_i      (r_en_i    ),
         .r_addr_i    (r_idx     ),
 
         .r_data_o    (r_data_o  )

@@ -17,17 +17,14 @@ module core(
     //  Wire Declarations
     // ============================================================
 
-    // pc_reg to if
+    // pc_reg to inst_mem / if_id
     wire[31:0]  pc_reg_pc_addr_o;
-
-    // if to if_id
-    wire[31:0]  ifetch_inst_addr_o;
-    wire[31:0]  ifetch_inst_o;
+    assign inst_addr_o = pc_reg_pc_addr_o;
 
     // if_id to id
     wire[31:0]  if_id_inst_addr_o;
     wire[31:0]  if_id_inst_o;
-
+ 
     // id to regs
     wire[4:0]   id_rs1_addr_o;
     wire[4:0]   id_rs2_addr_o;
@@ -86,21 +83,6 @@ module core(
         .pc_addr_o      (pc_reg_pc_addr_o)
     );
 
-    ifetch ifetch_inst(
-        // from pc
-        .pc_addr_i       (pc_reg_pc_addr_o),
-        
-        // from rom
-        .rom_inst_i      (inst_i), 
-        
-        // to rom 
-        .if2rom_addr_o   (inst_addr_o),
-
-        // to if_id
-        .inst_addr_o     (ifetch_inst_addr_o),
-        .inst_o          (ifetch_inst_o)
-    );
-
     if_id if_id_inst(
         .clk            (clk),
         .rst_n          (rst_n),
@@ -108,9 +90,9 @@ module core(
         //from ctrl
         .hold_flag_i    (ctrl_hold_flag_o),
 
-        // from ifetch
-        .inst_addr_i    (ifetch_inst_addr_o),
-        .inst_i         (ifetch_inst_o),
+        // from inst_mem
+        .inst_addr_i    (pc_reg_pc_addr_o),
+        .inst_i         (inst_i),
 
         // to id
         .inst_addr_o    (if_id_inst_addr_o),
@@ -136,7 +118,7 @@ module core(
         .op1_o          (id_op1_o),
         .op2_o          (id_op2_o),
         .rd_addr_o      (id_rd_addr_o),
-        .reg_wen_o        (id_reg_wen_o)  
+        .reg_wen_o      (id_reg_wen_o)  
     );
 
     regs regs_inst(

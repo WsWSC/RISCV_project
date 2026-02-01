@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////
+//  RISC-V CPU Side Project
+//  Author  : WsWSC
+//  Created : 2026
+//  License : Personal / Educational Use
+////////////////////////////////////////////////////////////
+
 module dual_ram #(
     parameter DW = 32,
     parameter AW = 12,

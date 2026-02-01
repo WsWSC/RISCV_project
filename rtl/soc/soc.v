@@ -14,11 +14,11 @@ module soc(
     //  Wire Declarations
     // ============================================================
 
-    // core to rom
+    // core to inst_mem
     wire[31:0]  core_inst_addr_o;
 
-    // rom to core
-    wire[31:0]  rom_inst_o;
+    // inst_mem to core
+    wire[31:0]  inst_mem_inst_o;
 
 
     // ============================================================
@@ -26,17 +26,27 @@ module soc(
     // ============================================================
 
     core core_inst(
-        .clk            (clk),
-        .rst_n          (rst_n),
-        .inst_i         (rom_inst_o),
-        
-        .inst_addr_o    (core_inst_addr_o)
+        .clk            (clk                ),
+        .rst_n          (rst_n              ),
+        .inst_i         (inst_mem_inst_o    ),
+
+        .inst_addr_o    (core_inst_addr_o   )
     );
 
-    rom rom_inst(
-        .inst_addr_i    (core_inst_addr_o),
+    inst_mem inst_mem_inst(
+        .clk            (clk                ),
+        .rst_n          (rst_n              ),
 
-        .inst_o         (rom_inst_o)
+        // write data, #todo
+        .w_en_i         (1'b0),
+        .w_addr_i       (32'b0),
+        .w_data_i       (32'b0),
+
+        // read data, always enable
+        .r_en_i         (1'b1),
+        .r_addr_i       (core_inst_addr_o    ),
+
+        .r_data_o       (inst_mem_inst_o     )
     );
 
 endmodule

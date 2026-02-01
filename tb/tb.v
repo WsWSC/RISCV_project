@@ -25,9 +25,9 @@ module tb;
     // rom default val
     initial begin
         // modelsim used
-        //$readmemh("../sim/generated/rv32ui-p-auipc.txt", tb.soc_inst.rom_inst.rom_mem);
+        //$readmemh("../sim/generated/rv32ui-p-auipc.txt", tb.soc_inst.inst_mem_inst.dual_ram_inst.ram_array_inst.memory);
         // python auto test used
-        $readmemh("../sim/generated/inst_data.txt", tb.soc_inst.rom_inst.rom_mem);
+        $readmemh("../sim/generated/inst_data.txt", tb.soc_inst.inst_mem_inst.dual_ram_inst.ram_array_inst.memory);
     end
 
     // gtkwave used
@@ -63,10 +63,7 @@ module tb;
             end
         end
 
-
         $finish();
-        //$stop;
-
 
 	end
 

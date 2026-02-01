@@ -8,7 +8,7 @@
 `ifndef __DFF_SET_V__
 `define __DFF_SET_V__
 
-`include "../rtl/defines.v"
+`include "defines.v"
 
 // module reuse
 module dff_set #(
