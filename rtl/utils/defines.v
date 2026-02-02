@@ -5,30 +5,51 @@
 //  License : Personal / Educational Use
 ////////////////////////////////////////////////////////////
 
-// common regs
+// ============================================================
+// Control flags
+// ============================================================
+`define JumpEnable      1'b1
+`define JumpDisable     1'b0
+`define HoldEnable      1'b1
+`define HoldDisable     1'b0
+`define WriteEnable     1'b1
+`define WriteDisable    1'b0
+`define ReadEnable      1'b1
+`define ReadDisable     1'b0
+
+
+// ============================================================
+// Bus widths / sizes
+// ============================================================
+// Reg related
 `define RegAddrBus      4:0
 `define RegBus          31:0
 `define DoubleRegBus    63:0
-`define RegWidth        32
-`define RegNum          32          // reg num
+`define RegNum          32
 `define RegNumLog2      5
 
-// common mem
-`define RomNum          4096        // rom depth(how many words)
-`define MemNum          4096        // memory depth(how many words)
+// Mem related
 `define MemAddrBus      31:0
 `define MemDataBus      31:0
+`define MemNum          4096
 
+// Inst related
 `define InstAddrBus     31:0
 `define InstDataBus     31:0
 
-// reg-related
-`define WriteEnable     1'b1
-`define WriteDisable    1'b0
+
+// ============================================================
+// Common constants
+// ============================================================
 `define ZeroWord        32'b0
 `define ZeroReg         5'b0
+`define ZeroAddr        32'b0
 
-// I type inst
+
+// ============================================================
+// Instruction encodings (opcode / funct3 groups)
+// ============================================================
+// I-type (opcode = 0010011)
 `define INST_TYPE_I     7'b0010011
 `define INST_ADDI       3'b000
 `define INST_SLTI       3'b010
@@ -39,21 +60,7 @@
 `define INST_SLLI       3'b001
 `define INST_SRI        3'b101
 
-// L type inst
-`define INST_TYPE_L     7'b0000011
-`define INST_LB         3'b000
-`define INST_LH         3'b001
-`define INST_LW         3'b010
-`define INST_LBU        3'b100
-`define INST_LHU        3'b101
-
-// S type inst
-`define INST_TYPE_S     7'b0100011
-`define INST_SB         3'b000
-`define INST_SH         3'b001
-`define INST_SW         3'b010
-
-// R and M type inst
+// R/M-type (opcode = 0110011)
 `define INST_TYPE_R_M   7'b0110011
 // R type inst
 `define INST_ADD_SUB    3'b000
@@ -74,7 +81,31 @@
 `define INST_REM        3'b110
 `define INST_REMU       3'b111
 
-// J type inst
+// Branch (opcode = 1100011) 
+`define INST_TYPE_B     7'b1100011
+`define INST_BEQ        3'b000
+`define INST_BNE        3'b001
+`define INST_BLT        3'b100
+`define INST_BGE        3'b101
+`define INST_BLTU       3'b110
+`define INST_BGEU       3'b111
+
+
+// L-type loads (opcode = 0000011)
+`define INST_TYPE_L     7'b0000011
+`define INST_LB         3'b000
+`define INST_LH         3'b001
+`define INST_LW         3'b010
+`define INST_LBU        3'b100
+`define INST_LHU        3'b101
+
+// S-type stores (opcode = 0100011)
+`define INST_TYPE_S     7'b0100011
+`define INST_SB         3'b000
+`define INST_SH         3'b001
+`define INST_SW         3'b010
+
+// Jumps / U-type / fence (opcode constants)
 `define INST_JAL        7'b1101111
 `define INST_JALR       7'b1100111
 
@@ -88,18 +119,3 @@
 `define INST_FENCE      7'b0001111
 `define INST_ECALL      32'h73
 `define INST_EBREAK     32'h00100073
-
-// J type inst  
-`define INST_TYPE_B     7'b1100011
-`define INST_BEQ        3'b000
-`define INST_BNE        3'b001
-`define INST_BLT        3'b100
-`define INST_BGE        3'b101
-`define INST_BLTU       3'b110
-`define INST_BGEU       3'b111
-
-`define ZeroAddr        32'b0
-`define JumpEnable      1'b1
-`define JumpDisable     1'b0
-`define HoldEnable      1'b1
-`define HoldDisable     1'b0
