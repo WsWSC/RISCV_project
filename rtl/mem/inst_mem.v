@@ -32,19 +32,19 @@ module inst_mem(
         .MEM_NUM    (4096)
     ) dual_ram_inst
     (
-        .clk         (clk       ),
-        .rst_n       (rst_n     ),
+        .clk        (clk       ),
+        .rst_n      (rst_n     ),
 
         // write data   
-        .w_en_i      (w_en_i    ),
-        .w_addr_i    (w_idx     ),
-        .w_data_i    (w_data_i  ),
+        .w_en_i     (w_en_i    ),
+        .w_addr_i   (w_idx     ),
+        .w_data_i   (w_data_i  ),
 
         // read data    
-        .r_en_i      (r_en_i    ),
-        .r_addr_i    (r_idx     ),
+        .r_en_i     (r_en_i    ),
+        .r_addr_i   (r_idx     ),
 
-        .r_data_o    (r_data_o  )
+        .r_data_o   (r_data_o  )
     );
 
 endmodule

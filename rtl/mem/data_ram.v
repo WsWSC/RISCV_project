@@ -33,19 +33,19 @@ module data_ram (
         .MEM_NUM    (4096)
     ) data_ram_byte0
     (
-        .clk        (clk           ),
-        .rst_n      (rst_n         ),
-
-        // write data        
-        .w_en_i     (w_en_i[0]     ),
-        .w_addr_i   (w_addr_i      ),
-        .w_data_i   (w_data_i[7:0] ),
-
-        // read data       
-        .r_en_i     (r_en_i        ),
-        .r_addr_i   (r_addr_i      ),
-
-        .r_data_o   (r_data_o[7:0] )
+        .clk        (clk                ),
+        .rst_n      (rst_n              ),
+        
+        // write data               
+        .w_en_i     (w_en_i[0]          ),
+        .w_addr_i   (w_addr_i           ),
+        .w_data_i   (w_data_i[7:0]      ),
+        
+        // read data            
+        .r_en_i     (r_en_i             ),
+        .r_addr_i   (r_addr_i           ),
+        
+        .r_data_o   (r_data_o[7:0]      )
     );
 
     // byte 1
@@ -53,7 +53,7 @@ module data_ram (
         .DW         (8),
         .AW         (12),
         .MEM_NUM    (4096)
-    ) data_ram_byte0
+    ) data_ram_byte1
     (
         .clk        (clk                ),
         .rst_n      (rst_n              ),
@@ -75,7 +75,7 @@ module data_ram (
         .DW         (8),
         .AW         (12),
         .MEM_NUM    (4096)
-    ) data_ram_byte0
+    ) data_ram_byte2
     (
         .clk        (clk                ),
         .rst_n      (rst_n              ),
@@ -97,7 +97,7 @@ module data_ram (
         .DW         (8),
         .AW         (12),
         .MEM_NUM    (4096)
-    ) data_ram_byte0
+    ) data_ram_byte3
     (
         .clk        (clk                ),
         .rst_n      (rst_n              ),
