@@ -90,7 +90,6 @@
 `define INST_BLTU       3'b110
 `define INST_BGEU       3'b111
 
-
 // L-type loads (opcode = 0000011)
 `define INST_TYPE_L     7'b0000011
 `define INST_LB         3'b000

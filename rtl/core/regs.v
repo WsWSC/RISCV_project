@@ -12,17 +12,17 @@ module regs(
     input wire rst_n,
 
     // from id
-    input wire[4:0]     reg1_raddr_i,
-    input wire[4:0]     reg2_raddr_i,
+    input wire[4:0]     reg1_r_addr_i,
+    input wire[4:0]     reg2_r_addr_i,
 
     // to id
-    output reg[31:0]    reg1_rdata_o,
-    output reg[31:0]    reg2_rdata_o,
+    output reg[31:0]    reg1_r_data_o,
+    output reg[31:0]    reg2_r_data_o,
 
     // from ex
-    input wire[4:0]     reg_waddr_i,
-    input wire[31:0]    reg_wdata_i,
-    input               reg_wen_i
+    input wire[4:0]     reg_w_addr_i,
+    input wire[31:0]    reg_w_data_i,
+    input               reg_w_en_i
 );
 
     reg[31:0] regs[0:31];
@@ -31,26 +31,26 @@ module regs(
     // id stage, read rs1 data
     always @(*) begin
         if(rst_n == 1'b0) begin
-            reg1_rdata_o = `ZeroWord;
-        end else if (reg1_raddr_i == `ZeroReg) begin
-            reg1_rdata_o = `ZeroWord;
-        end else if (reg_wen_i && (reg1_raddr_i == reg_waddr_i) && (reg_waddr_i != `ZeroReg) ) begin   // RAW hazard forwarding: forward EX write-back to ID read port (exclude x0)
-            reg1_rdata_o = reg_wdata_i;
+            reg1_r_data_o = `ZeroWord;
+        end else if (reg1_r_addr_i == `ZeroReg) begin
+            reg1_r_data_o = `ZeroWord;
+        end else if (reg_w_en_i && (reg1_r_addr_i == reg_w_addr_i) && (reg_w_addr_i != `ZeroReg) ) begin   // RAW hazard forwarding: forward EX write-back to ID read port (exclude x0)
+            reg1_r_data_o = reg_w_data_i;
         end else begin
-            reg1_rdata_o = regs[reg1_raddr_i];
+            reg1_r_data_o = regs[reg1_r_addr_i];
         end
     end
 
     // id stage, read rs2 data
     always @(*) begin
         if(rst_n == 1'b0) begin
-            reg2_rdata_o = `ZeroWord;
-        end else if (reg2_raddr_i == `ZeroReg) begin
-            reg2_rdata_o = `ZeroWord;
-        end else if (reg_wen_i && (reg2_raddr_i == reg_waddr_i) && (reg_waddr_i != `ZeroReg) ) begin   // RAW hazard forwarding: forward EX write-back to ID read port (exclude x0)
-            reg2_rdata_o = reg_wdata_i;
+            reg2_r_data_o = `ZeroWord;
+        end else if (reg2_r_addr_i == `ZeroReg) begin
+            reg2_r_data_o = `ZeroWord;
+        end else if (reg_w_en_i && (reg2_r_addr_i == reg_w_addr_i) && (reg_w_addr_i != `ZeroReg) ) begin   // RAW hazard forwarding: forward EX write-back to ID read port (exclude x0)
+            reg2_r_data_o = reg_w_data_i;
         end else begin
-            reg2_rdata_o = regs[reg2_raddr_i];
+            reg2_r_data_o = regs[reg2_r_addr_i];
         end
     end
 
@@ -60,8 +60,8 @@ module regs(
             for (i = 1; i <= 31; i = i + 1) begin     // reg x0 is always 0, no need reset
                 regs[i] <= `ZeroWord;
             end
-        end else if(reg_wen_i && (reg_waddr_i != `ZeroReg) ) begin
-            regs[reg_waddr_i] <= reg_wdata_i;
+        end else if(reg_w_en_i && (reg_w_addr_i != `ZeroReg) ) begin
+            regs[reg_w_addr_i] <= reg_w_data_i;
         end
     end
 
