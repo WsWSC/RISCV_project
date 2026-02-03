@@ -9,24 +9,30 @@
 
 module id(
     // from if_id
-    input wire[31:0]    inst_addr_i ,       // return from "if_id"
-    input wire[31:0]    inst_i      ,       // return from "if_id"
+    input wire[31:0]    inst_addr_i         ,       // return from "if_id"
+    input wire[31:0]    inst_i              ,       // return from "if_id"
 
-    // to regs
-    output reg[4:0]     rs1_addr_o  ,       // send to "regs", it's reg addr. output
-    output reg[4:0]     rs2_addr_o  ,       // send to "regs", it's reg addr. output
+    // to regs      
+    output reg[4:0]     rs1_addr_o          ,       // send to "regs", it's reg addr. output
+    output reg[4:0]     rs2_addr_o          ,       // send to "regs", it's reg addr. output
 
-    // from regs    
-    input wire[31:0]    rs1_data_i  ,       // return from "regs", it's actual data input
-    input wire[31:0]    rs2_data_i  ,       // return from "regs", it's actual data input
+    // from regs            
+    input wire[31:0]    rs1_data_i          ,       // return from "regs", it's actual data input
+    input wire[31:0]    rs2_data_i          ,       // return from "regs", it's actual data input
 
-    // to id_ex
-    output reg[31:0]    inst_addr_o ,
-    output reg[31:0]    inst_o      ,
-    output reg[31:0]    op1_o       ,       // send to "id_ex" DFF, = rs1_data_o
-    output reg[31:0]    op2_o       ,       // send to "id_ex" DFF, = rs2_data_o
-    output reg[4:0]     rd_addr_o   ,       // send to "id_ex" DFF, rd register addr.
-    output reg          reg_wen_o           // send to "id_ex" DFF, reg_wen_o = reg write enable 
+    // to id_ex     
+    output reg[31:0]    inst_addr_o         ,       
+    output reg[31:0]    inst_o              ,       
+    output reg[31:0]    op1_o               ,       // send to "id_ex" DFF, = rs1_data_o
+    output reg[31:0]    op2_o               ,       // send to "id_ex" DFF, = rs2_data_o
+    output reg[4:0]     rd_addr_o           ,       // send to "id_ex" DFF, rd register addr.
+    output reg          reg_wen_o           ,       // send to "id_ex" DFF, reg_wen_o = reg write enable 
+    output reg[31:0]    base_addr_o         ,       // b/l/s type used
+    output reg[31:0]    addr_offset_o       ,
+
+    // to data_ram
+    output reg          data_ram_rd_req_o   ,
+    output reg[31:0]    data_ram_addr_o
 );
 
     // R-type
@@ -60,13 +66,18 @@ module id(
         inst_addr_o = inst_addr_i;
 
         // defaults
-        rs1_addr_o  = `ZeroReg      ;
-        rs2_addr_o  = `ZeroReg      ;
+        rs1_addr_o          = `ZeroReg      ;
+        rs2_addr_o          = `ZeroReg      ;
 
-        op1_o       = `ZeroWord     ;
-        op2_o       = `ZeroWord     ;
-        rd_addr_o   = `ZeroReg      ;
-        reg_wen_o   = `WriteDisable ;
+        op1_o               = `ZeroWord     ;
+        op2_o               = `ZeroWord     ;
+        rd_addr_o           = `ZeroReg      ;
+        reg_wen_o           = `WriteDisable ;
+        base_addr_o         = `ZeroAddr     ;
+        addr_offset_o       = `ZeroWord     ;
+
+        data_ram_rd_req_o   = `ReadDisable  ;  
+        data_ram_addr_o     = `ZeroAddr     ;
 
         case(opcode) 
             // I-type
@@ -77,7 +88,7 @@ module id(
                         rs2_addr_o  = `ZeroReg              ;
 
                         op1_o       = rs1_data_i            ;
-                        op2_o       = {{20{imm[11]}},imm}   ;
+                        op2_o       = {{20{imm[11]}}, imm}  ;
                         rd_addr_o   = rd                    ;   
                         reg_wen_o   = `WriteEnable          ;
                     end
@@ -145,28 +156,68 @@ module id(
             `INST_TYPE_B: begin
                 case(funct3)
                     `INST_BEQ, `INST_BNE, `INST_BLT, `INST_BGE, `INST_BLTU, `INST_BGEU: begin
-                        rs1_addr_o  = rs1           ;
-                        rs2_addr_o  = rs2           ;
+                        rs1_addr_o      = rs1           ;
+                        rs2_addr_o      = rs2           ;
 
-                        op1_o       = rs1_data_i    ;
-                        op2_o       = rs2_data_i    ;
-                        rd_addr_o   = `ZeroReg      ;   
-                        reg_wen_o   = `WriteDisable ;
+                        op1_o           = rs1_data_i    ;
+                        op2_o           = rs2_data_i    ;
+                        rd_addr_o       = `ZeroReg      ;   
+                        reg_wen_o       = `WriteDisable ;
+                        base_addr_o     = inst_addr_i   ;
+                        addr_offset_o   = {{19{inst_i[31]}}, inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
                     end
 
                     default: begin
-                        rs1_addr_o  = `ZeroReg      ;
-                        rs2_addr_o  = `ZeroReg      ;
+                        rs1_addr_o      = `ZeroReg      ;
+                        rs2_addr_o      = `ZeroReg      ;
 
-                        op1_o       = `ZeroWord     ;
-                        op2_o       = `ZeroWord     ;
-                        rd_addr_o   = `ZeroReg      ;
-                        reg_wen_o   = `WriteDisable ;
+                        op1_o           = `ZeroWord     ;
+                        op2_o           = `ZeroWord     ;
+                        rd_addr_o       = `ZeroReg      ;
+                        reg_wen_o       = `WriteDisable ;
+                        base_addr_o     = `ZeroAddr     ;
+                        addr_offset_o   = `ZeroWord     ;
                     end
 
                 endcase
             end
 
+            // L-type
+            `INST_TYPE_L: begin
+                case (funct3)
+                    `INST_LB, `INST_LH, `INST_LW, `INST_LBU, `INST_LHU: begin
+                        rs1_addr_o          = rs1                   ;
+                        rs2_addr_o          = `ZeroReg              ;
+
+                        op1_o               = `ZeroWord             ;
+                        op2_o               = `ZeroWord             ;
+                        rd_addr_o           = `ZeroReg              ;   
+                        reg_wen_o           = `WriteDisable         ;
+                        base_addr_o         = rs1_data_i            ;
+                        addr_offset_o       = {{20{imm[11]}}, imm}  ;
+
+                        data_ram_rd_req_o   = `ReadEnable                       ;  
+                        data_ram_addr_o     = rs1_data_i + {{20{imm[11]}}, imm} ;
+                    end
+
+                    default: begin
+                        rs1_addr_o          = `ZeroReg      ;
+                        rs2_addr_o          = `ZeroReg      ;
+
+                        op1_o               = `ZeroWord     ;
+                        op2_o               = `ZeroWord     ;
+                        rd_addr_o           = `ZeroReg      ;
+                        reg_wen_o           = `WriteDisable ;
+                        base_addr_o         = `ZeroAddr     ;
+                        addr_offset_o       = `ZeroWord     ;
+
+                        data_ram_rd_req_o   = `ReadDisable  ;  
+                        data_ram_addr_o     = `ZeroAddr     ;
+                    end
+
+                endcase
+            end
+            
             // J-type jump
             `INST_JAL: begin
                 rs1_addr_o  = `ZeroReg                                                           ;
@@ -180,13 +231,13 @@ module id(
 
             // I-type jump
             `INST_JALR: begin
-                rs1_addr_o  = rs1                 ;
-                rs2_addr_o  = `ZeroReg            ;
+                rs1_addr_o  = rs1                   ;
+                rs2_addr_o  = `ZeroReg              ;
 
-                op1_o       = rs1_data_i          ;
-                op2_o       = {{20{imm[11]}},imm} ;
-                rd_addr_o   = rd                  ;
-                reg_wen_o   = `WriteEnable        ;
+                op1_o       = rs1_data_i            ;
+                op2_o       = {{20{imm[11]}}, imm}  ;
+                rd_addr_o   = rd                    ;
+                reg_wen_o   = `WriteEnable          ;
             end   
 
             // U-type

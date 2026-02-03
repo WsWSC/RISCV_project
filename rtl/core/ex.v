@@ -9,21 +9,23 @@
 
 module ex(
     // from id_ex
-    input  wire[31:0]   inst_addr_i ,
-    input  wire[31:0]   inst_i      ,  
-    input  wire[31:0]   op1_i       ,
-    input  wire[31:0]   op2_i       ,
-    input  wire[4:0]    rd_addr_i   ,
-    input  wire         reg_wen_i   ,
+    input  wire[31:0]   inst_addr_i     ,
+    input  wire[31:0]   inst_i          ,  
+    input  wire[31:0]   op1_i           ,
+    input  wire[31:0]   op2_i           ,
+    input  wire[4:0]    rd_addr_i       ,
+    input  wire         reg_wen_i       ,
+    input  wire[31:0]   base_addr_i     , 
+    input  wire[31:0]   addr_offset_i   ,
  
     // to regs
-    output reg[4:0]     rd_addr_o   ,
-    output reg[31:0]    rd_data_o   ,
-    output reg          rd_wen_o    ,
+    output reg[4:0]     rd_addr_o       ,
+    output reg[31:0]    rd_data_o       ,
+    output reg          rd_wen_o        ,
         
     // to ctrl
-    output reg[31:0]    jump_addr_o ,
-    output reg          jump_en_o   ,
+    output reg[31:0]    jump_addr_o     ,
+    output reg          jump_en_o       ,
     output reg          hold_flag_o    
 );
 
@@ -66,8 +68,9 @@ module ex(
     wire[31:0]  op1_i_sub_op2_i   = (op1_i - op2_i);                                        // INST_ADD_SUB sub
 
     // B-type   
-    wire[31:0]  jump_imm          = {{19{inst_i[31]}}, inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};  
-    wire[31:0]  jump_pc_imm       = inst_addr_i + jump_imm ;                                // branch addr. = pc + imm  
+    //wire[31:0]  jump_imm          = {{19{inst_i[31]}}, inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};  
+    //wire[31:0]  jump_pc_imm       = inst_addr_i + jump_imm ;                                // branch addr. = pc + imm  
+    wire[31:0]  base_addr_add_addr_offset   = (base_addr_i + addr_offset_i);                // branch addr. = pc + imm
     wire        op1_i_eq_op2_i    = (op1_i == op2_i);                                       // INST_BEQ 
     wire        op1_i_ne_op2_i    = (op1_i != op2_i);                                       // INST_BNE
     wire        op1_i_lt_op2_i    = ($signed(op1_i) <  $signed(op2_i));                     // INST_BLT,  1 = op1_i <  op2_i, 0 = op1_i >= op2_i
@@ -245,45 +248,45 @@ module ex(
             `INST_TYPE_B: begin
                 case(funct3)
                     `INST_BEQ: begin
-                        jump_addr_o = jump_pc_imm       ;
-                        jump_en_o   = op1_i_eq_op2_i    ;
-                        hold_flag_o = `HoldDisable      ;
+                        jump_addr_o = base_addr_add_addr_offset ;
+                        jump_en_o   = op1_i_eq_op2_i            ;
+                        hold_flag_o = `HoldDisable              ;
                     end
 
                     `INST_BNE: begin
-                        jump_addr_o = jump_pc_imm       ;
-                        jump_en_o   = op1_i_ne_op2_i    ;
-                        hold_flag_o = `HoldDisable      ;
+                        jump_addr_o = base_addr_add_addr_offset ;
+                        jump_en_o   = op1_i_ne_op2_i            ;
+                        hold_flag_o = `HoldDisable              ;
                     end
 
                     `INST_BLT: begin
-                        jump_addr_o = jump_pc_imm       ;
-                        jump_en_o   = op1_i_lt_op2_i    ;
-                        hold_flag_o = `HoldDisable      ;
+                        jump_addr_o = base_addr_add_addr_offset ;
+                        jump_en_o   = op1_i_lt_op2_i            ;
+                        hold_flag_o = `HoldDisable              ;
                     end
 
                     `INST_BGE: begin
-                        jump_addr_o = jump_pc_imm       ;
-                        jump_en_o   = op1_i_ge_op2_i    ;
-                        hold_flag_o = `HoldDisable      ;
+                        jump_addr_o = base_addr_add_addr_offset ;
+                        jump_en_o   = op1_i_ge_op2_i            ;
+                        hold_flag_o = `HoldDisable              ;
                     end
 
                     `INST_BLTU: begin
-                        jump_addr_o = jump_pc_imm       ;
-                        jump_en_o   = op1_i_ltu_op2_i   ;
-                        hold_flag_o = `HoldDisable      ;
+                        jump_addr_o = base_addr_add_addr_offset ;
+                        jump_en_o   = op1_i_ltu_op2_i           ;
+                        hold_flag_o = `HoldDisable              ;
                     end
 
                     `INST_BGEU: begin
-                        jump_addr_o = jump_pc_imm       ;
-                        jump_en_o   = op1_i_geu_op2_i   ;
-                        hold_flag_o = `HoldDisable      ;
+                        jump_addr_o = base_addr_add_addr_offset ;
+                        jump_en_o   = op1_i_geu_op2_i           ;
+                        hold_flag_o = `HoldDisable              ;
                     end
 
                     default: begin
-                        jump_addr_o = `ZeroAddr         ;
-                        jump_en_o   = `JumpDisable      ;
-                        hold_flag_o = `HoldDisable      ;
+                        jump_addr_o = `ZeroAddr     ;
+                        jump_en_o   = `JumpDisable  ;
+                        hold_flag_o = `HoldDisable  ;
                     end
 
                 endcase
@@ -306,16 +309,16 @@ module ex(
                 rd_data_o   = inst_addr_i + 32'h4               ;
                 rd_wen_o    = `WriteEnable                      ;
 
-                jump_addr_o = (op1_i_add_op2_i) & 32'hFFFF_FFFE ;       // JALR sets the least-significant bit of the target address to zero.
+                jump_addr_o = (op1_i_add_op2_i) & 32'hFFFF_FFFE ;       // JALR sets the least-significant bit of the target address to zero
                 jump_en_o   = `JumpEnable                       ;
                 hold_flag_o = `HoldDisable                      ;
             end
 
             // U-type
             `INST_LUI: begin
-                rd_addr_o   = rd_addr_i    ;
-                rd_data_o   = op1_i        ;
-                rd_wen_o    = `WriteEnable ;
+                rd_addr_o   = rd_addr_i     ;
+                rd_data_o   = op1_i         ;
+                rd_wen_o    = `WriteEnable  ;
 
                 jump_addr_o = `ZeroAddr     ;
                 jump_en_o   = `JumpDisable  ;
@@ -323,13 +326,13 @@ module ex(
             end
 
             `INST_AUIPC: begin
-                rd_addr_o   = rd_addr_i       ;
-                rd_data_o   = op1_i_add_op2_i ;
-                rd_wen_o    = `WriteEnable    ;
+                rd_addr_o   = rd_addr_i         ;
+                rd_data_o   = op1_i_add_op2_i   ;
+                rd_wen_o    = `WriteEnable      ;
 
-                jump_addr_o = `ZeroAddr     ;
-                jump_en_o   = `JumpDisable  ;
-                hold_flag_o = `HoldDisable  ;
+                jump_addr_o = `ZeroAddr         ;
+                jump_en_o   = `JumpDisable      ;
+                hold_flag_o = `HoldDisable      ;
             end
 
             default: begin
