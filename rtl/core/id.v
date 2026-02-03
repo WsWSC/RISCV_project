@@ -26,12 +26,12 @@ module id(
     output reg[31:0]    op1_o               ,       // send to "id_ex" DFF, = rs1_data_o
     output reg[31:0]    op2_o               ,       // send to "id_ex" DFF, = rs2_data_o
     output reg[4:0]     rd_addr_o           ,       // send to "id_ex" DFF, rd register addr.
-    output reg          reg_w_en_o         ,       // send to "id_ex" DFF, reg_w_en_o = reg write enable 
+    output reg          reg_w_en_o          ,       // send to "id_ex" DFF, reg_w_en_o = reg write enable 
     output reg[31:0]    base_addr_o         ,       // b/l/s type used
     output reg[31:0]    addr_offset_o       ,
 
     // to data_ram
-    output reg          data_ram_r_en_o    ,
+    output reg          data_ram_r_en_o     ,
     output reg[31:0]    data_ram_r_addr_o
 );
 
@@ -48,7 +48,8 @@ module id(
     wire[4:0]   shamt   = inst_i[24:20];
 
     // B-type
-    wire[11:0]  B_imm   = {inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+    wire[12:0]  B_imm   = {inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
+
 
     // L-type
     wire[11:0]  L_imm   = inst_i[31:20];
@@ -57,7 +58,7 @@ module id(
     wire[11:0]  S_imm   = {inst_i[31:25], inst_i[11:7]};
 
     // J-type
-    wire[11:0]  J_imm   = {inst_i[31], inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
+    wire[20:0]  J_imm   = {inst_i[31], inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
 
 
     // ============================================================
@@ -75,12 +76,12 @@ module id(
         op1_o               = `ZeroWord     ;
         op2_o               = `ZeroWord     ;
         rd_addr_o           = `ZeroReg      ;
-        reg_w_en_o         = `WriteDisable ;
+        reg_w_en_o          = `WriteDisable ;
         base_addr_o         = `ZeroAddr     ;
         addr_offset_o       = `ZeroWord     ;
 
-        data_ram_r_en_o    = `ReadDisable  ;  
-        data_ram_r_addr_o  = `ZeroAddr     ;
+        data_ram_r_en_o     = `ReadDisable  ;  
+        data_ram_r_addr_o   = `ZeroAddr     ;
 
         case(opcode) 
             // I-type
@@ -159,15 +160,15 @@ module id(
             `INST_TYPE_B: begin
                 case(funct3)
                     `INST_BEQ, `INST_BNE, `INST_BLT, `INST_BGE, `INST_BLTU, `INST_BGEU: begin
-                        rs1_addr_o      = rs1           ;
-                        rs2_addr_o      = rs2           ;
+                        rs1_addr_o      = rs1                       ;
+                        rs2_addr_o      = rs2                       ;
 
-                        op1_o           = rs1_data_i    ;
-                        op2_o           = rs2_data_i    ;
-                        rd_addr_o       = `ZeroReg      ;   
-                        reg_w_en_o     = `WriteDisable ;
-                        base_addr_o     = inst_addr_i   ;
-                        addr_offset_o   = {{20{B_imm[11]}}, B_imm}         ;
+                        op1_o           = rs1_data_i                ;
+                        op2_o           = rs2_data_i                ;
+                        rd_addr_o       = `ZeroReg                  ;   
+                        reg_w_en_o     = `WriteDisable              ;
+                        base_addr_o     = inst_addr_i               ;
+                        addr_offset_o = {{19{B_imm[12]}}, B_imm}    ;
                     end
 
                     default: begin
@@ -231,12 +232,12 @@ module id(
                         op1_o               = `ZeroWord                 ;
                         op2_o               = rs2_data_i                ;
                         rd_addr_o           = `ZeroReg                  ;   
-                        reg_w_en_o         = `WriteDisable             ;
+                        reg_w_en_o          = `WriteDisable             ;
                         base_addr_o         = rs1_data_i                ;
                         addr_offset_o       = {{20{S_imm[11]}}, S_imm}  ;
 
-                        data_ram_r_en_o    = `ReadDisable  ;  
-                        data_ram_r_addr_o  = `ZeroAddr     ;
+                        data_ram_r_en_o     = `ReadDisable  ;  
+                        data_ram_r_addr_o   = `ZeroAddr     ;
                     end
 
                     default: begin
@@ -246,12 +247,12 @@ module id(
                         op1_o               = `ZeroWord     ;
                         op2_o               = `ZeroWord     ;
                         rd_addr_o           = `ZeroReg      ;
-                        reg_w_en_o         = `WriteDisable ;
+                        reg_w_en_o          = `WriteDisable ;
                         base_addr_o         = `ZeroAddr     ;
                         addr_offset_o       = `ZeroWord     ;
 
-                        data_ram_r_en_o    = `ReadDisable  ;  
-                        data_ram_r_addr_o  = `ZeroAddr     ;
+                        data_ram_r_en_o     = `ReadDisable  ;  
+                        data_ram_r_addr_o   = `ZeroAddr     ;
                     end
 
                 endcase
@@ -259,24 +260,28 @@ module id(
             
             // J-type jump
             `INST_JAL: begin
-                rs1_addr_o  = `ZeroReg                  ;
-                rs2_addr_o  = `ZeroReg                  ;
+                rs1_addr_o      = `ZeroReg                  ;
+                rs2_addr_o      = `ZeroReg                  ;
 
-                op1_o       = inst_addr_i               ;      // pc
-                op2_o       = {{11{J_imm[20]}}, J_imm}  ;      // imm
-                rd_addr_o   = rd                        ; 
-                reg_w_en_o = `WriteEnable              ;
+                op1_o           = `ZeroWord                 ;
+                op2_o           = `ZeroWord                 ;
+                rd_addr_o       = rd                        ; 
+                reg_w_en_o      = `WriteEnable              ;
+                base_addr_o     = inst_addr_i               ;
+                addr_offset_o   = {{11{J_imm[20]}}, J_imm}  ;
             end  
 
             // I-type jump
             `INST_JALR: begin
-                rs1_addr_o  = rs1                       ;
-                rs2_addr_o  = `ZeroReg                  ;
+                rs1_addr_o      = rs1                       ;
+                rs2_addr_o      = `ZeroReg                  ;
 
-                op1_o       = rs1_data_i                ;
-                op2_o       = {{20{I_imm[11]}}, I_imm}  ;
-                rd_addr_o   = rd                        ;
-                reg_w_en_o = `WriteEnable              ;
+                op1_o           = `ZeroWord                 ;
+                op2_o           = `ZeroWord                 ;
+                rd_addr_o       = rd                        ;
+                reg_w_en_o      = `WriteEnable              ;
+                base_addr_o     = rs1_data_i                ;
+                addr_offset_o   = {{20{I_imm[11]}}, I_imm}  ;
             end   
 
             // U-type
@@ -287,7 +292,7 @@ module id(
                 op1_o       = {inst_i[31:12], 12'b0} ;
                 op2_o       = `ZeroWord              ;
                 rd_addr_o   = rd                     ;
-                reg_w_en_o = `WriteEnable           ;                                                    
+                reg_w_en_o  = `WriteEnable           ;                                                    
             end   
 
             `INST_AUIPC: begin
@@ -297,7 +302,7 @@ module id(
                 op1_o       = inst_addr_i            ;
                 op2_o       = {inst_i[31:12], 12'b0} ;
                 rd_addr_o   = rd                     ;
-                reg_w_en_o = `WriteEnable           ;                                                    
+                reg_w_en_o  = `WriteEnable           ;                                                    
             end   
 
             default: begin
@@ -307,7 +312,7 @@ module id(
                 op1_o       = `ZeroWord     ;
                 op2_o       = `ZeroWord     ;
                 rd_addr_o   = `ZeroReg      ;
-                reg_w_en_o = `WriteDisable ;
+                reg_w_en_o  = `WriteDisable ;
             end
 
         endcase

@@ -18,9 +18,6 @@ module ex(
     input  wire[31:0]   base_addr_i         , 
     input  wire[31:0]   addr_offset_i       ,
 
-    // from data_mem read
-    input  wire [31:0]  data_mem_rd_data_i  ,
- 
     // to regs
     output reg[4:0]     rd_addr_o           ,
     output reg[31:0]    rd_data_o           ,
@@ -31,6 +28,8 @@ module ex(
     output reg          jump_en_o           ,
     output reg          hold_flag_o         ,
 
+    // from data_mem read
+    input  wire[31:0]   data_mem_r_data_i   ,
 
     // to data_mem write
     output reg	 	    data_mem_w_en_o	    ,
@@ -105,7 +104,7 @@ module ex(
         jump_en_o   = `JumpDisable  ;
         hold_flag_o = `HoldDisable  ;
 
-        data_mem_w_en_o	  = `WriteDisalbe;
+        data_mem_w_en_o	  = `WriteDisable;
         data_mem_w_sel_o  = 4'b0;
         data_mem_w_addr_o = `ZeroAddr;
         data_mem_w_data_o = `ZeroWord;
@@ -317,10 +316,10 @@ module ex(
                         rd_w_en_o = `WriteEnable    ;
 
                         case (load_index)
-                            2'b00   : rd_data_o = {{24{data_mem_rd_data_i[7 ]} }, data_mem_rd_data_i[7 :0 ] };
-                            2'b01   : rd_data_o = {{24{data_mem_rd_data_i[15]} }, data_mem_rd_data_i[15:8 ] };
-                            2'b10   : rd_data_o = {{24{data_mem_rd_data_i[23]} }, data_mem_rd_data_i[23:16] };
-                            2'b11   : rd_data_o = {{24{data_mem_rd_data_i[31]} }, data_mem_rd_data_i[31:24] };
+                            2'b00   : rd_data_o = {{24{data_mem_r_data_i[7 ]} }, data_mem_r_data_i[7 :0 ] };
+                            2'b01   : rd_data_o = {{24{data_mem_r_data_i[15]} }, data_mem_r_data_i[15:8 ] };
+                            2'b10   : rd_data_o = {{24{data_mem_r_data_i[23]} }, data_mem_r_data_i[23:16] };
+                            2'b11   : rd_data_o = {{24{data_mem_r_data_i[31]} }, data_mem_r_data_i[31:24] };
                             default : rd_data_o = `ZeroWord;
                         endcase
                     end 
@@ -334,29 +333,36 @@ module ex(
                             rd_data_o = `ZeroWord;
                         end else begin
                             case (load_index[1])
-                                1'b0    : rd_data_o = {{16{data_mem_rd_data_i[15]}}, data_mem_rd_data_i[15:0]};   // low half
-                                1'b1    : rd_data_o = {{16{data_mem_rd_data_i[31]}}, data_mem_rd_data_i[31:16]};  // high half
+                                1'b0    : rd_data_o = {{16{data_mem_r_data_i[15]}}, data_mem_r_data_i[15:0] };  // low half
+                                1'b1    : rd_data_o = {{16{data_mem_r_data_i[31]}}, data_mem_r_data_i[31:16]};  // high half
                                 default : rd_data_o = `ZeroWord;
                             endcase
                         end
                     end
 
                     `INST_LW: begin
-						rd_addr_o = rd_addr_i;
-                        rd_data_o = data_mem_rd_data_i;
-						rd_w_en_o = `WriteEnable;
-                    end 
+                        rd_addr_o = rd_addr_i;
+
+                        if (load_index != 2'b00) begin          // misaligned word address check (..01 or .. 10 or ..11)
+                            rd_data_o = `ZeroWord           ;
+                            rd_w_en_o = `WriteDisable       ;   
+                        end else begin
+                            rd_data_o = data_mem_r_data_i   ;
+                            rd_w_en_o = `WriteEnable        ;
+                        end
+                    end
+
                     
                     `INST_LBU: begin
                         rd_addr_o = rd_addr_i;
                         rd_w_en_o = `WriteEnable;
 
                         case (load_index)
-                            2'b00   : rd_data_o = {24'b0, data_mem_rd_data_i[7 :0 ]};
-                            2'b01   : rd_data_o = {24'b0, data_mem_rd_data_i[15:8 ]};
-                            2'b10   : rd_data_o = {24'b0, data_mem_rd_data_i[23:16]};
-                            2'b11   : rd_data_o = {24'b0, data_mem_rd_data_i[31:24]};
-                            default : rd_data_o = `ZeroWord;
+                            2'b00   : rd_data_o = {24'b0, data_mem_r_data_i[7 :0 ]} ;
+                            2'b01   : rd_data_o = {24'b0, data_mem_r_data_i[15:8 ]} ;
+                            2'b10   : rd_data_o = {24'b0, data_mem_r_data_i[23:16]} ;
+                            2'b11   : rd_data_o = {24'b0, data_mem_r_data_i[31:24]} ;
+                            default : rd_data_o = `ZeroWord                         ;
                         endcase
                     end
                     
@@ -369,8 +375,8 @@ module ex(
                             rd_data_o = `ZeroWord;
                         end else begin
                             case (load_index[1])
-                                1'b0: rd_data_o = {16'b0, data_mem_rd_data_i[15:0 ]};
-                                1'b1: rd_data_o = {16'b0, data_mem_rd_data_i[31:16]};
+                                1'b0: rd_data_o = {16'b0, data_mem_r_data_i[15:0 ]};
+                                1'b1: rd_data_o = {16'b0, data_mem_r_data_i[31:16]};
                             endcase
                         end
                     end
@@ -388,34 +394,91 @@ module ex(
             `INST_TYPE_S: begin
                 case (funct3)
                     `INST_SB: begin
-                        
+                        data_mem_w_en_o             = `WriteEnable                  ;
+                        data_mem_w_addr_o           = base_addr_add_addr_offset     ;
+
+                        case (store_index)
+                            2'b00: begin
+                                data_mem_w_sel_o    = 4'b0001                       ;       // byte 0
+                                data_mem_w_data_o   = {24'b0, op2_i[7:0]}           ;
+                            end
+                            2'b01: begin
+                                data_mem_w_sel_o    = 4'b0010                       ;       // byte 1
+                                data_mem_w_data_o   = {16'b0, op2_i[7:0], 8'b0}     ;
+                            end
+                            2'b10: begin
+                                data_mem_w_sel_o    = 4'b0100                       ;       // byte 2
+                                data_mem_w_data_o   = {8'b0, op2_i[7:0], 16'b0}     ;
+                            end
+                            2'b11: begin
+                                data_mem_w_sel_o    = 4'b1000                       ;       // byte 3
+                                data_mem_w_data_o   = {op2_i[7:0], 24'b0}           ;
+                            end
+
+                            default: begin
+                                data_mem_w_sel_o    = 4'b0000                       ;
+                                data_mem_w_data_o   = `ZeroWord                     ;
+                            end
+                        endcase
                     end
 
                     `INST_SH: begin
-                        
-                    end 
+                        data_mem_w_en_o    = `WriteEnable;
+                        data_mem_w_addr_o  = base_addr_add_addr_offset;
+
+                        if (store_index[0] == 1'b1) begin       // misaligned halfword address check (..01 or ..11)
+                            data_mem_w_en_o   = `WriteDisable;
+                            data_mem_w_sel_o  = 4'b0000;
+                            data_mem_w_data_o = `ZeroWord;
+                        end else begin
+                            case (store_index[1])
+                                1'b0: begin                     // ..00 : write low halfword -> byte0 & byte1
+                                    data_mem_w_sel_o  = 4'b0011;
+                                    data_mem_w_data_o = {16'b0, op2_i[15:0]};
+                                end
+
+                                1'b1: begin                     // ..10 : write high halfword -> byte2 & byte3
+                                    data_mem_w_sel_o  = 4'b1100;
+                                    data_mem_w_data_o = {op2_i[15:0], 16'b0};
+                                end
+                            endcase
+                        end
+                    end
+
                     
                     `INST_SW: begin
+                        data_mem_w_addr_o = base_addr_add_addr_offset;
 
+                        if (store_index != 2'b00) begin         // misaligned halfword address check 
+                            data_mem_w_en_o   = `WriteDisable;
+                            data_mem_w_sel_o  = 4'b0000;
+                            data_mem_w_data_o = `ZeroWord;
+                        end else begin
+                            data_mem_w_en_o   = `WriteEnable;
+                            data_mem_w_sel_o  = 4'b1111;
+                            data_mem_w_data_o = op2_i;
+                        end
                     end
 
                     default: begin
-
+                        data_mem_w_en_o	    = `WriteDisable             ;
+                        data_mem_w_sel_o    = 4'b0                      ;
+                        data_mem_w_addr_o   = `ZeroAddr                 ;
+                        data_mem_w_data_o   = `ZeroWord                 ;
                     end
 
                 endcase
             end
             
-
             // J-type jump
             `INST_JAL: begin
-                rd_addr_o   = rd_addr_i           ;
-                rd_data_o   = inst_addr_i + 32'h4 ;
-                rd_w_en_o   = `WriteEnable        ;
+                rd_addr_o   = rd_addr_i                 ;
+                rd_data_o   = inst_addr_i + 32'h4       ;
+                rd_w_en_o   = `WriteEnable              ;
 
-                jump_addr_o = op1_i_add_op2_i     ;
-                jump_en_o   = `JumpEnable         ;
-                hold_flag_o = `HoldDisable        ;
+                jump_addr_o = base_addr_add_addr_offset ;
+                jump_en_o   = `JumpEnable               ;
+                hold_flag_o = `HoldDisable              ;
             end
 
             // I-type jump
@@ -424,7 +487,7 @@ module ex(
                 rd_data_o   = inst_addr_i + 32'h4               ;
                 rd_w_en_o   = `WriteEnable                      ;
 
-                jump_addr_o = (op1_i_add_op2_i) & 32'hFFFF_FFFE ;       // JALR sets the least-significant bit of the target address to zero
+                jump_addr_o = (base_addr_add_addr_offset) & 32'hFFFF_FFFE ;       // JALR sets the least-significant bit of the target address to zero
                 jump_en_o   = `JumpEnable                       ;
                 hold_flag_o = `HoldDisable                      ;
             end
