@@ -3,6 +3,7 @@
 
 # drawio
 *.drawio
+*.drawio.bkp
 
 # ModelSim runtime artifacts
 sim_modelsim/
