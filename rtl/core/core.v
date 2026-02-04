@@ -99,6 +99,7 @@ module core(
         .rst_n              (rst_n                  ),
 
         // from ctrl    
+        .hold_flag_i        (ctrl_hold_flag_o       ),
         .jump_addr_i        (ctrl_jump_addr_o       ),    
         .jump_en_i          (ctrl_jump_en_o         ),
 
