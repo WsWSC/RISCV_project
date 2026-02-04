@@ -38,12 +38,12 @@ module data_mem (
         
         // write data               
         .w_en_i     (w_en_i[0]          ),
-        .w_addr_i   (w_addr_i           ),
+        .w_addr_i   (w_idx              ),
         .w_data_i   (w_data_i[7:0]      ),
         
         // read data            
         .r_en_i     (r_en_i             ),
-        .r_addr_i   (r_addr_i           ),
+        .r_addr_i   (r_idx              ),
         
         .r_data_o   (r_data_o[7:0]      )
     );
@@ -60,12 +60,12 @@ module data_mem (
 
         // write data        
         .w_en_i     (w_en_i[1]          ),
-        .w_addr_i   (w_addr_i           ),
+        .w_addr_i   (w_idx              ),
         .w_data_i   (w_data_i[15:8]     ),
 
         // read data       
         .r_en_i     (r_en_i             ),
-        .r_addr_i   (r_addr_i           ),
+        .r_addr_i   (r_idx              ),
 
         .r_data_o   (r_data_o[15:8]     )
     );
@@ -82,12 +82,12 @@ module data_mem (
 
         // write data        
         .w_en_i     (w_en_i[2]          ),
-        .w_addr_i   (w_addr_i           ),
+        .w_addr_i   (w_idx              ),
         .w_data_i   (w_data_i[23:16]    ),
 
         // read data       
         .r_en_i     (r_en_i             ),
-        .r_addr_i   (r_addr_i           ),
+        .r_addr_i   (r_idx              ),
 
         .r_data_o   (r_data_o[23:16]    )
     );
@@ -104,12 +104,12 @@ module data_mem (
 
         // write data        
         .w_en_i     (w_en_i[3]          ),
-        .w_addr_i   (w_addr_i           ),
+        .w_addr_i   (w_idx              ),
         .w_data_i   (w_data_i[31:24]    ),
 
         // read data       
         .r_en_i     (r_en_i             ),
-        .r_addr_i   (r_addr_i           ),
+        .r_addr_i   (r_idx              ),
 
         .r_data_o   (r_data_o[31:24]    )
     );

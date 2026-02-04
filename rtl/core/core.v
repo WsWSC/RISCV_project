@@ -6,11 +6,30 @@
 ////////////////////////////////////////////////////////////
 
 module core(
-    input  wire         clk,
-    input  wire         rst_n,
-    input  wire[31:0]   inst_i,
+    input  wire         clk                 ,
+    input  wire         rst_n               ,
 
-    output wire[31:0]   inst_addr_o
+    // =========================    
+    // inst_mem 
+    // =========================    
+    input  wire[31:0]   inst_i              ,
+    output wire[31:0]   inst_addr_o         ,
+
+    // =========================
+    // data_mem
+    // =========================
+
+    // read (from id)
+    output wire         data_mem_r_en_o     ,
+    output wire [31:0]  data_mem_r_addr_o   ,  
+    input  wire [31:0]  data_mem_r_data_i   ,
+
+    // write (from ex)
+    output wire         data_mem_w_en_o     ,
+    output wire [3:0]   data_mem_w_sel_o    ,
+    output wire [31:0]  data_mem_w_addr_o   ,
+    output wire [31:0]  data_mem_w_data_o   
+
 );
 
     // ============================================================
@@ -18,20 +37,20 @@ module core(
     // ============================================================
 
     // pc_reg to inst_mem / if_id
-    wire[31:0]  pc_reg_pc_addr_o;
+    wire[31:0]  pc_reg_pc_addr_o        ;
     assign inst_addr_o = pc_reg_pc_addr_o;
 
     // if_id to id
-    wire[31:0]  if_id_inst_addr_o;
-    wire[31:0]  if_id_inst_o;
+    wire[31:0]  if_id_inst_addr_o       ;
+    wire[31:0]  if_id_inst_o            ;
  
     // id to regs
-    wire[4:0]   id_rs1_addr_o;
-    wire[4:0]   id_rs2_addr_o;
+    wire[4:0]   id_rs1_addr_o           ;
+    wire[4:0]   id_rs2_addr_o           ;
 
     // regs to id
-    wire[31:0]  regs_reg1_r_data_o;
-    wire[31:0]  regs_reg2_r_data_o;
+    wire[31:0]  regs_reg1_r_data_o      ;
+    wire[31:0]  regs_reg2_r_data_o      ;
 
     // id to id_ex
     wire[31:0]  id_inst_addr_o          ;
@@ -42,10 +61,6 @@ module core(
     wire        id_reg_w_en_o           ;
     wire[31:0]  id_base_addr_o          ;
     wire[31:0]  id_addr_offset_o        ;
-
-    // id to data_ram
-    wire        id_data_ram_r_en_o      ;
-    wire[31:0]  id_data_ram_r_addr_o    ;
 
     // id_ex to ex
     wire[31:0]  id_ex_inst_addr_o       ;
@@ -66,16 +81,7 @@ module core(
     wire[31:0]  ex_jump_addr_o          ;
     wire        ex_jump_en_o            ;
     wire        ex_hold_flag_o          ;
-
-    // from data_mem read
-    wire[31:0]  data_mem_r_data_i       ;
-    
-    // to data_mem write
-    wire	    data_mem_w_en_o	        ;
-    wire[3:0]   data_mem_w_sel_o        ;
-    wire[31:0]  data_mem_w_addr_o       ;
-    wire[31:0]  data_mem_w_data_o       ;
-        
+       
     // ctrl to pc_reg
     wire[31:0]  ctrl_jump_addr_o        ;
     wire        ctrl_jump_en_o          ;
@@ -140,8 +146,8 @@ module core(
         .addr_offset_o      (id_addr_offset_o       ),
 
         // to data_ram
-        .data_ram_r_en_o    (id_data_ram_r_en_o     ),
-        .data_ram_r_addr_o  (id_data_ram_r_addr_o   )
+        .data_ram_r_en_o    (data_mem_r_en_o        ),
+        .data_ram_r_addr_o  (data_mem_r_addr_o      )
 
     );
 
