@@ -1,6 +1,9 @@
 # VS Code
 .vscode/
 
+# drawio
+*.drawio
+
 # ModelSim runtime artifacts
 sim_modelsim/
 
