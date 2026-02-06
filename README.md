@@ -5,6 +5,22 @@
 This project implements a modular **3-stage RV32I pipeline core**,
 with emphasis on micro-architecture clarity and automated verification.
 
+## Table of Contents
+
+- [Repository Layout](#repository-layout)
+- [Architecture](#architecture)
+  - [3-Stage Pipeline](#3-stage-pipeline)
+  - [System Organization](#system-organization)
+    - [Core Architecture](#core-architecture)
+    - [SoC Structure](#soc-structure)
+- [Implementation Status](#implementation-status)
+  - [Implemented](#implemented)
+  - [Not Implemented](#not-implemented)
+- [Simulation & Verification](#simulation--verification)
+  - [Test Result Summary](#test-result-summary)
+  - [Detailed Log](#detailed-log)
+- [Reference](#reference)
+
 ## Repository Layout
 
 ```
@@ -18,7 +34,7 @@ sim/
  ├─ compile_and_sim.py  # Compile & run simulation
  ├─ test_all.py         # Regression test for all instructions
  ├─ test_one_inst.py    # Single instruction test
- └─ generated/          # Generated test binaries / outputs
+ └─ test_bin/           # Generated test binaries / outputs
 
 tb/
  └─ tb.v                # Top-level testbench

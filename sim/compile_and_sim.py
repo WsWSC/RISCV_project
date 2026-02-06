@@ -115,7 +115,7 @@ def run(test_binfile):
     # get project root directory
     rtl_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
     # output filename
-    out_mem = rtl_dir + r'/sim/generated/inst_data.txt'
+    out_mem = rtl_dir + r'/sim/test_bin/inst_data.txt'
     # bin to mem
     bin_to_mem(test_binfile, out_mem)
     # run simulation

@@ -11,8 +11,8 @@ from compile_and_sim import bin_to_mem
 def main():
     # get project root directory
     rtl_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
-    # get all .bin instruction files under sim/generated
-    all_bin_files = list_binfiles(rtl_dir + r'/sim/generated/')
+    # get all .bin instruction files under sim/test_bin
+    all_bin_files = list_binfiles(rtl_dir + r'/sim/test_bin/')
     # run simulation one by one
     for file_bin in all_bin_files:
         cmd = r'python compile_and_sim.py' + ' ' + file_bin

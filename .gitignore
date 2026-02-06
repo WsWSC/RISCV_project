@@ -12,9 +12,9 @@ sim_modelsim/
 __pycache__/
 *.pyc
 
-# Simulation generated data
-sim/generated/
-sim/inst_txt/
+# Simulation test_bin data
+sim/test_bin/*
+!sim/test_bin/*.bin
 sim/__pycache__/
 sim/*.vvp
 
