@@ -1,9 +1,10 @@
 # RISCV_project
 
-3-Stage Pipeline RISC-V CPU (Verilog HDL)
+**3-Stage Pipeline RISC-V CPU (Verilog HDL)**
 
 This project implements a modular **3-stage RV32I pipeline core**,
 with emphasis on micro-architecture clarity and automated verification.
+
 
 ## Table of Contents
 
@@ -21,6 +22,7 @@ with emphasis on micro-architecture clarity and automated verification.
   - [Detailed Log](#detailed-log)
 - [Reference](#reference)
 
+
 ## Repository Layout
 
 ```
@@ -34,7 +36,7 @@ sim/
  ├─ compile_and_sim.py  # Compile & run simulation
  ├─ test_all.py         # Regression test for all instructions
  ├─ test_one_inst.py    # Single instruction test
- └─ test_bin/           # Generated test binaries / outputs
+ └─ test_bin/           # Precompiled RV32I test binaries (regression vectors)
 
 tb/
  └─ tb.v                # Top-level testbench
@@ -43,9 +45,13 @@ img/
  └─ Architecture diagrams
 ```
 
+
 ## Architecture
 
-The processor is organized as a 3-stage pipeline core integrated within a simple SoC-level structure.
+The processor is implemented as a modular 3-stage RV32I pipeline core,
+separated from system integration logic to improve structural clarity
+and extensibility.
+
 
 ### 3-Stage Pipeline
 
@@ -59,39 +65,71 @@ IF → ID → EX
 | ID    | Instruction Decode |
 | EX    | Execute / Memory / Write Back |
 
+
 ### System Organization
 
-The design separates the processor into two layers:
+The processor is organized into two major layers：
 
-- **Core** — pipeline datapath and control logic  
-- **SoC** — external Instruction Memory and Data Memory integration
+- **Core**
+- **SoC**
+
 
 #### Core Architecture
 
 ![Core](img/Arichtecture-core.png)
 
+> The **Core** contains the pipeline datapath, register file,
+control logic, and stage-level pipeline registers.
+It is responsible for instruction execution and write-back.
+
+
 #### SoC Structure
 
 ![SoC](img/Arichtecture-soc.png)
 
+> The **SoC** layer integrates the Core with external
+Instruction Memory and Data Memory modules,
+providing a simple system-level wrapper.
 
 
 ## Implementation Status
 
+
 ### Implemented
 
 - ✔ 3-stage pipeline (IF / ID / EX)
-- ✔ IF/ID、ID/EX pipeline registers
+- ✔ IF / ID、ID / EX pipeline registers
 - ✔ Register File (2R1W)
-- ✔ RV32I: R / I / B / J / U-type instructions
+- ✔ RV32I：R / I / B / J / U-type instructions
 - ✔ Load / Store
 - ✔ Branch & Jump redirect
+
 
 ### Not Implemented
 
 - Hazard detection / forwarding
 - RV32M extension
 - FENCE
+
+
+## Prerequisites
+
+Before running the simulation, make sure the following tools are installed：
+
+- **Python 3**
+- **Icarus Verilog** (iverilog / vvp)
+
+Optional：
+- **GTKWave** (for waveform viewing)
+
+You can verify the installation using:
+
+```
+python --version
+iverilog -V
+vvp -V
+```
+
 
 ## Simulation & Verification
 
@@ -109,70 +147,72 @@ python test_one_inst.py <instruction>  # e.g., addi
 
 ```
 
+
 ### Test Result Summary
 
-| Category | Status |
-|----------|--------|
-| RV32I Arithmetic | PASS |
-| Load / Store | PASS |
-| Branch / Jump | PASS |
-| LUI / AUIPC | PASS |
-| RV32M Extension | Not Implemented |
+| Category          | Instruction Type                 | Status          |
+|-------------------|----------------------------------|-----------------|
+| RV32I Arithmetic  | R-type instructions              | PASS            |
+| Load / Store      | I-type / S-type instructions     | PASS            |
+| Branch / Jump     | B-type / J-type instructions     | PASS            |
+| LUI / AUIPC       | U-type instructions              | PASS            |
+| RV32M Extension   | R-type (multiply/divide)         | Not Implemented |
+
 
 ### Detailed Log
 
 ```
-instruction:  [ add       ]    PASS
-instruction:  [ addi      ]    PASS
-instruction:  [ and       ]    PASS
-instruction:  [ andi      ]    PASS
-instruction:  [ auipc     ]    PASS
-instruction:  [ beq       ]    PASS
-instruction:  [ bge       ]    PASS
-instruction:  [ bgeu      ]    PASS
-instruction:  [ blt       ]    PASS
-instruction:  [ bltu      ]    PASS
-instruction:  [ bne       ]    PASS
-instruction:  [ fence_i   ]    !!!FAIL!!!
-instruction:  [ jal       ]    PASS
-instruction:  [ jalr      ]    PASS
-instruction:  [ lb        ]    PASS
-instruction:  [ lbu       ]    PASS
-instruction:  [ lh        ]    PASS
-instruction:  [ lhu       ]    PASS
-instruction:  [ lui       ]    PASS
-instruction:  [ lw        ]    PASS
-instruction:  [ or        ]    PASS
-instruction:  [ ori       ]    PASS
-instruction:  [ sb        ]    PASS
-instruction:  [ sh        ]    PASS
-instruction:  [ simple    ]    PASS
-instruction:  [ sll       ]    PASS
-instruction:  [ slli      ]    PASS
-instruction:  [ slt       ]    PASS
-instruction:  [ slti      ]    PASS
-instruction:  [ sltiu     ]    PASS
-instruction:  [ sltu      ]    PASS
-instruction:  [ sra       ]    PASS
-instruction:  [ srai      ]    PASS
-instruction:  [ srl       ]    PASS
-instruction:  [ srli      ]    PASS
-instruction:  [ sub       ]    PASS
-instruction:  [ sw        ]    PASS
-instruction:  [ xor       ]    PASS
-instruction:  [ xori      ]    PASS
-instruction:  [ div       ]    !!!FAIL!!!
-instruction:  [ divu      ]    !!!FAIL!!!
-instruction:  [ mul       ]    !!!FAIL!!!
-instruction:  [ mulh      ]    !!!FAIL!!!
-instruction:  [ mulhsu    ]    !!!FAIL!!!
-instruction:  [ mulhu     ]    !!!FAIL!!!
-instruction:  [ rem       ]    !!!FAIL!!!
-instruction:  [ remu      ]    !!!FAIL!!!
+instruction： [ add       ]    PASS
+instruction： [ addi      ]    PASS
+instruction： [ and       ]    PASS
+instruction： [ andi      ]    PASS
+instruction： [ auipc     ]    PASS
+instruction： [ beq       ]    PASS
+instruction： [ bge       ]    PASS
+instruction： [ bgeu      ]    PASS
+instruction： [ blt       ]    PASS
+instruction： [ bltu      ]    PASS
+instruction： [ bne       ]    PASS
+instruction： [ fence_i   ]    !!!FAIL!!!
+instruction： [ jal       ]    PASS
+instruction： [ jalr      ]    PASS
+instruction： [ lb        ]    PASS
+instruction： [ lbu       ]    PASS
+instruction： [ lh        ]    PASS
+instruction： [ lhu       ]    PASS
+instruction： [ lui       ]    PASS
+instruction： [ lw        ]    PASS
+instruction： [ or        ]    PASS
+instruction： [ ori       ]    PASS
+instruction： [ sb        ]    PASS
+instruction： [ sh        ]    PASS
+instruction： [ simple    ]    PASS
+instruction： [ sll       ]    PASS
+instruction： [ slli      ]    PASS
+instruction： [ slt       ]    PASS
+instruction： [ slti      ]    PASS
+instruction： [ sltiu     ]    PASS
+instruction： [ sltu      ]    PASS
+instruction： [ sra       ]    PASS
+instruction： [ srai      ]    PASS
+instruction： [ srl       ]    PASS
+instruction： [ srli      ]    PASS
+instruction： [ sub       ]    PASS
+instruction： [ sw        ]    PASS
+instruction： [ xor       ]    PASS
+instruction： [ xori      ]    PASS
+instruction： [ div       ]    !!!FAIL!!!
+instruction： [ divu      ]    !!!FAIL!!!
+instruction： [ mul       ]    !!!FAIL!!!
+instruction： [ mulh      ]    !!!FAIL!!!
+instruction： [ mulhsu    ]    !!!FAIL!!!
+instruction： [ mulhu     ]    !!!FAIL!!!
+instruction： [ rem       ]    !!!FAIL!!!
+instruction： [ remu      ]    !!!FAIL!!!
 ```
 
 > `mul/div/rem` belongs to the RV32M extension, and is not yet implemented.
 
 ## Reference
 
-[1] [SI-RISCV Project](https://github.com/SI-RISCV/e200_opensource.git)
+[1] [SI-RISCV Project](https：//github.com/SI-RISCV/e200_opensource.git)
