@@ -29,14 +29,14 @@ rtl/
  ├─ mem/                  # Instruction / Data memory modules
  ├─ soc/                  # SoC wrapper
  └─ utils/                # Shared definitions & utilities
-  
+
 sim/  
  ├─ compile_and_sim.py    # Compile & run simulation
  ├─ test_all.py           # Regression test for all instructions
  ├─ test_one_inst.py      # Single instruction test
  └─ test_bin/             # Precompiled RV32I test binaries (regression vectors)
-  
-tb/ 
+ 
+tb/
  └─ tb.v                  # Top-level testbench
 
 img/
