@@ -7,7 +7,6 @@ with emphasis on micro-architecture clarity and automated verification.
 
 
 ## Table of Contents
-
 - [Repository Layout](#repository-layout)
 - [Architecture](#architecture)
   - [3-Stage Pipeline](#3-stage-pipeline)
@@ -24,22 +23,21 @@ with emphasis on micro-architecture clarity and automated verification.
 
 
 ## Repository Layout
-
 ```
 rtl/
- ├─ core/               # CPU pipeline core modules
- ├─ mem/                # Instruction / Data memory modules
- ├─ soc/                # SoC wrapper
- └─ utils/              # Shared definitions & utilities
-
-sim/
- ├─ compile_and_sim.py  # Compile & run simulation
- ├─ test_all.py         # Regression test for all instructions
- ├─ test_one_inst.py    # Single instruction test
- └─ test_bin/           # Precompiled RV32I test binaries (regression vectors)
-
-tb/
- └─ tb.v                # Top-level testbench
+ ├─ core/                 # CPU pipeline core modules
+ ├─ mem/                  # Instruction / Data memory modules
+ ├─ soc/                  # SoC wrapper
+ └─ utils/                # Shared definitions & utilities
+  
+sim/  
+ ├─ compile_and_sim.py    # Compile & run simulation
+ ├─ test_all.py           # Regression test for all instructions
+ ├─ test_one_inst.py      # Single instruction test
+ └─ test_bin/             # Precompiled RV32I test binaries (regression vectors)
+  
+tb/ 
+ └─ tb.v                  # Top-level testbench
 
 img/
  └─ Architecture diagrams
@@ -47,14 +45,12 @@ img/
 
 
 ## Architecture
-
 The processor is implemented as a modular 3-stage RV32I pipeline core,
 separated from system integration logic to improve structural clarity
 and extensibility.
 
 
 ### 3-Stage Pipeline
-
 ```
 IF → ID → EX
 ```
@@ -67,7 +63,6 @@ IF → ID → EX
 
 
 ### System Organization
-
 The processor is organized into two major layers：
 
 - **Core**
@@ -75,7 +70,6 @@ The processor is organized into two major layers：
 
 
 #### Core Architecture
-
 ![Core](img/Arichtecture-core.png)
 
 > The **Core** contains the pipeline datapath, register file,
@@ -84,7 +78,6 @@ It is responsible for instruction execution and write-back.
 
 
 #### SoC Structure
-
 ![SoC](img/Arichtecture-soc.png)
 
 > The **SoC** layer integrates the Core with external
@@ -96,7 +89,6 @@ providing a simple system-level wrapper.
 
 
 ### Implemented
-
 - ✔ 3-stage pipeline (IF / ID / EX)
 - ✔ IF / ID、ID / EX pipeline registers
 - ✔ Register File (2R1W)
@@ -106,14 +98,12 @@ providing a simple system-level wrapper.
 
 
 ### Not Implemented
-
 - Hazard detection / forwarding
 - RV32M extension
 - FENCE
 
 
 ## Prerequisites
-
 Before running the simulation, make sure the following tools are installed：
 
 - **Python 3**
@@ -132,9 +122,7 @@ vvp -V
 
 
 ## Simulation & Verification
-
 The design is validated through automated instruction-level regression tests.
-
 
 ```
 cd sim
@@ -149,7 +137,6 @@ python test_one_inst.py <instruction>  # e.g., addi
 
 
 ### Test Result Summary
-
 | Category          | Instruction Type                 | Status          |
 |-------------------|----------------------------------|-----------------|
 | RV32I Arithmetic  | R-type instructions              | PASS            |
@@ -160,7 +147,6 @@ python test_one_inst.py <instruction>  # e.g., addi
 
 
 ### Detailed Log
-
 ```
 instruction： [ add       ]    PASS
 instruction： [ addi      ]    PASS
@@ -214,5 +200,4 @@ instruction： [ remu      ]    !!!FAIL!!!
 > `mul/div/rem` belongs to the RV32M extension, and is not yet implemented.
 
 ## Reference
-
 [1] [SI-RISCV Project](https：//github.com/SI-RISCV/e200_opensource.git)
