@@ -37,56 +37,56 @@ module core(
     // ============================================================
 
     // pc_reg to inst_mem / if_id
-    wire[31:0]  pc_reg_pc_addr_o        ;
-    assign inst_addr_o = pc_reg_pc_addr_o;
+    wire[31:0]  pc_reg_pc_addr_o            ;
+    assign inst_addr_o = pc_reg_pc_addr_o   ;
 
     // if_id to id
-    wire[31:0]  if_id_inst_addr_o       ;
-    wire[31:0]  if_id_inst_o            ;
+    wire[31:0]  if_id_inst_addr_o           ;
+    wire[31:0]  if_id_inst_o                ;
  
     // id to regs
-    wire[4:0]   id_rs1_addr_o           ;
-    wire[4:0]   id_rs2_addr_o           ;
+    wire[4:0]   id_rs1_addr_o               ;
+    wire[4:0]   id_rs2_addr_o               ;
 
     // regs to id
-    wire[31:0]  regs_reg1_r_data_o      ;
-    wire[31:0]  regs_reg2_r_data_o      ;
+    wire[31:0]  regs_reg1_r_data_o          ;
+    wire[31:0]  regs_reg2_r_data_o          ;
 
     // id to id_ex
-    wire[31:0]  id_inst_addr_o          ;
-    wire[31:0]  id_inst_o               ;
-    wire[31:0]  id_op1_o                ;
-    wire[31:0]  id_op2_o                ;
-    wire[4:0]   id_rd_addr_o            ;
-    wire        id_reg_w_en_o           ;
-    wire[31:0]  id_base_addr_o          ;
-    wire[31:0]  id_addr_offset_o        ;
+    wire[31:0]  id_inst_addr_o              ;
+    wire[31:0]  id_inst_o                   ;
+    wire[31:0]  id_op1_o                    ;
+    wire[31:0]  id_op2_o                    ;
+    wire[4:0]   id_rd_addr_o                ;
+    wire        id_reg_w_en_o               ;
+    wire[31:0]  id_base_addr_o              ;
+    wire[31:0]  id_addr_offset_o            ;
 
     // id_ex to ex
-    wire[31:0]  id_ex_inst_addr_o       ;
-    wire[31:0]  id_ex_inst_o            ;
-    wire[31:0]  id_ex_op1_o             ;
-    wire[31:0]  id_ex_op2_o             ;
-    wire[4:0]   id_ex_rd_addr_o         ;
-    wire        id_ex_reg_w_en_o        ;
-    wire[31:0]  id_ex_base_addr_o       ;
-    wire[31:0]  id_ex_addr_offset_o     ;
+    wire[31:0]  id_ex_inst_addr_o           ;
+    wire[31:0]  id_ex_inst_o                ;
+    wire[31:0]  id_ex_op1_o                 ;
+    wire[31:0]  id_ex_op2_o                 ;
+    wire[4:0]   id_ex_rd_addr_o             ;
+    wire        id_ex_reg_w_en_o            ;
+    wire[31:0]  id_ex_base_addr_o           ;
+    wire[31:0]  id_ex_addr_offset_o         ;
 
     // ex to regs
-    wire[4:0]   ex_rd_addr_o            ;
-    wire[31:0]  ex_rd_data_o            ;
-    wire        ex_rd_w_en_o            ;
+    wire[4:0]   ex_rd_addr_o                ;
+    wire[31:0]  ex_rd_data_o                ;
+    wire        ex_rd_w_en_o                ;
 
     // ex to ctrl
-    wire[31:0]  ex_jump_addr_o          ;
-    wire        ex_jump_en_o            ;
-    wire        ex_hold_flag_o          ;
+    wire[31:0]  ex_jump_addr_o              ;
+    wire        ex_jump_en_o                ;
+    wire        ex_flush_flag_o             ;
        
     // ctrl to pc_reg
-    wire[31:0]  ctrl_jump_addr_o        ;
-    wire        ctrl_jump_en_o          ;
+    wire[31:0]  ctrl_jump_addr_o            ;
+    wire        ctrl_jump_en_o              ;
     // ctrl to if_id & id_ex
-    wire        ctrl_hold_flag_o        ;
+    wire        ctrl_flush_flag_o           ;
 
 
     // ============================================================
@@ -99,7 +99,7 @@ module core(
         .rst_n              (rst_n                  ),
 
         // from ctrl    
-        .hold_flag_i        (ctrl_hold_flag_o       ),
+        .flush_flag_i        (ctrl_flush_flag_o       ),
         .jump_addr_i        (ctrl_jump_addr_o       ),    
         .jump_en_i          (ctrl_jump_en_o         ),
 
@@ -112,7 +112,7 @@ module core(
         .rst_n              (rst_n                  ),
 
         //from ctrl 
-        .hold_flag_i        (ctrl_hold_flag_o       ),
+        .flush_flag_i        (ctrl_flush_flag_o       ),
 
         // from inst_mem    
         .inst_addr_i        (pc_reg_pc_addr_o       ),
@@ -175,7 +175,7 @@ module core(
         .rst_n              (rst_n                  ),
 
         // from ctrl        
-        .hold_flag_i        (ctrl_hold_flag_o       ),
+        .flush_flag_i        (ctrl_flush_flag_o       ),
 
         // from id      
         .inst_addr_i        (id_inst_addr_o         ),
@@ -217,7 +217,7 @@ module core(
         // to ctrl  
         .jump_addr_o        (ex_jump_addr_o         ),
         .jump_en_o          (ex_jump_en_o           ),
-        .hold_flag_o        (ex_hold_flag_o         ),
+        .flush_flag_o        (ex_flush_flag_o         ),
 
         // from data_mem read   
         .data_mem_r_data_i  (data_mem_r_data_i      ),
@@ -233,12 +233,12 @@ module core(
         // from ex  
         .jump_addr_i        (ex_jump_addr_o         ),
         .jump_en_i          (ex_jump_en_o           ),
-        .hold_flag_i        (ex_hold_flag_o         ),
+        .flush_flag_i        (ex_flush_flag_o         ),
 
         // to pc_reg & if_id & id_ex        
         .jump_addr_o        (ctrl_jump_addr_o       ),
         .jump_en_o          (ctrl_jump_en_o         ),
-        .hold_flag_o        (ctrl_hold_flag_o       )
+        .flush_flag_o        (ctrl_flush_flag_o       )
     );
 
 endmodule

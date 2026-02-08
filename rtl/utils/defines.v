@@ -10,8 +10,8 @@
 // ============================================================
 `define JumpEnable      1'b1
 `define JumpDisable     1'b0
-`define HoldEnable      1'b1
-`define HoldDisable     1'b0
+`define FlushEnable     1'b1
+`define FlushDisable    1'b0
 `define WriteEnable     1'b1
 `define WriteDisable    1'b0
 `define ReadEnable      1'b1

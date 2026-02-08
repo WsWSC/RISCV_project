@@ -6,25 +6,25 @@
 ////////////////////////////////////////////////////////////
 
 module pc_reg(
-    input  wire         clk,
-    input  wire         rst_n,
+    input  wire         clk                 ,
+    input  wire         rst_n               ,
 
     // from ctrl
-    input  wire         hold_flag_i,        // stall/hold
-    input  wire [31:0]  jump_addr_i,
-    input  wire         jump_en_i,
+    input  wire         flush_flag_i        ,           // stall/Flush
+    input  wire [31:0]  jump_addr_i         ,
+    input  wire         jump_en_i           ,
 
     // to inst_mem
-    output reg  [31:0]  pc_addr_o
+    output reg  [31:0]  pc_addr_o           
 );
 
     always @(posedge clk) begin
         if (!rst_n)
             pc_addr_o <= 32'b0;
         else if (jump_en_i)
-            pc_addr_o <= jump_addr_i;       //jump
-        else if (hold_flag_i)
-            pc_addr_o <= pc_addr_o;         // hold
+            pc_addr_o <= jump_addr_i;                   // jump
+        else if (flush_flag_i)          
+            pc_addr_o <= pc_addr_o;                     // Flush
         else
             pc_addr_o <= pc_addr_o + 32'd4;  
     end
