@@ -80,13 +80,15 @@ module core(
     // ex to ctrl
     wire[31:0]  ex_jump_addr_o              ;
     wire        ex_jump_en_o                ;
-    wire        ex_flush_flag_o             ;
+    wire        ex_flush_req_o              ;
+    wire        ex_stall_req_o              ;
        
     // ctrl to pc_reg
     wire[31:0]  ctrl_jump_addr_o            ;
     wire        ctrl_jump_en_o              ;
     // ctrl to if_id & id_ex
     wire        ctrl_flush_flag_o           ;
+    wire        ctrl_stall_flag_o           ;
 
 
     // ============================================================
@@ -99,7 +101,7 @@ module core(
         .rst_n              (rst_n                  ),
 
         // from ctrl    
-        .flush_flag_i        (ctrl_flush_flag_o       ),
+        .stall_flag_i       (ctrl_stall_flag_o      ),
         .jump_addr_i        (ctrl_jump_addr_o       ),    
         .jump_en_i          (ctrl_jump_en_o         ),
 
@@ -112,7 +114,8 @@ module core(
         .rst_n              (rst_n                  ),
 
         //from ctrl 
-        .flush_flag_i        (ctrl_flush_flag_o       ),
+        .flush_flag_i       (ctrl_flush_flag_o      ),
+        .stall_flag_i       (ctrl_stall_flag_o      ),
 
         // from inst_mem    
         .inst_addr_i        (pc_reg_pc_addr_o       ),
@@ -175,7 +178,8 @@ module core(
         .rst_n              (rst_n                  ),
 
         // from ctrl        
-        .flush_flag_i        (ctrl_flush_flag_o       ),
+        .flush_flag_i       (ctrl_flush_flag_o      ),
+        .stall_flag_i       (ctrl_stall_flag_o      ),
 
         // from id      
         .inst_addr_i        (id_inst_addr_o         ),
@@ -217,7 +221,8 @@ module core(
         // to ctrl  
         .jump_addr_o        (ex_jump_addr_o         ),
         .jump_en_o          (ex_jump_en_o           ),
-        .flush_flag_o        (ex_flush_flag_o         ),
+        .flush_req_o        (ex_flush_req_o         ),
+        .stall_req_o        (ex_stall_req_o         ),
 
         // from data_mem read   
         .data_mem_r_data_i  (data_mem_r_data_i      ),
@@ -231,14 +236,16 @@ module core(
 
     ctrl ctrl_inst( 
         // from ex  
+        .flush_req_i        (ex_flush_req_o         ),
+        .stall_req_i        (ex_stall_req_o         ),
         .jump_addr_i        (ex_jump_addr_o         ),
         .jump_en_i          (ex_jump_en_o           ),
-        .flush_flag_i        (ex_flush_flag_o         ),
 
         // to pc_reg & if_id & id_ex        
+        .flush_flag_o       (ctrl_flush_flag_o      ),
+        .stall_flag_o       (ctrl_stall_flag_o      ),
         .jump_addr_o        (ctrl_jump_addr_o       ),
-        .jump_en_o          (ctrl_jump_en_o         ),
-        .flush_flag_o        (ctrl_flush_flag_o       )
+        .jump_en_o          (ctrl_jump_en_o         )
     );
 
 endmodule

@@ -10,7 +10,6 @@
 
 `include "defines.v"
 
-// module reuse
 module dff_set #(
     parameter DW = 32
 )
@@ -18,17 +17,23 @@ module dff_set #(
     input  wire             clk             ,
     input  wire             rst_n           ,
     input  wire             flush_flag_i    ,
+    input  wire             stall_flag_i    ,
     input  wire[DW-1:0]     set_data        ,
     input  wire[DW-1:0]     data_i          ,
 
-    output reg [DW-1:0]     data_o          
+    output reg [DW-1:0]     data_o
 );
 
     always @(posedge clk) begin
-        if(rst_n == 1'b0 || flush_flag_i == `FlushEnable)
-            data_o <= set_data      ;     // reset data_o
-        else    
-            data_o <= data_i        ;
+        if (!rst_n) begin
+            data_o <= set_data;
+        end else if (flush_flag_i == `FlushEnable) begin        // set to NOP/0
+            data_o <= set_data;          
+        end else if (stall_flag_i == `StallEnable) begin        // hold value (freeze)
+            data_o <= data_o;            
+        end else begin
+            data_o <= data_i;
+        end
     end
 
 endmodule

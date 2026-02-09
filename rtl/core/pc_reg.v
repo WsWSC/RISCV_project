@@ -10,7 +10,7 @@ module pc_reg(
     input  wire         rst_n               ,
 
     // from ctrl
-    input  wire         flush_flag_i        ,           // stall/Flush
+    input  wire         stall_flag_i        ,           // Flush
     input  wire [31:0]  jump_addr_i         ,
     input  wire         jump_en_i           ,
 
@@ -23,7 +23,7 @@ module pc_reg(
             pc_addr_o <= 32'b0;
         else if (jump_en_i)
             pc_addr_o <= jump_addr_i;                   // jump
-        else if (flush_flag_i)          
+        else if (stall_flag_i)          
             pc_addr_o <= pc_addr_o;                     // Flush
         else
             pc_addr_o <= pc_addr_o + 32'd4;  

@@ -26,8 +26,8 @@ module ex(
     // to ctrl  
     output reg[31:0]    jump_addr_o         ,
     output reg          jump_en_o           ,
-    output reg          flush_flag_o        ,       // NOP
-    output reg          stall_flag_o        ,       // stall
+    output reg          flush_req_o         ,       // NOP
+    output reg          stall_req_o         ,       // stall
 
     // from data_mem read
     input  wire[31:0]   data_mem_r_data_i   ,
@@ -97,13 +97,14 @@ module ex(
     
     always @(*) begin
         // defaults
-        rd_addr_o    = `ZeroReg             ;
-        rd_data_o    = `ZeroWord            ;
-        rd_w_en_o    = `WriteDisable        ;
+        rd_addr_o   = `ZeroReg      ;
+        rd_data_o   = `ZeroWord     ;
+        rd_w_en_o   = `WriteDisable ;
  
-        jump_addr_o  = `ZeroAddr            ;
-        jump_en_o    = `JumpDisable         ;
-        flush_flag_o = `FlushDisable         ;
+        jump_addr_o = `ZeroAddr     ;
+        jump_en_o   = `JumpDisable  ;
+        flush_req_o = `FlushDisable ;
+        stall_req_o = `StallDisable ;
 
         data_mem_w_en_o	  = `WriteDisable   ;
         data_mem_w_sel_o  = 4'b0            ;
@@ -267,43 +268,36 @@ module ex(
                     `INST_BEQ: begin
                         jump_addr_o  = base_addr_add_addr_offset ;
                         jump_en_o    = op1_i_eq_op2_i            ;
-                        flush_flag_o = `FlushDisable             ;
                     end
 
                     `INST_BNE: begin
                         jump_addr_o  = base_addr_add_addr_offset ;
                         jump_en_o    = op1_i_ne_op2_i            ;
-                        flush_flag_o = `FlushDisable             ;
                     end
 
                     `INST_BLT: begin
                         jump_addr_o  = base_addr_add_addr_offset ;
                         jump_en_o    = op1_i_lt_op2_i            ;
-                        flush_flag_o = `FlushDisable             ;
                     end
 
                     `INST_BGE: begin
                         jump_addr_o  = base_addr_add_addr_offset ;
                         jump_en_o    = op1_i_ge_op2_i            ;
-                        flush_flag_o = `FlushDisable             ;
                     end
 
                     `INST_BLTU: begin
                         jump_addr_o  = base_addr_add_addr_offset ;
                         jump_en_o    = op1_i_ltu_op2_i           ;
-                        flush_flag_o = `FlushDisable             ;
                     end
 
                     `INST_BGEU: begin
                         jump_addr_o  = base_addr_add_addr_offset ;
                         jump_en_o    = op1_i_geu_op2_i           ;
-                        flush_flag_o = `FlushDisable             ;
                     end
 
                     default: begin
                         jump_addr_o  = `ZeroAddr     ;
                         jump_en_o    = `JumpDisable  ;
-                        flush_flag_o = `FlushDisable ;
                     end
 
                 endcase
@@ -479,7 +473,6 @@ module ex(
  
                 jump_addr_o  = base_addr_add_addr_offset ;
                 jump_en_o    = `JumpEnable               ;
-                flush_flag_o = `FlushDisable             ;
             end
 
             // I-type jump
@@ -490,7 +483,6 @@ module ex(
  
                 jump_addr_o  = (base_addr_add_addr_offset) & 32'hFFFF_FFFE ;       // JALR sets the least-significant bit of the target address to zero
                 jump_en_o    = `JumpEnable                       ;
-                flush_flag_o = `FlushDisable                     ;
             end
 
             // U-type
@@ -501,7 +493,6 @@ module ex(
  
                 jump_addr_o  = `ZeroAddr     ;
                 jump_en_o    = `JumpDisable  ;
-                flush_flag_o = `FlushDisable ;
             end
 
             `INST_AUIPC: begin
@@ -511,7 +502,6 @@ module ex(
  
                 jump_addr_o  = `ZeroAddr         ;
                 jump_en_o    = `JumpDisable      ;
-                flush_flag_o = `FlushDisable     ;
             end
 
             default: begin
@@ -521,7 +511,6 @@ module ex(
  
                 jump_addr_o  = `ZeroAddr     ;
                 jump_en_o    = `JumpDisable  ;
-                flush_flag_o = `FlushDisable ;
             end
 
         endcase
