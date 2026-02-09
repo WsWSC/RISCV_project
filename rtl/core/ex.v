@@ -81,8 +81,10 @@ module ex(
     wire[63:0]  op1_i_mul_op2_i   = ($signed(op1_i) * $signed(op2_i));                      // INST_MUL & INST_MULH
     wire[63:0]  op1_i_mulhsu_op2_i= ($signed(op1_i) * $signed({1'b0, op2_i}));              // INST_MULHSU (make op2 32bit unsigned -> 33bit signed)
     wire[63:0]  op1_i_mulhu_op2_i = (op1_i * op2_i);                                        // INST_MULHU
-
-
+    wire[63:0]  op1_i_div_op2_i   = ($signed(op1_i) / $signed(op2_i));                      // INST_DIV
+    wire[63:0]  op1_i_divu_op2_i  = (op1_i / op2_i);                                        // INST_DIVU
+    wire[31:0]  op1_i_rem_op2_i   = ($signed(op1_i) % $signed(op2_i));                      // INST_REM
+    wire[31:0]  op1_i_remu_op2_i  = (op1_i % op2_i);                                        // INST_REMU
 
     // B-type   
     wire        op1_i_eq_op2_i    = (op1_i == op2_i);                                       // INST_BEQ 
@@ -195,28 +197,62 @@ module ex(
                     case (funct3)
                         `INST_MUL: begin
                             rd_addr_o = rd_addr_i             ;
-                            rd_data_o = op1_i_mul_op2_i[31:0] ;   
+                            rd_data_o = op1_i_mul_op2_i[31:0] ;
                             rd_w_en_o = `WriteEnable          ;
                         end
 
                         `INST_MULH: begin
                             rd_addr_o = rd_addr_i              ;
-                            rd_data_o = op1_i_mul_op2_i[63:32] ;   
+                            rd_data_o = op1_i_mul_op2_i[63:32] ;
                             rd_w_en_o = `WriteEnable           ;
                         end
 
                         `INST_MULHSU: begin
                             rd_addr_o = rd_addr_i                 ;
-                            rd_data_o = op1_i_mulhsu_op2_i[63:32] ;   
+                            rd_data_o = op1_i_mulhsu_op2_i[63:32] ;
                             rd_w_en_o = `WriteEnable              ;
                         end
 
                         `INST_MULHU: begin
                             rd_addr_o = rd_addr_i                ;
-                            rd_data_o = op1_i_mulhu_op2_i[63:32] ;   
+                            rd_data_o = op1_i_mulhu_op2_i[63:32] ;
                             rd_w_en_o = `WriteEnable             ;
                         end
-                        
+
+                        `INST_DIV: begin
+                            rd_addr_o = rd_addr_i       ;
+                            rd_data_o = op1_i_div_op2_i ;
+                            rd_w_en_o = `WriteEnable    ;
+                        end
+
+                        `INST_DIVU: begin
+                            rd_addr_o = rd_addr_i        ;
+                            rd_data_o = op1_i_divu_op2_i ;
+                            rd_w_en_o = `WriteEnable     ;
+                        end
+
+                        `INST_REM: begin
+                            rd_addr_o = rd_addr_i    ;
+                            rd_w_en_o = `WriteEnable ;
+
+                            if (op2_i == 0)                                             
+                                rd_data_o = op1_i;
+                            else if (op1_i == 32'h80000000 && op2_i == 32'hFFFFFFFF)    
+                                rd_data_o = 0;
+                            else                                                        
+                                rd_data_o = op1_i_rem_op2_i;
+                        end
+
+                        `INST_REMU: begin
+                            rd_addr_o = rd_addr_i    ;
+                            rd_w_en_o = `WriteEnable ;
+
+                            if (op2_i == 32'b0)
+                                rd_data_o = op1_i;
+                            else
+                                rd_data_o = op1_i_remu_op2_i;
+                        end
+
                         default: begin
                             rd_addr_o   = `ZeroReg      ;
                             rd_data_o   = `ZeroWord     ;
