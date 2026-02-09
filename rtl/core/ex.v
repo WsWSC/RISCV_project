@@ -78,8 +78,11 @@ module ex(
     wire[31:0]  op1_i_sub_op2_i   = (op1_i - op2_i);                                        // INST_ADD_SUB sub
 
     // M-type
-    wire[31:0]  op1_i_mul_op2_i   = ($signed(op1_i) * $signed(op2_i));                      // INST_ADD_SUB add
-    //wire[31:0]  op1_i_sub_op2_i   = (op1_i - op2_i);                                        // INST_ADD_SUB sub
+    wire[63:0]  op1_i_mul_op2_i   = ($signed(op1_i) * $signed(op2_i));                      // INST_MUL & INST_MULH
+    wire[63:0]  op1_i_mulhsu_op2_i= ($signed(op1_i) * $signed({1'b0, op2_i}));              // INST_MULHSU (make op2 32bit unsigned -> 33bit signed)
+    wire[63:0]  op1_i_mulhu_op2_i = (op1_i * op2_i);                                        // INST_MULHU
+
+
 
     // B-type   
     wire        op1_i_eq_op2_i    = (op1_i == op2_i);                                       // INST_BEQ 
@@ -110,10 +113,10 @@ module ex(
         flush_req_o = `FlushDisable ;
         stall_req_o = `StallDisable ;
 
-        data_mem_w_en_o	  = `WriteDisable   ;
-        data_mem_w_sel_o  = 4'b0            ;
-        data_mem_w_addr_o = `ZeroAddr       ;
-        data_mem_w_data_o = `ZeroWord       ;
+        data_mem_w_en_o	  = `WriteDisable ;
+        data_mem_w_sel_o  = 4'b0          ;
+        data_mem_w_addr_o = `ZeroAddr     ;
+        data_mem_w_data_o = `ZeroWord     ;
 
         case(opcode) 
             // I-type
@@ -186,18 +189,38 @@ module ex(
                 endcase
             end
 
-            // R-type
+            // R/M-type
             `INST_TYPE_R_M: begin
                 if (funct7 == `FUNCT7_TYPE_M) begin     // M-type
                     case (funct3)
                         `INST_MUL: begin
-                            rd_addr_o = rd_addr_i           ;
-                            rd_data_o = op1_i_mul_op2_i     ;   
-                            rd_w_en_o = `WriteEnable        ;
+                            rd_addr_o = rd_addr_i             ;
+                            rd_data_o = op1_i_mul_op2_i[31:0] ;   
+                            rd_w_en_o = `WriteEnable          ;
+                        end
+
+                        `INST_MULH: begin
+                            rd_addr_o = rd_addr_i              ;
+                            rd_data_o = op1_i_mul_op2_i[63:32] ;   
+                            rd_w_en_o = `WriteEnable           ;
+                        end
+
+                        `INST_MULHSU: begin
+                            rd_addr_o = rd_addr_i                 ;
+                            rd_data_o = op1_i_mulhsu_op2_i[63:32] ;   
+                            rd_w_en_o = `WriteEnable              ;
+                        end
+
+                        `INST_MULHU: begin
+                            rd_addr_o = rd_addr_i                ;
+                            rd_data_o = op1_i_mulhu_op2_i[63:32] ;   
+                            rd_w_en_o = `WriteEnable             ;
                         end
                         
                         default: begin
-                            
+                            rd_addr_o   = `ZeroReg      ;
+                            rd_data_o   = `ZeroWord     ;
+                            rd_w_en_o   = `WriteDisable ;     
                         end
                     endcase
                 end else begin                          // R-type
@@ -496,9 +519,9 @@ module ex(
 
             // I-type jump
             `INST_JALR: begin
-                rd_addr_o    = rd_addr_i                         ;
-                rd_data_o    = inst_addr_i + 32'h4               ;
-                rd_w_en_o    = `WriteEnable                      ;
+                rd_addr_o    = rd_addr_i           ;
+                rd_data_o    = inst_addr_i + 32'h4 ;
+                rd_w_en_o    = `WriteEnable        ;
  
                 jump_addr_o  = (base_addr_add_addr_offset) & 32'hFFFF_FFFE ;       // JALR sets the least-significant bit of the target address to zero
                 jump_en_o    = `JumpEnable                       ;
@@ -506,21 +529,21 @@ module ex(
 
             // U-type
             `INST_LUI: begin
-                rd_addr_o    = rd_addr_i     ;
-                rd_data_o    = op1_i         ;
-                rd_w_en_o    = `WriteEnable  ;
+                rd_addr_o    = rd_addr_i    ;
+                rd_data_o    = op1_i        ;
+                rd_w_en_o    = `WriteEnable ;
  
-                jump_addr_o  = `ZeroAddr     ;
-                jump_en_o    = `JumpDisable  ;
+                jump_addr_o  = `ZeroAddr    ;
+                jump_en_o    = `JumpDisable ;
             end
 
             `INST_AUIPC: begin
-                rd_addr_o    = rd_addr_i         ;
-                rd_data_o    = op1_i_add_op2_i   ;
-                rd_w_en_o    = `WriteEnable      ;
+                rd_addr_o    = rd_addr_i       ;
+                rd_data_o    = op1_i_add_op2_i ;
+                rd_w_en_o    = `WriteEnable    ;
  
-                jump_addr_o  = `ZeroAddr         ;
-                jump_en_o    = `JumpDisable      ;
+                jump_addr_o  = `ZeroAddr       ;
+                jump_en_o    = `JumpDisable    ;
             end
 
             default: begin
