@@ -122,38 +122,65 @@ module id(
 
             // R-type
             `INST_TYPE_R_M: begin
-                case(funct3)
-                    `INST_ADD_SUB, `INST_SLT, `INST_SLTU, `INST_XOR, `INST_OR, `INST_AND: begin
-                        rs1_addr_o  = rs1;
-                        rs2_addr_o  = rs2;
+                if (funct7 == `FUNCT7_TYPE_M) begin     // M-type
+                    case(funct3)
+                        `INST_MUL, `INST_MULH, `INST_MULHSU, `INST_MULHU, `INST_DIV, `INST_DIVU, `INST_REM, `INST_REMU: begin
+                            rs1_addr_o = rs1;
+                            rs2_addr_o = rs2;
 
-                        op1_o       = rs1_data_i;
-                        op2_o       = rs2_data_i;
-                        rd_addr_o   = rd;
-                        reg_w_en_o = `WriteEnable;
-                    end
+                            op1_o      = rs1_data_i;
+                            op2_o      = rs2_data_i;
+                            rd_addr_o  = rd;
+                            reg_w_en_o = `WriteEnable;
+                        end
 
-                    `INST_SLL, `INST_SR: begin
-                        rs1_addr_o  = rs1;
-                        rs2_addr_o  = rs2;
+                        default: begin
+                            rs1_addr_o = `ZeroReg      ;
+                            rs2_addr_o = `ZeroReg      ;
 
-                        op1_o       = rs1_data_i;
-                        op2_o       = {27'b0, rs2_data_i[4:0]};
-                        rd_addr_o   = rd;
-                        reg_w_en_o = `WriteEnable;
-                    end
+                            op1_o      = `ZeroWord     ;
+                            op2_o      = `ZeroWord     ;
+                            rd_addr_o  = `ZeroReg      ;
+                            reg_w_en_o = `WriteDisable ;
+                        end
 
-                    default: begin
-                        rs1_addr_o  = `ZeroReg      ;
-                        rs2_addr_o  = `ZeroReg      ;
+                    endcase
 
-                        op1_o       = `ZeroWord     ;
-                        op2_o       = `ZeroWord     ;
-                        rd_addr_o   = `ZeroReg      ;
-                        reg_w_en_o = `WriteDisable ;
-                    end
+                end else begin                          // R-type
+                    case(funct3)
+                        `INST_ADD_SUB, `INST_SLT, `INST_SLTU, `INST_XOR, `INST_OR, `INST_AND: begin
+                            rs1_addr_o = rs1;
+                            rs2_addr_o = rs2;
 
-                endcase
+                            op1_o      = rs1_data_i;
+                            op2_o      = rs2_data_i;
+                            rd_addr_o  = rd;
+                            reg_w_en_o = `WriteEnable;
+                        end
+
+                        `INST_SLL, `INST_SR: begin
+                            rs1_addr_o = rs1;
+                            rs2_addr_o = rs2;
+
+                            op1_o      = rs1_data_i;
+                            op2_o      = {27'b0, rs2_data_i[4:0]};
+                            rd_addr_o  = rd;
+                            reg_w_en_o = `WriteEnable;
+                        end
+
+                        default: begin
+                            rs1_addr_o = `ZeroReg      ;
+                            rs2_addr_o = `ZeroReg      ;
+
+                            op1_o      = `ZeroWord     ;
+                            op2_o      = `ZeroWord     ;
+                            rd_addr_o  = `ZeroReg      ;
+                            reg_w_en_o = `WriteDisable ;
+                        end
+
+                    endcase
+                end
+
             end
 
             // B-type

@@ -74,6 +74,7 @@
 `define INST_OR         3'b110
 `define INST_AND        3'b111
 // M type inst  
+`define FUNCT7_TYPE_M   7'b000_0001
 `define INST_MUL        3'b000
 `define INST_MULH       3'b001
 `define INST_MULHSU     3'b010
