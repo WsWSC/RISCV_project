@@ -1,8 +1,9 @@
 # RISCV_project
 
-**3-Stage Pipeline RISC-V CPU (Verilog HDL)**
+**3-Stage RV32IM Pipeline RISC-V CPU (Verilog HDL)**
 
-This project implements a modular **3-stage RV32I pipeline core**,
+
+This project implements a modular **3-Stage Pipeline RV32I / RV32M RISC-V CPU (Verilog HDL)**,
 with emphasis on micro-architecture clarity and automated verification.
 
 
@@ -34,7 +35,7 @@ sim/
  ├─ compile_and_sim.py    # Compile & run simulation
  ├─ test_all.py           # Regression test for all instructions
  ├─ test_one_inst.py      # Single instruction test
- └─ test_bin/             # Precompiled RV32I test binaries (regression vectors)
+ └─ test_bin/             # RV32I / RV32M regression binaries
  
 tb/
  └─ tb.v                  # Top-level testbench
@@ -45,9 +46,12 @@ img/
 
 
 ## Architecture
-The processor is implemented as a modular 3-stage RV32I pipeline core,
-separated from system integration logic to improve structural clarity
-and extensibility.
+The processor is implemented as a modular 3-stage pipeline core,
+decoupled from SoC integration logic.
+
+> Note:
+This implementation currently assumes software-managed hazard avoidance.
+RAW hazard detection and forwarding logic are reserved for future enhancement.
 
 
 ### 3-Stage Pipeline
@@ -55,10 +59,10 @@ and extensibility.
 IF → ID → EX
 ```
 
-| Stage | Description |
-|-------|-------------|
-| IF    | Instruction Fetch |
-| ID    | Instruction Decode |
+| Stage | Description                   |
+|-------|-------------------------------|
+| IF    | Instruction Fetch             |
+| ID    | Instruction Decode            |
 | EX    | Execute / Memory / Write Back |
 
 
@@ -72,17 +76,28 @@ The processor is organized into two major layers：
 #### Core Architecture
 ![Core](img/Arichtecture-core.png)
 
-> The **Core** contains the pipeline datapath, register file,
-control logic, and stage-level pipeline registers.
-It is responsible for instruction execution and write-back.
+The **Core** contains:
+
+- Pipeline datapath  
+- Register file  
+- ALU  
+- RV32M execution logic  
+- Control logic  
+- Pipeline registers (IF/ID, ID/EX)  
+
+The Core is responsible for full instruction execution and write-back.
 
 
 #### SoC Structure
 ![SoC](img/Arichtecture-soc.png)
 
-> The **SoC** layer integrates the Core with external
-Instruction Memory and Data Memory modules,
-providing a simple system-level wrapper.
+The **SoC layer** integrates:
+
+- Core  
+- Instruction Memory  
+- Data Memory  
+
+It acts as a lightweight wrapper for simulation and testing.
 
 
 ## Implementation Status
@@ -95,12 +110,14 @@ providing a simple system-level wrapper.
 - ✔ RV32I：R / I / B / J / U-type instructions
 - ✔ Load / Store
 - ✔ Branch & Jump redirect
+- ✔ RV32M extension (single-cycle MUL/DIV/REM) 
 
 
-### Not Implemented
-- Hazard detection / forwarding
-- RV32M extension
-- FENCE
+## Not Implemented
+- Hazard detection  
+- Data forwarding  
+- Multi-cycle execution units  
+- FENCE / FENCE.I full behavior  
 
 
 ## Prerequisites
@@ -137,67 +154,66 @@ python test_one_inst.py <instruction>  # e.g., addi
 
 
 ### Test Result Summary
-| Category          | Instruction Type                 | Status          |
-|-------------------|----------------------------------|-----------------|
-| RV32I Arithmetic  | R-type instructions              | PASS            |
-| Load / Store      | I-type / S-type instructions     | PASS            |
-| Branch / Jump     | B-type / J-type instructions     | PASS            |
-| LUI / AUIPC       | U-type instructions              | PASS            |
-| RV32M Extension   | R-type (multiply/divide)         | Not Implemented |
+| Category          | Instruction Type               | Status |
+|-------------------|--------------------------------|--------|
+| RV32I Arithmetic  | R-type instructions            | PASS   |
+| Load / Store      | I-type / S-type instructions   | PASS   |
+| Branch / Jump     | B-type / J-type instructions   | PASS   |
+| LUI / AUIPC       | U-type instructions            | PASS   |
+| RV32M Extension   | Multiply / Divide instructions | PASS   |
 
 
 ### Detailed Log
 ```
-instruction： [ add       ]    PASS
-instruction： [ addi      ]    PASS
-instruction： [ and       ]    PASS
-instruction： [ andi      ]    PASS
-instruction： [ auipc     ]    PASS
-instruction： [ beq       ]    PASS
-instruction： [ bge       ]    PASS
-instruction： [ bgeu      ]    PASS
-instruction： [ blt       ]    PASS
-instruction： [ bltu      ]    PASS
-instruction： [ bne       ]    PASS
-instruction： [ fence_i   ]    !!!FAIL!!!
-instruction： [ jal       ]    PASS
-instruction： [ jalr      ]    PASS
-instruction： [ lb        ]    PASS
-instruction： [ lbu       ]    PASS
-instruction： [ lh        ]    PASS
-instruction： [ lhu       ]    PASS
-instruction： [ lui       ]    PASS
-instruction： [ lw        ]    PASS
-instruction： [ or        ]    PASS
-instruction： [ ori       ]    PASS
-instruction： [ sb        ]    PASS
-instruction： [ sh        ]    PASS
-instruction： [ simple    ]    PASS
-instruction： [ sll       ]    PASS
-instruction： [ slli      ]    PASS
-instruction： [ slt       ]    PASS
-instruction： [ slti      ]    PASS
-instruction： [ sltiu     ]    PASS
-instruction： [ sltu      ]    PASS
-instruction： [ sra       ]    PASS
-instruction： [ srai      ]    PASS
-instruction： [ srl       ]    PASS
-instruction： [ srli      ]    PASS
-instruction： [ sub       ]    PASS
-instruction： [ sw        ]    PASS
-instruction： [ xor       ]    PASS
-instruction： [ xori      ]    PASS
-instruction： [ div       ]    !!!FAIL!!!
-instruction： [ divu      ]    !!!FAIL!!!
-instruction： [ mul       ]    !!!FAIL!!!
-instruction： [ mulh      ]    !!!FAIL!!!
-instruction： [ mulhsu    ]    !!!FAIL!!!
-instruction： [ mulhu     ]    !!!FAIL!!!
-instruction： [ rem       ]    !!!FAIL!!!
-instruction： [ remu      ]    !!!FAIL!!!
+instruction:  [ add       ]    PASS
+instruction:  [ addi      ]    PASS
+instruction:  [ and       ]    PASS
+instruction:  [ andi      ]    PASS
+instruction:  [ auipc     ]    PASS
+instruction:  [ beq       ]    PASS
+instruction:  [ bge       ]    PASS
+instruction:  [ bgeu      ]    PASS
+instruction:  [ blt       ]    PASS
+instruction:  [ bltu      ]    PASS
+instruction:  [ bne       ]    PASS
+instruction:  [ fence_i   ]    Not Implemented
+instruction:  [ jal       ]    PASS
+instruction:  [ jalr      ]    PASS
+instruction:  [ lb        ]    PASS
+instruction:  [ lbu       ]    PASS
+instruction:  [ lh        ]    PASS
+instruction:  [ lhu       ]    PASS
+instruction:  [ lui       ]    PASS
+instruction:  [ lw        ]    PASS
+instruction:  [ or        ]    PASS
+instruction:  [ ori       ]    PASS
+instruction:  [ sb        ]    PASS
+instruction:  [ sh        ]    PASS
+instruction:  [ simple    ]    PASS
+instruction:  [ sll       ]    PASS
+instruction:  [ slli      ]    PASS
+instruction:  [ slt       ]    PASS
+instruction:  [ slti      ]    PASS
+instruction:  [ sltiu     ]    PASS
+instruction:  [ sltu      ]    PASS
+instruction:  [ sra       ]    PASS
+instruction:  [ srai      ]    PASS
+instruction:  [ srl       ]    PASS
+instruction:  [ srli      ]    PASS
+instruction:  [ sub       ]    PASS
+instruction:  [ sw        ]    PASS
+instruction:  [ xor       ]    PASS
+instruction:  [ xori      ]    PASS
+instruction:  [ div       ]    PASS
+instruction:  [ divu      ]    PASS
+instruction:  [ mul       ]    PASS
+instruction:  [ mulh      ]    PASS
+instruction:  [ mulhsu    ]    PASS
+instruction:  [ mulhu     ]    PASS
+instruction:  [ rem       ]    PASS
+instruction:  [ remu      ]    PASS
 ```
 
-> `mul/div/rem` belongs to the RV32M extension, and is not yet implemented.
 
 ## Reference
 [1] [SI-RISCV Project](https：//github.com/SI-RISCV/e200_opensource.git)
