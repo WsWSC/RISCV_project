@@ -8,7 +8,7 @@
 `include "defines.v"
 
 module mul #(
-    parameter integer LATENCY = 32   // keep 32 for RV32
+    parameter integer LATENCY = 32      // keep 32 for RV32
 )(
     input  wire        clk,
     input  wire        rst_n,
@@ -24,29 +24,39 @@ module mul #(
 );
 
     // ------------------------------------------------------------
-    // helpers
+    // functions
     // ------------------------------------------------------------
-    function [31:0] abs32;          // Compute |x| for a 32-bit two's complement value
+    function [31:0] abs32;              // Compute |x| in 32-bit 2's complement
         input [31:0] x;
         begin
             abs32 = x[31] ? (~x + 32'd1) : x;
         end
     endfunction
 
-    function [63:0] neg64;          // 64-bit 值取負
+    function [63:0] neg64;              // 64-bit 2's complement negate
         input [63:0] x;
         begin
             neg64 = ~x + 64'd1;
         end
     endfunction
 
-    // funct3 signed / unsigned
+    // ------------------------------------------------------------
+    // signed/unsigned select (combinational)
+    // ------------------------------------------------------------
     wire op1_is_signed = (funct3 == `INST_MUL)    ||
                          (funct3 == `INST_MULH)   ||
                          (funct3 == `INST_MULHSU);
 
-    wire op2_is_signed = (funct3 == `INST_MUL)    || 
-                         (funct3 == `INST_MULH);  
+    wire op2_is_signed = (funct3 == `INST_MUL)    ||
+                         (funct3 == `INST_MULH);
+
+    wire op1_neg = op1_is_signed && op1[31];
+    wire op2_neg = op2_is_signed && op2[31];
+
+    wire sign_neg_next = op1_neg ^ op2_neg;
+
+    wire [31:0] op1_mag_next = op1_neg ? abs32(op1) : op1;
+    wire [31:0] op2_mag_next = op2_neg ? abs32(op2) : op2;
 
     // ------------------------------------------------------------
     // state + datapath regs
@@ -55,15 +65,19 @@ module mul #(
     localparam RUN  = 1'b1;
 
     reg        state;
-    reg [5:0]  step;      // 32 steps for shift-add
+    reg [5:0]  step;                    // 0 ~ 31
 
-    reg        sign_neg;  // final sign
-    reg [63:0] acc;       // accumulator
-    reg [63:0] mcand;     // multiplicand (shift left)
-    reg [31:0] mplier;    // multiplier   (shift right)
+    reg        sign_neg;                // latched final sign
+    reg [63:0] acc;                     // accumulator
+    reg [63:0] mcand;                   // multiplicand (shift left)
+    reg [31:0] mplier;                  // multiplier   (shift right)
+
+    // "final_acc" as stable combinational view of the NEXT acc value
+    // computed from CURRENT (old) acc/mcand/mplier[0].
+    wire [63:0] acc_next = acc + (mplier[0] ? mcand : 64'd0);
 
     // ------------------------------------------------------------
-    // main FSM
+    // main FSM (sequential)
     // ------------------------------------------------------------
     always @(posedge clk) begin
         if (!rst_n) begin
@@ -81,29 +95,16 @@ module mul #(
             done <= 1'b0; // pulse
 
             case (state)
-                // -----------------------------
-                // IDLE: wait for start
-                // -----------------------------
                 IDLE: begin
                     busy <= 1'b0;
 
-                    if (start) begin                
-                        // convert to unsigned magnitudes, then do unsigned shift-add
-                        reg op1_neg, op2_neg;
-                        reg [31:0] a_mag, b_mag;
+                    if (start) begin
+                        // latch sign + magnitudes at start
+                        sign_neg <= sign_neg_next;
 
-                        op1_neg = op1_is_signed && op1[31];
-                        op2_neg = op2_is_signed && op2[31];
-
-                        sign_neg = op1_neg ^ op2_neg;           // sign
-
-                        a_mag = op1_neg ? abs32(op1) : op1;     // absolute unsigned value
-                        b_mag = op2_neg ? abs32(op2) : op2;
-
-                        // init datapath
                         acc    <= 64'd0;
-                        mcand  <= {32'd0, a_mag};
-                        mplier <= b_mag;
+                        mcand  <= {32'd0, op1_mag_next};
+                        mplier <= op2_mag_next;
                         step   <= 6'd0;
 
                         busy  <= 1'b1;
@@ -111,29 +112,17 @@ module mul #(
                     end
                 end
 
-                // -----------------------------
-                // RUN: 32 iterations
-                // -----------------------------
                 RUN: begin
                     busy <= 1'b1;
 
-                    // one shift-add step
-                    if (mplier[0]) 
-                        acc <= acc + mcand;
-
+                    // do one iteration using current mplier[0]
+                    acc    <= acc_next;
                     mcand  <= mcand << 1;
                     mplier <= mplier >> 1;
 
-                    // step count
                     if (step == (LATENCY - 1)) begin
-                        // finish this cycle
-                        // NOTE: acc written with nonblocking; need a stable final value:
-                        // easiest: compute final using current mplier[0] decision
-                        // by using a temporary "final_acc" wire-like reg.
-                        reg [63:0] final_acc;
-                        final_acc = acc + (mplier[0] ? mcand : 64'd0);
-
-                        result64 <= sign_neg ? neg64(final_acc) : final_acc;
+                        // acc_next is the correct "final_acc" for this last step
+                        result64 <= sign_neg ? neg64(acc_next) : acc_next;
                         done     <= 1'b1;
                         busy     <= 1'b0;
                         state    <= IDLE;
