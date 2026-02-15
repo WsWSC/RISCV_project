@@ -15,17 +15,17 @@ module mul #(
 
     // from EX
     input  wire        mul_start_i      ,
-    input  wire [2:0]  funct3_i         ,
-    input  wire [31:0] op1_i            ,
-    input  wire [31:0] op2_i            ,
-    input  wire [4:0]  reg_waddr_i      ,
+    input  wire [2:0]  mul_funct3_i     ,
+    input  wire [31:0] mul_op1_i        ,
+    input  wire [31:0] mul_op2_i        ,
+    input  wire [4:0]  mul_reg_waddr_i  ,
 
     // to EX
     output reg         mul_busy_o       ,
     output reg         mul_ready_o      ,
     output reg  [63:0] mul_result64_o   ,
-    output reg  [4:0]  rd_waddr_o       ,
-    output reg  [2:0]  funct3_o         
+    output reg  [4:0]  mul_rd_waddr_o   ,
+    output reg  [2:0]  mul_funct3_o         
 );
 
     // ------------------------------------------------------------
@@ -48,20 +48,20 @@ module mul #(
     // ------------------------------------------------------------
     // signed determined
     // ------------------------------------------------------------
-    wire op1_is_signed = (funct3_i == `INST_MUL)  ||
-                         (funct3_i == `INST_MULH) ||
-                         (funct3_i == `INST_MULHSU);
+    wire mul_op1_is_signed = (mul_funct3_i == `INST_MUL)  ||
+                         (mul_funct3_i == `INST_MULH) ||
+                         (mul_funct3_i == `INST_MULHSU);
 
-    wire op2_is_signed = (funct3_i == `INST_MUL)  ||
-                         (funct3_i == `INST_MULH);
+    wire mul_op2_is_signed = (mul_funct3_i == `INST_MUL)  ||
+                         (mul_funct3_i == `INST_MULH);
 
-    wire op1_is_neg = op1_is_signed && op1_i[31];
-    wire op2_is_neg = op2_is_signed && op2_i[31];
+    wire mul_op1_is_neg = mul_op1_is_signed && mul_op1_i[31];
+    wire mul_op2_is_neg = mul_op2_is_signed && mul_op2_i[31];
 
-    wire sign_next = op1_is_neg ^ op2_is_neg;
+    wire sign_next = mul_op1_is_neg ^ mul_op2_is_neg;
 
-    wire [31:0] op1_mag = op1_is_neg ? abs32(op1_i) : op1_i;
-    wire [31:0] op2_mag = op2_is_neg ? abs32(op2_i) : op2_i;
+    wire [31:0] op1_mag = mul_op1_is_neg ? abs32(mul_op1_i) : mul_op1_i;
+    wire [31:0] op2_mag = mul_op2_is_neg ? abs32(mul_op2_i) : mul_op2_i;
 
     // ------------------------------------------------------------
     // FSM + datapath
@@ -90,8 +90,8 @@ module mul #(
             mul_ready_o    <= 1'b0;
             mul_result64_o <= 64'd0;
 
-            rd_waddr_o <= 5'd0;
-            funct3_o   <= 3'd0;
+            mul_rd_waddr_o <= 5'd0;
+            mul_funct3_o   <= 3'd0;
 
             step   <= 6'd0;
             sign   <= 1'b0;
@@ -108,8 +108,8 @@ module mul #(
 
                     if (mul_start_i) begin
                         // latch control
-                        funct3_o   <= funct3_i;
-                        rd_waddr_o <= reg_waddr_i;
+                        mul_funct3_o   <= mul_funct3_i;
+                        mul_rd_waddr_o <= mul_reg_waddr_i;
 
                         // init datapath
                         sign   <= sign_next;

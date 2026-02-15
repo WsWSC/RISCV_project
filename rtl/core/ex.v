@@ -23,6 +23,20 @@ module ex(
     output reg[31:0]    rd_data_o           ,
     output reg          rd_w_en_o           ,
 
+    // from mul
+    input wire          mul_busy_i          ,
+    input wire          mul_ready_i         ,
+    input wire[63:0]    mul_result64_i      ,
+    input wire[4:0]     mul_rd_waddr_i      ,
+    input wire[2:0]     mul_funct3_i        ,
+
+    // to mul
+    output wire         mul_start_o         ,
+    output wire[2:0]    mul_funct3_o        ,
+    output wire[31:0]   mul_op1_o           ,
+    output wire[31:0]   mul_op2_o           ,
+    output wire[4:0]    mul_reg_waddr_o     ,
+
     // to ctrl  
     output reg[31:0]    jump_addr_o         ,
     output reg          jump_en_o           ,
@@ -95,7 +109,23 @@ module ex(
     // load/store index
     wire[1:0]   load_index  = base_addr_add_addr_offset[1:0];
     wire[1:0]   store_index = base_addr_add_addr_offset[1:0];
-   
+/*    
+    // mul determined
+    wire is_mul_inst = (opcode == `INST_TYPE_R_M) && (funct7 == 7'b0000001) &&
+        (   (funct3 == `INST_MUL)    ||
+            (funct3 == `INST_MULH)   ||
+            (funct3 == `INST_MULHSU) ||
+            (funct3 == `INST_MULHU)     );
+
+    assign mul_start_o    = is_mul_inst || mul_busy_i;
+    assign mul_funct3_o   = funct3;
+    assign mul_op1_o      = op1_i;
+    assign mul_op2_o      = op2_i;
+    assign mul_rd_waddr_o = rd_addr_i;
+
+    assign stall_req_o    = (is_mul_inst && !mul_ready_i) || mul_busy_i;
+ */
+
 
     // ============================================================
     //  Ex-stage logic
