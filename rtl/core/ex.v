@@ -31,11 +31,11 @@ module ex(
     input wire[2:0]     mul_funct3_i        ,
 
     // to mul
-    output wire         mul_start_o         ,
-    output wire[2:0]    mul_funct3_o        ,
-    output wire[31:0]   mul_op1_o           ,
-    output wire[31:0]   mul_op2_o           ,
-    output wire[4:0]    mul_reg_waddr_o     ,
+    output reg          mul_start_o         ,
+    output reg[2:0]     mul_funct3_o        ,
+    output reg[31:0]    mul_op1_o           ,
+    output reg[31:0]    mul_op2_o           ,
+    output reg[4:0]     mul_reg_waddr_o     ,
 
     // to ctrl  
     output reg[31:0]    jump_addr_o         ,
@@ -136,7 +136,14 @@ module ex(
         rd_addr_o   = `ZeroReg      ;
         rd_data_o   = `ZeroWord     ;
         rd_w_en_o   = `WriteDisable ;
- 
+
+        // default mul outputs
+        mul_start_o      = 1'b0;
+        mul_funct3_o     = 3'd0;
+        mul_op1_o        = 32'd0;
+        mul_op2_o        = 32'd0;
+        mul_reg_waddr_o  = 5'd0;
+
         jump_addr_o = `ZeroAddr     ;
         jump_en_o   = `JumpDisable  ;
         flush_req_o = `FlushDisable ;
@@ -220,8 +227,33 @@ module ex(
 
             // R/M-type
             `INST_TYPE_R_M: begin
+
+                
                 if (funct7 == `FUNCT7_TYPE_M) begin     // M-type
                     case (funct3)
+                        `INST_MUL, `INST_MULH, `INST_MULHSU, `INST_MULHU: begin
+                            // start mul.v
+                            mul_start_o     = 1'b1      ;
+                            mul_funct3_o    = funct3    ;
+                            mul_op1_o       = op1_i     ;
+                            mul_op2_o       = op2_i     ;
+                            mul_reg_waddr_o = rd_addr_i ;
+
+                            // stall pipeline
+                            stall_req_o = (!mul_ready_i) || mul_busy_i;
+
+                            // ready & write back
+                            if (mul_ready_i) begin              
+                                rd_w_en_o = `WriteEnable;
+                                rd_addr_o = mul_rd_waddr_i;
+
+                                if (mul_funct3_i == `INST_MUL)
+                                    rd_data_o = mul_result64_i[31:0];
+                                else
+                                    rd_data_o = mul_result64_i[63:32];
+                            end
+                        end
+/*                     
                         `INST_MUL: begin
                             rd_addr_o = rd_addr_i             ;
                             rd_data_o = op1_i_mul_op2_i[31:0] ;
@@ -245,7 +277,7 @@ module ex(
                             rd_data_o = op1_i_mulhu_op2_i[63:32] ;
                             rd_w_en_o = `WriteEnable             ;
                         end
-
+ */
                         `INST_DIV: begin
                             rd_addr_o = rd_addr_i       ;
                             rd_data_o = op1_i_div_op2_i ;
@@ -285,7 +317,7 @@ module ex(
                             rd_data_o   = `ZeroWord     ;
                             rd_w_en_o   = `WriteDisable ;     
                         end
-                    endcase
+                    endcase 
                 end else begin                          // R-type
                     case(funct3)
                         `INST_ADD_SUB: begin
