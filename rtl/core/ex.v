@@ -24,7 +24,7 @@ module ex(
     output reg          rd_w_en_o           ,
 
     // from mul
-    input wire          mul_busy_i          ,
+    //input wire          mul_busy_i          ,
     input wire          mul_ready_i         ,
     input wire[63:0]    mul_result64_i      ,
     input wire[4:0]     mul_rd_waddr_i      ,
@@ -109,24 +109,7 @@ module ex(
     // load/store index
     wire[1:0]   load_index  = base_addr_add_addr_offset[1:0];
     wire[1:0]   store_index = base_addr_add_addr_offset[1:0];
-/*    
-    // mul determined
-    wire is_mul_inst = (opcode == `INST_TYPE_R_M) && (funct7 == 7'b0000001) &&
-        (   (funct3 == `INST_MUL)    ||
-            (funct3 == `INST_MULH)   ||
-            (funct3 == `INST_MULHSU) ||
-            (funct3 == `INST_MULHU)     );
-
-    assign mul_start_o    = is_mul_inst || mul_busy_i;
-    assign mul_funct3_o   = funct3;
-    assign mul_op1_o      = op1_i;
-    assign mul_op2_o      = op2_i;
-    assign mul_rd_waddr_o = rd_addr_i;
-
-    assign stall_req_o    = (is_mul_inst && !mul_ready_i) || mul_busy_i;
- */
-
-
+  
     // ============================================================
     //  Ex-stage logic
     // ============================================================
@@ -138,11 +121,11 @@ module ex(
         rd_w_en_o   = `WriteDisable ;
 
         // default mul outputs
-        mul_start_o      = 1'b0;
-        mul_funct3_o     = 3'd0;
-        mul_op1_o        = 32'd0;
-        mul_op2_o        = 32'd0;
-        mul_reg_waddr_o  = 5'd0;
+        mul_start_o     = 1'b0;
+        mul_funct3_o    = 3'b0;
+        mul_op1_o       = 32'b0;
+        mul_op2_o       = 32'b0;
+        mul_reg_waddr_o = 5'b0;
 
         jump_addr_o = `ZeroAddr     ;
         jump_en_o   = `JumpDisable  ;
@@ -232,27 +215,21 @@ module ex(
                 if (funct7 == `FUNCT7_TYPE_M) begin     // M-type
                     case (funct3)
                         `INST_MUL, `INST_MULH, `INST_MULHSU, `INST_MULHU: begin
-                            // start mul.v
-                            mul_start_o     = 1'b1      ;
-                            mul_funct3_o    = funct3    ;
-                            mul_op1_o       = op1_i     ;
-                            mul_op2_o       = op2_i     ;
-                            mul_reg_waddr_o = rd_addr_i ;
+                            mul_start_o      = 1'b1;       // always 1
+                            mul_funct3_o     = funct3;
+                            mul_op1_o        = op1_i;
+                            mul_op2_o        = op2_i;
+                            mul_reg_waddr_o  = rd_addr_i;
 
-                            // stall pipeline
-                            stall_req_o = (!mul_ready_i) || mul_busy_i;
+                            stall_req_o      = !mul_ready_i;   // !ready -> stall
 
-                            // ready & write back
-                            if (mul_ready_i) begin              
+                            if (mul_ready_i) begin
                                 rd_w_en_o = `WriteEnable;
                                 rd_addr_o = mul_rd_waddr_i;
-
-                                if (mul_funct3_i == `INST_MUL)
-                                    rd_data_o = mul_result64_i[31:0];
-                                else
-                                    rd_data_o = mul_result64_i[63:32];
+                                rd_data_o = (mul_funct3_i == `INST_MUL) ? mul_result64_i[31:0] : mul_result64_i[63:32];
                             end
                         end
+
 /*                     
                         `INST_MUL: begin
                             rd_addr_o = rd_addr_i             ;
