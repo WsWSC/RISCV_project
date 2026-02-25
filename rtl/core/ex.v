@@ -24,7 +24,7 @@ module ex(
     output reg          rd_w_en_o           ,
 
     // from mul
-    //input wire          mul_busy_i          ,
+    input wire          mul_busy_i          ,
     input wire          mul_ready_i         ,
     input wire[63:0]    mul_result64_i      ,
     input wire[4:0]     mul_rd_waddr_i      ,
@@ -41,7 +41,7 @@ module ex(
     output reg[31:0]    jump_addr_o         ,
     output reg          jump_en_o           ,
     output reg          flush_req_o         ,       // NOP
-    output reg          stall_req_o         ,       // stall
+    output reg          stall_req_o         ,       // stall, mul will stall
 
     // from data_mem read
     input  wire[31:0]   data_mem_r_data_i   ,
@@ -211,19 +211,18 @@ module ex(
             // R/M-type
             `INST_TYPE_R_M: begin
 
-                
                 if (funct7 == `FUNCT7_TYPE_M) begin     // M-type
                     case (funct3)
                         `INST_MUL, `INST_MULH, `INST_MULHSU, `INST_MULHU: begin
-                            mul_start_o      = 1'b1;       // always 1
-                            mul_funct3_o     = funct3;
-                            mul_op1_o        = op1_i;
-                            mul_op2_o        = op2_i;
-                            mul_reg_waddr_o  = rd_addr_i;
+                            mul_start_o      = 1'b1      ;       
+                            mul_funct3_o     = funct3    ;
+                            mul_op1_o        = op1_i     ;
+                            mul_op2_o        = op2_i     ;
+                            mul_reg_waddr_o  = rd_addr_i ;
 
-                            stall_req_o      = !mul_ready_i;   // !ready -> stall
+                            stall_req_o      = !mul_ready_i ;       // to ctrl, !ready -> stall
 
-                            if (mul_ready_i) begin
+                            if (~mul_busy_i && mul_ready_i) begin
                                 rd_w_en_o = `WriteEnable;
                                 rd_addr_o = mul_rd_waddr_i;
                                 rd_data_o = (mul_funct3_i == `INST_MUL) ? mul_result64_i[31:0] : mul_result64_i[63:32];

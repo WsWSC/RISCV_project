@@ -82,6 +82,20 @@ module core(
     wire        ex_jump_en_o                ;
     wire        ex_flush_req_o              ;
     wire        ex_stall_req_o              ;
+
+    // ex to mul
+    wire        ex_mul_start_o              ;
+    wire[2:0]   ex_mul_funct3_o             ;
+    wire[31:0]  ex_mul_op1_o                ;
+    wire[31:0]  ex_mul_op2_o                ;
+    wire[4:0]   ex_mul_reg_waddr_o          ;
+
+    // mul to ex
+    wire        mul_mul_busy_o              ;
+    wire        mul_mul_ready_o             ;
+    wire[63:0]  mul_mul_result64_o          ;
+    wire[4:0]   mul_mul_rd_waddr_o          ;
+    wire[2:0]   mul_mul_funct3_o            ;
        
     // ctrl to pc_reg
     wire[31:0]  ctrl_jump_addr_o            ;
@@ -218,6 +232,20 @@ module core(
         .rd_data_o          (ex_rd_data_o           ),
         .rd_w_en_o          (ex_rd_w_en_o           ),
 
+        // from mul
+        .mul_busy_i         (mul_mul_busy_o         ),
+        .mul_ready_i        (mul_mul_ready_o        ),
+        .mul_result64_i     (mul_mul_result64_o     ),
+        .mul_rd_waddr_i     (mul_mul_rd_waddr_o     ),
+        .mul_funct3_i       (mul_mul_funct3_o       ),
+
+        // to mul
+        .mul_start_o        (ex_mul_start_o         ),
+        .mul_funct3_o       (ex_mul_funct3_o        ),
+        .mul_op1_o          (ex_mul_op1_o           ),
+        .mul_op2_o          (ex_mul_op2_o           ),
+        .mul_reg_waddr_o    (ex_mul_reg_waddr_o     ),
+
         // to ctrl  
         .jump_addr_o        (ex_jump_addr_o         ),
         .jump_en_o          (ex_jump_en_o           ),
@@ -233,6 +261,27 @@ module core(
 	    .data_mem_w_addr_o  (data_mem_w_addr_o      ),
 	    .data_mem_w_data_o  (data_mem_w_data_o      )
     );  
+
+    mul #(
+        .LATENCY(32)
+    ) mul_inst (
+        .clk                (clk                    ),
+        .rst_n              (rst_n                  ),
+
+        // from ex
+        .mul_start_i        (ex_mul_start_o         ),
+        .mul_funct3_i       (ex_mul_funct3_o        ),
+        .mul_op1_i          (ex_mul_op1_o           ),
+        .mul_op2_i          (ex_mul_op2_o           ),
+        .mul_reg_waddr_i    (ex_mul_reg_waddr_o     ),
+
+        // to ex
+        .mul_busy_o         (mul_mul_busy_o         ),
+        .mul_ready_o        (mul_mul_ready_o        ),
+        .mul_result64_o     (mul_mul_result64_o     ),
+        .mul_rd_waddr_o     (mul_mul_rd_waddr_o     ),
+        .mul_funct3_o       (mul_mul_funct3_o       )
+    );
 
     ctrl ctrl_inst( 
         // from ex  
