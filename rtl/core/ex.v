@@ -122,6 +122,7 @@ module ex(
 
         // default mul outputs
         mul_start_o     = 1'b0;
+        
         mul_funct3_o    = 3'b0;
         mul_op1_o       = 32'b0;
         mul_op2_o       = 32'b0;
@@ -130,7 +131,7 @@ module ex(
         jump_addr_o = `ZeroAddr     ;
         jump_en_o   = `JumpDisable  ;
         flush_req_o = `FlushDisable ;
-        stall_req_o = `StallDisable ;
+        stall_req_o = stall_req_o | mul_busy_i;
 
         data_mem_w_en_o	  = `WriteDisable ;
         data_mem_w_sel_o  = 4'b0          ;
@@ -210,22 +211,25 @@ module ex(
 
             // R/M-type
             `INST_TYPE_R_M: begin
-
                 if (funct7 == `FUNCT7_TYPE_M) begin     // M-type
                     case (funct3)
+                    
                         `INST_MUL, `INST_MULH, `INST_MULHSU, `INST_MULHU: begin
-                            mul_start_o      = 1'b1      ;       
-                            mul_funct3_o     = funct3    ;
-                            mul_op1_o        = op1_i     ;
-                            mul_op2_o        = op2_i     ;
-                            mul_reg_waddr_o  = rd_addr_i ;
+                            mul_start_o      = !mul_busy_i;
 
-                            stall_req_o      = !mul_ready_i ;       // to ctrl, !ready -> stall
+                            // stall on the start cycle and while busy
+                            //stall_req_o      = mul_busy_i;
 
-                            if (~mul_busy_i && mul_ready_i) begin
-                                rd_w_en_o = `WriteEnable;
+                            mul_funct3_o     = funct3     ;
+                            mul_op1_o        = op1_i      ;
+                            mul_op2_o        = op2_i      ;
+                            mul_reg_waddr_o  = rd_addr_i  ;
+
+
+                            if (mul_ready_i) begin
                                 rd_addr_o = mul_rd_waddr_i;
                                 rd_data_o = (mul_funct3_i == `INST_MUL) ? mul_result64_i[31:0] : mul_result64_i[63:32];
+                                rd_w_en_o = `WriteEnable;
                             end
                         end
 
