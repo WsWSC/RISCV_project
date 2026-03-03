@@ -25,21 +25,25 @@ module if_id(
 );
 
     reg inst_valid;
+    reg inst_valid_d1;
 
     always @(posedge clk) begin
-        if (!rst_n) begin
-            inst_valid <= 1'b0;
-        end else if (flush_flag_i == `FlushEnable) begin    // flush
-            inst_valid <= 1'b0;
-        end else if (stall_flag_i == `StallEnable) begin    // stall
-            inst_valid <= inst_valid;
-        end else begin
-            inst_valid <= 1'b1;
-        end
+    if (!rst_n) begin
+        inst_valid    <= 1'b0;
+        inst_valid_d1 <= 1'b0;
+    end else if (flush_flag_i == `FlushEnable) begin
+        inst_valid    <= 1'b0;
+        inst_valid_d1 <= 1'b0;
+    end else if (stall_flag_i == `StallEnable) begin
+        inst_valid    <= inst_valid;
+        inst_valid_d1 <= inst_valid_d1;
+    end else begin
+        inst_valid    <= 1'b1;
+        inst_valid_d1 <= inst_valid;   // <-- 這行才是關鍵差異
+    end
     end
 
-    // output instruction: NOP when invalid (reset/flush window), otherwise pass inst_i
-    assign inst_o = inst_valid ? inst_i : `INST_NOP;
+assign inst_o = inst_valid_d1 ? inst_i : `INST_NOP;
 
     // pass addr & instruction
     dff_set #(.DW(32)) dff1(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(32'b0), .data_i(inst_addr_i), .data_o(inst_addr_o) );

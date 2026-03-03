@@ -131,7 +131,7 @@ module ex(
         jump_addr_o = `ZeroAddr     ;
         jump_en_o   = `JumpDisable  ;
         flush_req_o = `FlushDisable ;
-        stall_req_o = stall_req_o | mul_busy_i;
+        stall_req_o = 1'b0;
 
         data_mem_w_en_o	  = `WriteDisable ;
         data_mem_w_sel_o  = 4'b0          ;
@@ -215,16 +215,13 @@ module ex(
                     case (funct3)
                     
                         `INST_MUL, `INST_MULH, `INST_MULHSU, `INST_MULHU: begin
-                            mul_start_o      = !mul_busy_i;
-
-                            // stall on the start cycle and while busy
-                            //stall_req_o      = mul_busy_i;
-
-                            mul_funct3_o     = funct3     ;
-                            mul_op1_o        = op1_i      ;
-                            mul_op2_o        = op2_i      ;
-                            mul_reg_waddr_o  = rd_addr_i  ;
-
+                            mul_start_o = (!mul_busy_i) && (!mul_ready_i);
+                            stall_req_o = (!mul_ready_i);
+ 
+                            mul_funct3_o    = funct3      ;
+                            mul_op1_o       = op1_i       ;
+                            mul_op2_o       = op2_i       ;
+                            mul_reg_waddr_o = rd_addr_i   ;
 
                             if (mul_ready_i) begin
                                 rd_addr_o = mul_rd_waddr_i;

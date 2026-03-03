@@ -134,10 +134,9 @@ module mul #(
                     if (step == LATENCY - 1) begin
                         state <= STATE_END;
                         mul_result64_o <= sign ? neg64(acc_next) : acc_next;
-                    end
-                    else begin
+                    end else begin
                         step <= step + 6'd1;
-                    end
+                    end 
 
                 end
 
