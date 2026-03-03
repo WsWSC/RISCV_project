@@ -12,6 +12,11 @@ sim_modelsim/
 __pycache__/
 *.pyc
 
+# old mem arichtecture
+mem/dual_ram.v
+mem/inst_mem.v
+ram_array.v
+
 # Simulation test_bin data
 sim/test_bin/*
 !sim/test_bin/*.bin
