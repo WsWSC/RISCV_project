@@ -16,6 +16,7 @@ module data_mem (
     input  wire [`MemDataBus]   w_data_i,
 
     input  wire [`MemAddrBus]   r_addr_i,
+
     output reg  [`MemDataBus]   r_data_o
 );
 

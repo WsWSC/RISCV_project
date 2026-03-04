@@ -8,21 +8,21 @@
 `include "defines.v"
 
 module inst_rom (
-    input  wire                clk,
-    input  wire                rst_n,
+    input  wire                 clk,
+    input  wire                 rst_n,
 
     // write interface (usually unused for instruction ROM)
-    input  wire                w_en_i,
-    input  wire [`MemAddrBus]  w_addr_i,
-    input  wire [`MemBus]      w_data_i,
+    input  wire                 w_en_i,
+    input  wire [`MemAddrBus]   w_addr_i,
+    input  wire [`MemDataBus]   w_data_i,
 
     // read interface
-    input  wire [`MemAddrBus]  r_addr_i,
-    output reg  [`MemBus]      r_data_o
+    input  wire [`MemAddrBus]   r_addr_i,
+    output reg  [`MemDataBus]   r_data_o
 );
 
     // Use ROM depth define
-    reg [`MemBus] rom_mem [0:`MemNum - 1];
+    reg [`MemAddrBus] rom_mem [0:`MemNum - 1];
 
     // write data, #todo
     always @(posedge clk) begin
