@@ -87,7 +87,7 @@ def compile():
 
     # memory
     iverilog_cmd.append(root_dir + '/rtl/mem/inst_rom.v')
-    iverilog_cmd.append(root_dir + '/rtl/mem/data_mem.v')
+    iverilog_cmd.append(root_dir + '/rtl/mem/data_ram.v')
 
     # SoC top
     iverilog_cmd.append(root_dir + '/rtl/soc/soc.v')

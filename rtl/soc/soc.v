@@ -15,21 +15,21 @@ module soc(
     // ============================================================
 
     // core to inst_rom
-    wire[31:0]  core_inst_addr_o    ;
+    wire[31:0]  core_inst_addr_o ;
 
     // inst_rom to core
-    wire[31:0]  inst_rom_inst_o     ;
+    wire[31:0]  inst_rom_inst_o  ;
 
-    // data mem read (from id)
-    wire        data_mem_r_en_o     ;
-    wire[31:0]  data_mem_r_addr_o   ;
-    wire[31:0]  data_mem_r_data_i   ;
+    // data_ram read (from id)
+    wire        core_data_ram_r_en_o        ;
+    wire[31:0]  core_data_ram_r_addr_o      ;
+    wire[31:0]  data_ram_data_ram_r_data_i  ;
 
-    // data mem write (from ex)
-    wire        data_mem_w_en_o     ;
-    wire[3:0]   data_mem_w_sel_o    ;
-    wire[31:0]  data_mem_w_addr_o   ;
-    wire[31:0]  data_mem_w_data_o   ;
+    // data_ram write (from ex)
+    wire        core_data_ram_w_en_o    ;
+    wire[3:0]   core_data_ram_w_sel_o   ;
+    wire[31:0]  core_data_ram_w_addr_o  ;
+    wire[31:0]  core_data_ram_w_data_o  ;
 
 
     // ============================================================
@@ -37,20 +37,20 @@ module soc(
     // ============================================================
 
     core core_inst(
-        .clk                (clk                ),
-        .rst_n              (rst_n              ),
-        .inst_i             (inst_rom_inst_o    ),
+        .clk                (clk                        ),
+        .rst_n              (rst_n                      ),
+        .inst_i             (inst_rom_inst_o            ),
 
-        .inst_addr_o        (core_inst_addr_o   ),
+        .inst_addr_o        (core_inst_addr_o           ),
 
-        .data_mem_r_en_o    (data_mem_r_en_o    ),
-        .data_mem_r_addr_o  (data_mem_r_addr_o  ),
-        .data_mem_r_data_i  (data_mem_r_data_i  ),
+        .data_ram_r_en_o    (core_data_ram_r_en_o       ),
+        .data_ram_r_addr_o  (core_data_ram_r_addr_o     ),
+        .data_ram_r_data_i  (data_ram_data_ram_r_data_i ),
 
-        .data_mem_w_en_o    (data_mem_w_en_o    ),
-        .data_mem_w_sel_o   (data_mem_w_sel_o   ),
-        .data_mem_w_addr_o  (data_mem_w_addr_o  ),
-        .data_mem_w_data_o  (data_mem_w_data_o  )
+        .data_ram_w_en_o    (core_data_ram_w_en_o       ),
+        .data_ram_w_sel_o   (core_data_ram_w_sel_o      ),
+        .data_ram_w_addr_o  (core_data_ram_w_addr_o     ),
+        .data_ram_w_data_o  (core_data_ram_w_data_o     )
     );
 
     inst_rom inst_rom_inst(
@@ -69,20 +69,20 @@ module soc(
         .r_data_o           (inst_rom_inst_o    )
     );
 
-    data_mem data_mem_inst(
-        .clk                (clk                ),
-        .rst_n              (rst_n              ),
+    data_ram data_ram_inst(
+        .clk                (clk                        ),
+        .rst_n              (rst_n                      ),
 
         // write data   #todo
-        .w_en_i             (1'b0),
-        .w_addr_i           (data_mem_w_addr_o  ),
-        .w_data_i           (data_mem_w_data_o  ),
+        .w_en_i             (1'b0                       ),
+        .w_addr_i           (core_data_ram_w_addr_o     ),
+        .w_data_i           (core_data_ram_w_data_o     ),
 
         // read data    
-        //.r_en_i             (data_mem_r_en_o    ),
-        .r_addr_i           (data_mem_r_addr_o  ),
+        //.r_en_i             (data_ram_r_en_o            ),
+        .r_addr_i           (core_data_ram_r_addr_o     ),
 
-        .r_data_o           (data_mem_r_data_i  )
+        .r_data_o           (data_ram_data_ram_r_data_i )
     );
 
 endmodule

@@ -24,6 +24,9 @@ module if_id(
     output wire[31:0]   inst_o          
 );
 
+    // ============================================================
+    //  Main logic
+    // ============================================================
     // pass addr & instruction
     dff_set #(.DW(32)) dff1(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(32'b0),     .data_i(inst_addr_i), .data_o(inst_addr_o) );
     dff_set #(.DW(32)) dff2(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`INST_NOP), .data_i(inst_i)     , .data_o(inst_o)      );

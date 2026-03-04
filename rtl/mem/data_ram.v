@@ -20,8 +20,15 @@ module data_ram (
     output reg  [`MemDataBus]   r_data_o
 );
 
+    // ============================================================
+    //  Wire Declarations
+    // ============================================================
     reg [`MemDataBus] ram [0:`MemNum - 1];
 
+
+    // ============================================================
+    //  Main logic
+    // ============================================================
     always @(posedge clk) begin
         if (rst_n && (w_en_i == `WriteEnable)) begin
             ram[w_addr_i[31:2]] <= w_data_i;

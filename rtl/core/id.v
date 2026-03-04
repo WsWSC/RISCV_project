@@ -35,6 +35,9 @@ module id(
     output reg[31:0]    data_ram_r_addr_o
 );
 
+    // ============================================================
+    //  Wire Declarations
+    // ============================================================
     // R-type
     wire[6:0]   opcode  = inst_i[6:0];
     wire[4:0]   rd      = inst_i[11:7];
@@ -43,26 +46,9 @@ module id(
     wire[4:0]   rs2     = inst_i[24:20];
     wire[6:0]   funct7  = inst_i[31:25];
 
-    // I-type
-    wire[11:0]  I_imm   = inst_i[31:20];
-    wire[4:0]   shamt   = inst_i[24:20];
-
-    // B-type
-    wire[12:0]  B_imm   = {inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0};
-
-
-    // L-type
-    wire[11:0]  L_imm   = inst_i[31:20];
-
-    // S-type
-    wire[11:0]  S_imm   = {inst_i[31:25], inst_i[11:7]};
-
-    // J-type
-    wire[20:0]  J_imm   = {inst_i[31], inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0};
-
 
     // ============================================================
-    //  Id-stage logic
+    //  Main logic
     // ============================================================
     always @(*) begin
         // send instr. to next stage
@@ -70,50 +56,50 @@ module id(
         inst_addr_o = inst_addr_i;
 
         // defaults
-        rs1_addr_o          = `ZeroReg      ;
-        rs2_addr_o          = `ZeroReg      ;
+        rs1_addr_o        = `ZeroReg      ;
+        rs2_addr_o        = `ZeroReg      ;
 
-        op1_o               = `ZeroWord     ;
-        op2_o               = `ZeroWord     ;
-        rd_addr_o           = `ZeroReg      ;
-        reg_w_en_o          = `WriteDisable ;
-        base_addr_o         = `ZeroAddr     ;
-        addr_offset_o       = `ZeroWord     ;
+        op1_o             = `ZeroWord     ;
+        op2_o             = `ZeroWord     ;
+        rd_addr_o         = `ZeroReg      ;
+        reg_w_en_o        = `WriteDisable ;
+        base_addr_o       = `ZeroAddr     ;
+        addr_offset_o     = `ZeroWord     ;
 
-        data_ram_r_en_o     = `ReadDisable  ;  
-        data_ram_r_addr_o   = `ZeroAddr     ;
+        data_ram_r_en_o   = `ReadDisable  ;  
+        data_ram_r_addr_o = `ZeroAddr     ;
 
         case(opcode) 
             // I-type
             `INST_TYPE_I: begin
                 case(funct3)
                     `INST_ADDI, `INST_SLTI, `INST_SLTIU, `INST_XORI, `INST_ORI, `INST_ANDI: begin 
-                        rs1_addr_o  = rs1                       ;
-                        rs2_addr_o  = `ZeroReg                  ;
+                        rs1_addr_o = rs1                       ;
+                        rs2_addr_o = `ZeroReg                  ;
 
-                        op1_o       = rs1_data_i                ;
-                        op2_o       = {{20{I_imm[11]}}, I_imm}  ;
-                        rd_addr_o   = rd                        ;   
+                        op1_o      = rs1_data_i                ;
+                        op2_o      = {{20{inst_i[31]}}, inst_i[31:20]}  ;
+                        rd_addr_o  = rd                        ;   
                         reg_w_en_o = `WriteEnable              ;
                     end
 
                     `INST_SLLI, `INST_SRI: begin
-                        rs1_addr_o  = rs1            ;
-                        rs2_addr_o  = `ZeroReg       ;
+                        rs1_addr_o = rs1            ;
+                        rs2_addr_o = `ZeroReg       ;
 
-                        op1_o       = rs1_data_i     ;
-                        op2_o       = {27'b0, shamt} ;
-                        rd_addr_o   = rd             ;   
+                        op1_o      = rs1_data_i     ;
+                        op2_o      = {27'b0, inst_i[24:20]} ;
+                        rd_addr_o  = rd             ;   
                         reg_w_en_o = `WriteEnable   ;
                     end
                     
                     default: begin
-                        rs1_addr_o  = `ZeroReg      ;
-                        rs2_addr_o  = `ZeroReg      ;
+                        rs1_addr_o = `ZeroReg      ;
+                        rs2_addr_o = `ZeroReg      ;
 
-                        op1_o       = `ZeroWord     ;
-                        op2_o       = `ZeroWord     ;
-                        rd_addr_o   = `ZeroReg      ;
+                        op1_o      = `ZeroWord     ;
+                        op2_o      = `ZeroWord     ;
+                        rd_addr_o  = `ZeroReg      ;
                         reg_w_en_o = `WriteDisable ;
                     end
                     
@@ -187,27 +173,27 @@ module id(
             `INST_TYPE_B: begin
                 case(funct3)
                     `INST_BEQ, `INST_BNE, `INST_BLT, `INST_BGE, `INST_BLTU, `INST_BGEU: begin
-                        rs1_addr_o      = rs1                       ;
-                        rs2_addr_o      = rs2                       ;
+                        rs1_addr_o    = rs1                       ;
+                        rs2_addr_o    = rs2                       ;
 
-                        op1_o           = rs1_data_i                ;
-                        op2_o           = rs2_data_i                ;
-                        rd_addr_o       = `ZeroReg                  ;   
-                        reg_w_en_o     = `WriteDisable              ;
-                        base_addr_o     = inst_addr_i               ;
-                        addr_offset_o = {{19{B_imm[12]}}, B_imm}    ;
+                        op1_o         = rs1_data_i                ;
+                        op2_o         = rs2_data_i                ;
+                        rd_addr_o     = `ZeroReg                  ;   
+                        reg_w_en_o    = `WriteDisable             ;
+                        base_addr_o   = inst_addr_i               ;
+                        addr_offset_o = {{19{inst_i[31]}}, inst_i[31], inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0} ;
                     end
 
                     default: begin
-                        rs1_addr_o      = `ZeroReg      ;
-                        rs2_addr_o      = `ZeroReg      ;
+                        rs1_addr_o    = `ZeroReg      ;
+                        rs2_addr_o    = `ZeroReg      ;
 
-                        op1_o           = `ZeroWord     ;
-                        op2_o           = `ZeroWord     ;
-                        rd_addr_o       = `ZeroReg      ;
-                        reg_w_en_o     = `WriteDisable ;
-                        base_addr_o     = `ZeroAddr     ;
-                        addr_offset_o   = `ZeroWord     ;
+                        op1_o         = `ZeroWord     ;
+                        op2_o         = `ZeroWord     ;
+                        rd_addr_o     = `ZeroReg      ;
+                        reg_w_en_o    = `WriteDisable ;
+                        base_addr_o   = `ZeroAddr     ;
+                        addr_offset_o = `ZeroWord     ;
                     end
 
                 endcase
@@ -217,18 +203,18 @@ module id(
             `INST_TYPE_L: begin
                 case (funct3)
                     `INST_LB, `INST_LH, `INST_LW, `INST_LBU, `INST_LHU: begin
-                        rs1_addr_o          = rs1                       ;
-                        rs2_addr_o          = `ZeroReg                  ;
+                        rs1_addr_o    = rs1          ;
+                        rs2_addr_o    = `ZeroReg     ;
 
-                        op1_o               = `ZeroWord                 ;
-                        op2_o               = `ZeroWord                 ;
-                        rd_addr_o           = rd                        ;   
-                        reg_w_en_o         = `WriteEnable              ;
-                        base_addr_o         = rs1_data_i                ;
-                        addr_offset_o       = {{20{L_imm[11]}}, L_imm}  ;
+                        op1_o         = `ZeroWord    ;
+                        op2_o         = `ZeroWord    ;
+                        rd_addr_o     = rd           ;   
+                        reg_w_en_o    = `WriteEnable ;
+                        base_addr_o   = rs1_data_i   ;
+                        addr_offset_o = {{20{inst_i[31]}}, inst_i[31:20]} ;
 
-                        data_ram_r_en_o    = `ReadEnable                           ;  
-                        data_ram_r_addr_o  = rs1_data_i + {{20{L_imm[11]}}, L_imm} ;
+                        data_ram_r_en_o   = `ReadEnable                           ;  
+                        data_ram_r_addr_o = rs1_data_i + {{20{inst_i[31]}}, inst_i[31:20]} ;
                     end
 
                     default: begin
@@ -261,7 +247,7 @@ module id(
                         rd_addr_o           = `ZeroReg                  ;   
                         reg_w_en_o          = `WriteDisable             ;
                         base_addr_o         = rs1_data_i                ;
-                        addr_offset_o       = {{20{S_imm[11]}}, S_imm}  ;
+                        addr_offset_o       = {{20{inst_i[31]}}, inst_i[31:25], inst_i[11:7]}  ;
 
                         data_ram_r_en_o     = `ReadDisable  ;  
                         data_ram_r_addr_o   = `ZeroAddr     ;
@@ -295,7 +281,7 @@ module id(
                 rd_addr_o       = rd                        ; 
                 reg_w_en_o      = `WriteEnable              ;
                 base_addr_o     = inst_addr_i               ;
-                addr_offset_o   = {{11{J_imm[20]}}, J_imm}  ;
+                addr_offset_o   = {{11{inst_i[31]}}, inst_i[31], inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0}  ;
             end  
 
             // I-type jump
@@ -308,7 +294,7 @@ module id(
                 rd_addr_o       = rd                        ;
                 reg_w_en_o      = `WriteEnable              ;
                 base_addr_o     = rs1_data_i                ;
-                addr_offset_o   = {{20{I_imm[11]}}, I_imm}  ;
+                addr_offset_o   = {{20{inst_i[31]}}, inst_i[31:20]}  ;
             end   
 
             // U-type

@@ -36,6 +36,9 @@ module id_ex(
     output wire[31:0]   addr_offset_o               
 );
 
+    // ============================================================
+    //  Main logic
+    // ============================================================
     // pass instruction addr & instruction
     dff_set #(.DW(32)) dff1 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroAddr)    , .data_i(inst_addr_i)  , .data_o(inst_addr_o)    );
     dff_set #(.DW(32)) dff2 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`INST_NOP)    , .data_i(inst_i)       , .data_o(inst_o)         );

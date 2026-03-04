@@ -10,33 +10,31 @@ module core(
     input  wire         rst_n               ,
 
     // =========================    
-    // inst_mem 
+    // inst_rom 
     // =========================    
     input  wire[31:0]   inst_i              ,
     output wire[31:0]   inst_addr_o         ,
 
     // =========================
-    // data_mem
+    // data_ram
     // =========================
-
     // read (from id)
-    output wire         data_mem_r_en_o     ,
-    output wire [31:0]  data_mem_r_addr_o   ,  
-    input  wire [31:0]  data_mem_r_data_i   ,
+    output wire         data_ram_r_en_o     ,
+    output wire [31:0]  data_ram_r_addr_o   ,  
+    input  wire [31:0]  data_ram_r_data_i   ,
 
     // write (from ex)
-    output wire         data_mem_w_en_o     ,
-    output wire [3:0]   data_mem_w_sel_o    ,
-    output wire [31:0]  data_mem_w_addr_o   ,
-    output wire [31:0]  data_mem_w_data_o   
+    output wire         data_ram_w_en_o     ,
+    output wire [3:0]   data_ram_w_sel_o    ,
+    output wire [31:0]  data_ram_w_addr_o   ,
+    output wire [31:0]  data_ram_w_data_o   
 
 );
 
     // ============================================================
     //  Wire Declarations
     // ============================================================
-
-    // pc_reg to inst_mem / if_id
+    // pc_reg to inst_rom / if_id
     wire[31:0]  pc_reg_pc_addr_o            ;
     assign inst_addr_o = pc_reg_pc_addr_o   ;
 
@@ -108,7 +106,6 @@ module core(
     // ============================================================
     //  Module Instantiation & Interconnection
     // ============================================================
-
     pc_reg pc_reg_inst(
         // input
         .clk                (clk                    ),
@@ -131,7 +128,7 @@ module core(
         .flush_flag_i       (ctrl_flush_flag_o      ),
         .stall_flag_i       (ctrl_stall_flag_o      ),
 
-        // from inst_mem    
+        // from inst_rom    
         .inst_addr_i        (pc_reg_pc_addr_o       ),
         .inst_i             (inst_i                 ),
 
@@ -164,8 +161,8 @@ module core(
         .addr_offset_o      (id_addr_offset_o       ),
 
         // to data_ram
-        .data_ram_r_en_o    (data_mem_r_en_o        ),
-        .data_ram_r_addr_o  (data_mem_r_addr_o      )
+        .data_ram_r_en_o    (data_ram_r_en_o        ),
+        .data_ram_r_addr_o  (data_ram_r_addr_o      )
 
     );
 
@@ -252,14 +249,14 @@ module core(
         .flush_req_o        (ex_flush_req_o         ),
         .stall_req_o        (ex_stall_req_o         ),
 
-        // from data_mem read   
-        .data_mem_r_data_i  (data_mem_r_data_i      ),
+        // from data_ram read   
+        .data_ram_r_data_i  (data_ram_r_data_i      ),
 
-        // to data_mem write            
-        .data_mem_w_en_o    (data_mem_w_en_o        ),
-	    .data_mem_w_sel_o   (data_mem_w_sel_o       ),
-	    .data_mem_w_addr_o  (data_mem_w_addr_o      ),
-	    .data_mem_w_data_o  (data_mem_w_data_o      )
+        // to data_ram write            
+        .data_ram_w_en_o    (data_ram_w_en_o        ),
+	    .data_ram_w_sel_o   (data_ram_w_sel_o       ),
+	    .data_ram_w_addr_o  (data_ram_w_addr_o      ),
+	    .data_ram_w_data_o  (data_ram_w_data_o      )
     );  
 
     mul #(

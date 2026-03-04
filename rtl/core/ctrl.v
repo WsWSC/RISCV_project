@@ -21,6 +21,9 @@ module ctrl(
     output reg          jump_en_o       
 );
 
+    // ============================================================
+    //  Main logic
+    // ============================================================
     // pass jump control signals & generate flush flag for pipeline control
     always @(*) begin
         // default
