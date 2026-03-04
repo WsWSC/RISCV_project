@@ -7,7 +7,7 @@
 
 `include "defines.v"
 
-module data_mem (
+module data_ram (
     input  wire                 clk,
     input  wire                 rst_n,
 
