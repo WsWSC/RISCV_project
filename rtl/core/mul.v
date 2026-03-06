@@ -16,8 +16,8 @@ module mul #(
     // from EX
     input  wire        mul_start_i      ,
     input  wire [2:0]  mul_funct3_i     ,
-    input  wire [31:0] mul_op1_i        ,
-    input  wire [31:0] mul_op2_i        ,
+    input  wire [31:0] mul_op1_i        ,   // multiplicand (rs1)
+    input  wire [31:0] mul_op2_i        ,   // multiplier   (rs2)
     input  wire [4:0]  mul_reg_waddr_i  ,
 
     // to EX
@@ -49,12 +49,12 @@ module mul #(
     // ============================================================
     // signed determined
     // ============================================================
-    wire mul_op1_is_signed = (mul_funct3_i == `INST_MUL)  ||
-                         (mul_funct3_i == `INST_MULH) ||
-                         (mul_funct3_i == `INST_MULHSU);
+    wire mul_op1_is_signed = (mul_funct3_i == `INST_MUL)    ||
+                             (mul_funct3_i == `INST_MULH)   ||
+                             (mul_funct3_i == `INST_MULHSU) ;
 
-    wire mul_op2_is_signed = (mul_funct3_i == `INST_MUL)  ||
-                         (mul_funct3_i == `INST_MULH);
+    wire mul_op2_is_signed = (mul_funct3_i == `INST_MUL)    ||
+                             (mul_funct3_i == `INST_MULH)   ;
 
     wire mul_op1_is_neg = mul_op1_is_signed && mul_op1_i[31];
     wire mul_op2_is_neg = mul_op2_is_signed && mul_op2_i[31];
@@ -75,6 +75,10 @@ module mul #(
     reg [1:0]  state        ;
     reg [5:0]  step         ;
     
+    
+    // ============================================================
+    // Datapath regs 
+    // ============================================================
     reg        sign         ;
     reg [63:0] acc          ;
     reg [63:0] mcand        ;

@@ -8,16 +8,12 @@
 module core(
     input  wire         clk                 ,
     input  wire         rst_n               ,
-
-    // =========================    
-    // inst_rom 
-    // =========================    
+   
+    // inst_rom   
     input  wire[31:0]   inst_i              ,
     output wire[31:0]   inst_addr_o         ,
 
-    // =========================
     // data_ram
-    // =========================
     // read (from id)
     output wire         data_ram_r_en_o     ,
     output wire [31:0]  data_ram_r_addr_o   ,  
@@ -94,6 +90,20 @@ module core(
     wire[63:0]  mul_mul_result64_o          ;
     wire[4:0]   mul_mul_rd_waddr_o          ;
     wire[2:0]   mul_mul_funct3_o            ;
+
+    // ex to div
+    wire        ex_div_start_o              ;
+    wire[2:0]   ex_div_funct3_o             ;
+    wire[31:0]  ex_div_op1_o                ;
+    wire[31:0]  ex_div_op2_o                ;
+    wire[4:0]   ex_div_reg_waddr_o          ;
+
+    // div to ex
+    wire        div_div_busy_o              ;
+    wire        div_div_ready_o             ;
+    wire[63:0]  div_div_result64_o          ;
+    wire[4:0]   div_div_rd_waddr_o          ;
+    wire[2:0]   div_div_funct3_o            ;
        
     // ctrl to pc_reg
     wire[31:0]  ctrl_jump_addr_o            ;
@@ -243,6 +253,20 @@ module core(
         .mul_op2_o          (ex_mul_op2_o           ),
         .mul_reg_waddr_o    (ex_mul_reg_waddr_o     ),
 
+        // from div
+        .div_busy_i         (div_div_busy_o         ),
+        .div_ready_i        (div_div_ready_o        ),
+        .div_result64_i     (div_div_result64_o     ),
+        .div_rd_waddr_i     (div_div_rd_waddr_o     ),
+        .div_funct3_i       (div_div_funct3_o       ),
+
+        // to div
+        .div_start_o        (ex_div_start_o         ),
+        .div_funct3_o       (ex_div_funct3_o        ),
+        .div_op1_o          (ex_div_op1_o           ),
+        .div_op2_o          (ex_div_op2_o           ),
+        .div_reg_waddr_o    (ex_div_reg_waddr_o     ),
+
         // to ctrl  
         .jump_addr_o        (ex_jump_addr_o         ),
         .jump_en_o          (ex_jump_en_o           ),
@@ -278,6 +302,28 @@ module core(
         .mul_result64_o     (mul_mul_result64_o     ),
         .mul_rd_waddr_o     (mul_mul_rd_waddr_o     ),
         .mul_funct3_o       (mul_mul_funct3_o       )
+    );
+
+
+    div #(
+        .LATENCY(32)
+    ) div_inst (
+        .clk                (clk                    ),
+        .rst_n              (rst_n                  ),
+
+        // from ex
+        .div_start_i        (ex_div_start_o         ),
+        .div_funct3_i       (ex_div_funct3_o        ),
+        .div_op1_i          (ex_div_op1_o           ),
+        .div_op2_i          (ex_div_op2_o           ),
+        .div_reg_waddr_i    (ex_div_reg_waddr_o     ),
+
+        // to ex
+        .div_busy_o        (div_div_busy_o         ),
+        .div_ready_o       (div_div_ready_o        ),
+        .div_result64_o    (div_div_result64_o     ),
+        .div_rd_waddr_o    (div_div_rd_waddr_o     ),
+        .div_funct3_o      (div_div_funct3_o       )
     );
 
     ctrl ctrl_inst( 

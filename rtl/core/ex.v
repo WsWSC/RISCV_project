@@ -37,6 +37,20 @@ module ex(
     output reg[31:0]    mul_op2_o           ,
     output reg[4:0]     mul_reg_waddr_o     ,
 
+    // from div
+    input wire          div_busy_i          ,
+    input wire          div_ready_i         ,
+    input wire[63:0]    div_result64_i      ,
+    input wire[4:0]     div_rd_waddr_i      ,
+    input wire[2:0]     div_funct3_i        ,
+
+    // to div
+    output reg          div_start_o         ,
+    output reg[2:0]     div_funct3_o        ,
+    output reg[31:0]    div_op1_o           ,
+    output reg[31:0]    div_op2_o           ,
+    output reg[4:0]     div_reg_waddr_o     ,
+
     // to ctrl  
     output reg[31:0]    jump_addr_o         ,
     output reg          jump_en_o           ,
@@ -198,7 +212,7 @@ module ex(
                             rd_addr_o   = rd_addr_i       ;
                             rd_data_o   = op1_i_sra_op2_i ;
                             rd_w_en_o   = `WriteEnable    ;    
-                        end else begin                                // illegal input, funct7 error 
+                        end else begin                              // illegal input, funct7 error 
                             rd_addr_o   = `ZeroReg        ;
                             rd_data_o   = `ZeroWord       ;
                             rd_w_en_o   = `WriteDisable   ;
@@ -234,6 +248,37 @@ module ex(
                             end
                         end
 
+                        `INST_DIV, `INST_DIVU, `INST_REM, `INST_REMU: begin
+                            div_start_o = (!div_busy_i) && (!div_ready_i);
+                            stall_req_o = (!div_ready_i);
+
+                            div_funct3_o    = funct3;
+                            div_op1_o       = op1_i;
+                            div_op2_o       = op2_i;
+                            div_reg_waddr_o = rd_addr_i;
+
+                            if (div_ready_i) begin
+                                rd_addr_o = div_rd_waddr_i;
+                                rd_w_en_o = `WriteEnable;
+
+                                case (funct3)
+                                    `INST_DIV, `INST_DIVU: begin
+                                        rd_data_o = div_result64_i[31:0];       // quotient
+                                    end
+
+                                    `INST_REM, `INST_REMU: begin
+                                        rd_data_o = div_result64_i[63:32];      // remainder
+                                    end
+
+                                    default: begin
+                                        rd_data_o = 32'b0;
+                                    end
+                                endcase
+                            end
+
+                        end
+
+/* 
                         `INST_DIV: begin
                             rd_addr_o = rd_addr_i       ;
                             rd_data_o = op1_i_div_op2_i ;
@@ -245,7 +290,7 @@ module ex(
                             rd_data_o = op1_i_divu_op2_i ;
                             rd_w_en_o = `WriteEnable     ;
                         end
-
+ 
                         `INST_REM: begin
                             rd_addr_o = rd_addr_i    ;
                             rd_w_en_o = `WriteEnable ;
@@ -267,7 +312,7 @@ module ex(
                             else
                                 rd_data_o = op1_i_remu_op2_i;
                         end
-
+ */
                         default: begin
                             rd_addr_o   = `ZeroReg      ;
                             rd_data_o   = `ZeroWord     ;
