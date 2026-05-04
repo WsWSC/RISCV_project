@@ -101,6 +101,7 @@ def compile():
 def sim():
     # 1. compile RTL files
     compile()
+    
     # 2. run simulation
     vvp_cmd = [r'vvp']
     vvp_cmd.append(r'out.vvp')
@@ -114,10 +115,13 @@ def sim():
 def run(test_binfile):
     # get project root directory
     rtl_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
+
     # output filename
     out_mem = rtl_dir + r'/sim/test_bin/inst_data.txt'
+
     # bin to mem
     bin_to_mem(test_binfile, out_mem)
+
     # run simulation
     sim()
 
