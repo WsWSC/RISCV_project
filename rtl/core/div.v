@@ -84,7 +84,7 @@ module div #(
 
 
     // ============================================================
-    // Datapath regs (restoring division, 1 bit per cycle)
+    // Datapath Register Declarations
     // ============================================================
     reg         div_is_signed_r;
     reg         quot_sign;
@@ -115,7 +115,7 @@ module div #(
 
 
     // ============================================================
-    // Main FSM logic (mul-like style)
+    // Main FSM 
     // ============================================================
     always @(posedge clk) begin
         if (!rst_n) begin
