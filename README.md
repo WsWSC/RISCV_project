@@ -74,7 +74,7 @@ The processor is organized into two major layers：
 
 
 #### Core Architecture
-![Core](img/Arichtecture-core.png)
+![Core](img/Architecture_core.png)
 
 The **Core** contains:
 
@@ -89,7 +89,7 @@ The Core is responsible for full instruction execution and write-back.
 
 
 #### SoC Structure
-![SoC](img/Arichtecture-soc.png)
+![SoC](img/Architecture_soc.png)
 
 The **SoC layer** integrates:
 
