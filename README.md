@@ -1,4 +1,4 @@
-# RISCV_project
+# 3-Stage RV32IM RISC-V CPU
 
 **3-Stage RV32IM Pipeline RISC-V CPU (Verilog HDL)**
 
