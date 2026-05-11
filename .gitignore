@@ -22,3 +22,6 @@ sim/*.vvp
 *.log
 *.wlf
 transcript
+
+# Reference
+reference/

@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 # 3-Stage RV32IM RISC-V CPU
 
 **3-Stage RV32IM Pipeline RISC-V CPU (Verilog HDL)**
+=======
+# 3-Stage RV32IM Pipeline RISC-V CPU
+>>>>>>> e4a083f (modified: modified README.md)
 
 
 This project implements a modular **3-Stage Pipeline RV32I / RV32M RISC-V CPU (Verilog HDL)**,
@@ -94,7 +98,7 @@ The Core is responsible for full instruction execution and write-back.
 The **SoC layer** integrates:
 
 - Core  
-- Instruction Memory  
+- Instruction ROM
 - Data Memory  
 
 It acts as a lightweight wrapper for simulation and testing.
