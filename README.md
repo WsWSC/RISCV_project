@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-# 3-Stage RV32IM RISC-V CPU
-
-**3-Stage RV32IM Pipeline RISC-V CPU (Verilog HDL)**
-=======
 # 3-Stage RV32IM Pipeline RISC-V CPU
->>>>>>> e4a083f (modified: modified README.md)
 
 
 This project implements a modular **3-Stage Pipeline RV32I / RV32M RISC-V CPU (Verilog HDL)**,
@@ -27,6 +21,9 @@ with emphasis on micro-architecture clarity and automated verification.
 - [Reference](#reference)
 
 
+<br>
+
+
 ## Repository Layout
 ```
 rtl/
@@ -47,6 +44,9 @@ tb/
 img/
  └─ Architecture diagrams
 ```
+
+<br>
+
 
 
 ## Architecture
@@ -103,6 +103,9 @@ The **SoC layer** integrates:
 
 It acts as a lightweight wrapper for simulation and testing.
 
+<br>
+
+
 
 ## Implementation Status
 
@@ -117,11 +120,17 @@ It acts as a lightweight wrapper for simulation and testing.
 - ✔ RV32M extension (single-cycle MUL/DIV/REM) 
 
 
+<br>
+
+
 ## Not Implemented
 - Hazard detection  
 - Data forwarding  
 - Multi-cycle execution units  
 - FENCE / FENCE.I full behavior  
+
+<br>
+
 
 
 ## Prerequisites
@@ -141,6 +150,9 @@ iverilog -V
 vvp -V
 ```
 
+<br>
+
+
 
 ## Simulation & Verification
 The design is validated through automated instruction-level regression tests.
@@ -156,6 +168,9 @@ python test_one_inst.py <instruction>  # e.g., addi
 
 ```
 
+<br>
+
+
 
 ### Test Result Summary
 | Category          | Instruction Type               | Status |
@@ -165,6 +180,9 @@ python test_one_inst.py <instruction>  # e.g., addi
 | Branch / Jump     | B-type / J-type instructions   | PASS   |
 | LUI / AUIPC       | U-type instructions            | PASS   |
 | RV32M Extension   | Multiply / Divide instructions | PASS   |
+
+<br>
+
 
 
 ### Detailed Log
@@ -217,6 +235,8 @@ instruction:  [ mulhu     ]    PASS
 instruction:  [ rem       ]    PASS
 instruction:  [ remu      ]    PASS
 ```
+
+<br>
 
 
 ## Reference
