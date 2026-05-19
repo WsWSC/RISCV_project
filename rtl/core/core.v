@@ -14,7 +14,7 @@ module core(
     output wire[31:0]   inst_addr_o         ,
 
     // data_ram
-    // read (from id)
+    // read (from ex)
     output wire         data_ram_r_en_o     ,
     output wire [31:0]  data_ram_r_addr_o   ,  
     input  wire [31:0]  data_ram_r_data_i   ,
@@ -76,6 +76,10 @@ module core(
     wire        ex_jump_en_o                ;
     wire        ex_flush_req_o              ;
     wire        ex_stall_req_o              ;
+
+    // ex to data_ram read
+    wire        ex_data_ram_r_en_o          ;
+    wire[31:0]  ex_data_ram_r_addr_o        ;
 
     // ex to mul
     wire        ex_mul_start_o              ;
@@ -166,13 +170,9 @@ module core(
         .op1_o              (id_op1_o               ),
         .op2_o              (id_op2_o               ),
         .rd_addr_o          (id_rd_addr_o           ),
-        .reg_w_en_o         (id_reg_w_en_o          ), 
+        .reg_w_en_o         (id_reg_w_en_o          ),
         .base_addr_o        (id_base_addr_o         ),
-        .addr_offset_o      (id_addr_offset_o       ),
-
-        // to data_ram
-        .data_ram_r_en_o    (data_ram_r_en_o        ),
-        .data_ram_r_addr_o  (data_ram_r_addr_o      )
+        .addr_offset_o      (id_addr_offset_o       )
 
     );
 
@@ -276,12 +276,19 @@ module core(
         // from data_ram read   
         .data_ram_r_data_i  (data_ram_r_data_i      ),
 
+        // to data_ram read
+        .data_ram_r_en_o    (ex_data_ram_r_en_o     ),
+        .data_ram_r_addr_o  (ex_data_ram_r_addr_o   ),
+
         // to data_ram write            
         .data_ram_w_en_o    (data_ram_w_en_o        ),
 	    .data_ram_w_sel_o   (data_ram_w_sel_o       ),
 	    .data_ram_w_addr_o  (data_ram_w_addr_o      ),
 	    .data_ram_w_data_o  (data_ram_w_data_o      )
     );  
+
+    assign data_ram_r_en_o   = ex_data_ram_r_en_o;
+    assign data_ram_r_addr_o = ex_data_ram_r_addr_o;
 
     mul #(
         .LATENCY(32)

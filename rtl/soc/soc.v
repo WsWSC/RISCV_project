@@ -73,8 +73,9 @@ module soc(
         .clk                (clk                        ),
         .rst_n              (rst_n                      ),
 
-        // write data   #todo
-        .w_en_i             (1'b0                       ),
+        // write data
+        .w_en_i             (core_data_ram_w_en_o       ),
+        .w_sel_i            (core_data_ram_w_sel_o      ),
         .w_addr_i           (core_data_ram_w_addr_o     ),
         .w_data_i           (core_data_ram_w_data_o     ),
 

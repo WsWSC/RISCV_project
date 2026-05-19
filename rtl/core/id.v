@@ -28,11 +28,7 @@ module id(
     output reg[4:0]     rd_addr_o           ,       // send to "id_ex" DFF, rd register addr.
     output reg          reg_w_en_o          ,       // send to "id_ex" DFF, reg_w_en_o = reg write enable 
     output reg[31:0]    base_addr_o         ,       // b/l/s type used
-    output reg[31:0]    addr_offset_o       ,
-
-    // to data_ram
-    output reg          data_ram_r_en_o     ,
-    output reg[31:0]    data_ram_r_addr_o
+    output reg[31:0]    addr_offset_o
 );
 
     // ============================================================
@@ -65,9 +61,6 @@ module id(
         reg_w_en_o        = `WriteDisable ;
         base_addr_o       = `ZeroAddr     ;
         addr_offset_o     = `ZeroWord     ;
-
-        data_ram_r_en_o   = `ReadDisable  ;  
-        data_ram_r_addr_o = `ZeroAddr     ;
 
         case(opcode) 
             // I-type
@@ -213,8 +206,6 @@ module id(
                         base_addr_o   = rs1_data_i   ;
                         addr_offset_o = {{20{inst_i[31]}}, inst_i[31:20]} ;
 
-                        data_ram_r_en_o   = `ReadEnable                           ;  
-                        data_ram_r_addr_o = rs1_data_i + {{20{inst_i[31]}}, inst_i[31:20]} ;
                     end
 
                     default: begin
@@ -228,8 +219,6 @@ module id(
                         base_addr_o         = `ZeroAddr     ;
                         addr_offset_o       = `ZeroWord     ;
 
-                        data_ram_r_en_o    = `ReadDisable  ;  
-                        data_ram_r_addr_o  = `ZeroAddr     ;
                     end
 
                 endcase
@@ -249,8 +238,6 @@ module id(
                         base_addr_o         = rs1_data_i                ;
                         addr_offset_o       = {{20{inst_i[31]}}, inst_i[31:25], inst_i[11:7]}  ;
 
-                        data_ram_r_en_o     = `ReadDisable  ;  
-                        data_ram_r_addr_o   = `ZeroAddr     ;
                     end
 
                     default: begin
@@ -264,8 +251,6 @@ module id(
                         base_addr_o         = `ZeroAddr     ;
                         addr_offset_o       = `ZeroWord     ;
 
-                        data_ram_r_en_o     = `ReadDisable  ;  
-                        data_ram_r_addr_o   = `ZeroAddr     ;
                     end
 
                 endcase

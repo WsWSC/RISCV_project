@@ -12,6 +12,7 @@ module data_ram (
     input  wire                 rst_n,
 
     input  wire                 w_en_i,
+    input  wire [3:0]           w_sel_i,
     input  wire [`MemAddrBus]   w_addr_i,
     input  wire [`MemDataBus]   w_data_i,
 
@@ -31,7 +32,18 @@ module data_ram (
     // ============================================================
     always @(posedge clk) begin
         if (rst_n && (w_en_i == `WriteEnable)) begin
-            ram[w_addr_i[31:2]] <= w_data_i;
+            if (w_sel_i[0]) begin
+                ram[w_addr_i[31:2]][ 7: 0] <= w_data_i[ 7: 0];
+            end
+            if (w_sel_i[1]) begin
+                ram[w_addr_i[31:2]][15: 8] <= w_data_i[15: 8];
+            end
+            if (w_sel_i[2]) begin
+                ram[w_addr_i[31:2]][23:16] <= w_data_i[23:16];
+            end
+            if (w_sel_i[3]) begin
+                ram[w_addr_i[31:2]][31:24] <= w_data_i[31:24];
+            end
         end
     end
 

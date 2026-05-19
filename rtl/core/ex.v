@@ -60,6 +60,10 @@ module ex(
     // from data_ram read
     input  wire[31:0]   data_ram_r_data_i   ,
 
+    // to data_ram read
+    output reg          data_ram_r_en_o      ,
+    output reg[31:0]    data_ram_r_addr_o    ,
+
     // to data_ram write
     output reg	 	    data_ram_w_en_o	    ,
 	output reg[3:0]     data_ram_w_sel_o    ,
@@ -110,12 +114,11 @@ module ex(
     wire[63:0]  op1_i_mul_op2_i    = (op1_i_s * op2_i_s);                           // INST_MUL & INST_MULH
     wire[63:0]  op1_i_mulhsu_op2_i = (op1_i_s * $signed({1'b0, op2_i}));            // INST_MULHSU (make op2 32bit unsigned -> 33bit signed)
     wire[63:0]  op1_i_mulhu_op2_i  = (op1_i * op2_i);                               // INST_MULHU
-    
+*/    
     wire[63:0]  op1_i_div_op2_i    = (op1_i_s / op2_i_s);                           // INST_DIV
     wire[63:0]  op1_i_divu_op2_i   = (op1_i / op2_i);                               // INST_DIVU
     wire[31:0]  op1_i_rem_op2_i    = (op1_i_s % op2_i_s);                           // INST_REM
     wire[31:0]  op1_i_remu_op2_i   = (op1_i % op2_i);                               // INST_REMU
-*/
  
     // B-type    
     wire        op1_i_eq_op2_i     = (op1_i == op2_i);                              // INST_BEQ 
@@ -164,6 +167,8 @@ module ex(
         data_ram_w_sel_o  = 4'b0          ;
         data_ram_w_addr_o = `ZeroAddr     ;
         data_ram_w_data_o = `ZeroWord     ;
+        data_ram_r_en_o   = `ReadDisable  ;
+        data_ram_r_addr_o = `ZeroAddr     ;
 
         case(opcode) 
             // I-type
@@ -452,6 +457,9 @@ module ex(
             `INST_TYPE_L: begin
                 case (funct3)
                     `INST_LB: begin
+                        data_ram_r_en_o   = `ReadEnable;
+                        data_ram_r_addr_o = base_addr_add_addr_offset;
+
                         rd_addr_o = rd_addr_i    ;
                         rd_w_en_o = `WriteEnable ;
 
@@ -465,6 +473,9 @@ module ex(
                     end 
                     
                     `INST_LH: begin
+                        data_ram_r_en_o   = `ReadEnable;
+                        data_ram_r_addr_o = base_addr_add_addr_offset;
+
                         rd_addr_o = rd_addr_i    ;
                         rd_w_en_o = `WriteEnable ;
 
@@ -481,6 +492,9 @@ module ex(
                     end
 
                     `INST_LW: begin
+                        data_ram_r_en_o   = `ReadEnable;
+                        data_ram_r_addr_o = base_addr_add_addr_offset;
+
                         rd_addr_o = rd_addr_i;
 
                         if (load_index != 2'b00) begin          // misaligned word address check (..01 or .. 10 or ..11)
@@ -494,6 +508,9 @@ module ex(
 
                     
                     `INST_LBU: begin
+                        data_ram_r_en_o   = `ReadEnable;
+                        data_ram_r_addr_o = base_addr_add_addr_offset;
+
                         rd_addr_o = rd_addr_i;
                         rd_w_en_o = `WriteEnable;
 
@@ -507,6 +524,9 @@ module ex(
                     end
                     
                     `INST_LHU: begin
+                        data_ram_r_en_o   = `ReadEnable;
+                        data_ram_r_addr_o = base_addr_add_addr_offset;
+
                         rd_addr_o = rd_addr_i    ;
                         rd_w_en_o = `WriteEnable ;
 
