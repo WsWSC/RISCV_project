@@ -1,6 +1,15 @@
 import os
 import subprocess
 import sys
+import argparse
+
+
+def project_root():
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+def sim_dir():
+    return os.path.dirname(__file__)
 
 
 def list_binfiles(path):
@@ -52,7 +61,7 @@ def bin_to_mem(infile, outfile):
 
 def compile():
     # project root = RISCV_PROJECT
-    root_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
+    root_dir = project_root()
 
     iverilog_cmd = ['iverilog', '-g2012']
 
@@ -94,27 +103,37 @@ def compile():
     iverilog_cmd.append(root_dir + '/rtl/soc/soc.v')
 
     # compile
-    process = subprocess.Popen(iverilog_cmd)
+    process = subprocess.Popen(iverilog_cmd, cwd=sim_dir())
     process.wait(timeout=10)
+    return process.returncode
 
 
-def sim():
+def sim(vvp_args=None):
     # 1. compile RTL files
-    compile()
+    compile_rc = compile()
+    if compile_rc != 0:
+        return compile_rc
     
     # 2. run simulation
     vvp_cmd = [r'vvp']
     vvp_cmd.append(r'out.vvp')
-    process = subprocess.Popen(vvp_cmd)
+    if vvp_args:
+        vvp_cmd.extend(vvp_args)
+
+    process = subprocess.Popen(vvp_cmd, cwd=sim_dir())
     try:
         process.wait(timeout=10)
     except subprocess.TimeoutExpired:
         print('!!!Fail, vvp exec timeout!!!')
+        process.kill()
+        return 1
+
+    return process.returncode
 
 
-def run(test_binfile):
+def run(test_binfile, trace=False, dump=False, timeout_cycles=None):
     # get project root directory
-    rtl_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
+    rtl_dir = project_root()
 
     # output filename
     out_mem = rtl_dir + r'/sim/test_bin/inst_data.txt'
@@ -122,9 +141,27 @@ def run(test_binfile):
     # bin to mem
     bin_to_mem(test_binfile, out_mem)
 
+    vvp_args = []
+    if trace:
+        vvp_args.append('+trace')
+    if dump:
+        vvp_args.append('+dump')
+    if timeout_cycles is not None:
+        vvp_args.append('+timeout_cycles=' + str(timeout_cycles))
+
     # run simulation
-    sim()
+    return sim(vvp_args)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Compile and run one RISC-V binary.')
+    parser.add_argument('test_binfile')
+    parser.add_argument('--trace', action='store_true', help='Print per-cycle CPU trace from tb.v.')
+    parser.add_argument('--dump', action='store_true', help='Dump tb.vcd for waveform debug.')
+    parser.add_argument('--timeout-cycles', type=int, help='Override tb.v simulation timeout in cycles.')
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
-    sys.exit(run(sys.argv[1]))
+    args = parse_args()
+    sys.exit(run(args.test_binfile, args.trace, args.dump, args.timeout_cycles))
