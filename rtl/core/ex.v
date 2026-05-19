@@ -110,11 +110,12 @@ module ex(
     wire[63:0]  op1_i_mul_op2_i    = (op1_i_s * op2_i_s);                           // INST_MUL & INST_MULH
     wire[63:0]  op1_i_mulhsu_op2_i = (op1_i_s * $signed({1'b0, op2_i}));            // INST_MULHSU (make op2 32bit unsigned -> 33bit signed)
     wire[63:0]  op1_i_mulhu_op2_i  = (op1_i * op2_i);                               // INST_MULHU
-*/    
+    
     wire[63:0]  op1_i_div_op2_i    = (op1_i_s / op2_i_s);                           // INST_DIV
     wire[63:0]  op1_i_divu_op2_i   = (op1_i / op2_i);                               // INST_DIVU
     wire[31:0]  op1_i_rem_op2_i    = (op1_i_s % op2_i_s);                           // INST_REM
     wire[31:0]  op1_i_remu_op2_i   = (op1_i % op2_i);                               // INST_REMU
+*/
  
     // B-type    
     wire        op1_i_eq_op2_i     = (op1_i == op2_i);                              // INST_BEQ 
@@ -146,6 +147,13 @@ module ex(
         mul_op1_o       = 32'b0;
         mul_op2_o       = 32'b0;
         mul_reg_waddr_o = 5'b0;
+
+        // default div outputs
+        div_start_o     = 1'b0;
+        div_funct3_o    = 3'b0;
+        div_op1_o       = 32'b0;
+        div_op2_o       = 32'b0;
+        div_reg_waddr_o = 5'b0;
 
         jump_addr_o = `ZeroAddr     ;
         jump_en_o   = `JumpDisable  ;
@@ -261,7 +269,7 @@ module ex(
                                 rd_addr_o = div_rd_waddr_i;
                                 rd_w_en_o = `WriteEnable;
 
-                                case (funct3)
+                                case (div_funct3_i)
                                     `INST_DIV, `INST_DIVU: begin
                                         rd_data_o = div_result64_i[31:0];       // quotient
                                     end
