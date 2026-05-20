@@ -18,6 +18,12 @@ sim/test_bin/*
 sim/__pycache__/
 sim/*.vvp
 
+# Local detailed type-test workspace
+detailed_type_tests/
+
+# Hazard/forwarding local tests
+hazard_forwarding_tests/
+
 # Temporary / log files
 *.log
 *.wlf
@@ -25,3 +31,6 @@ transcript
 
 # Reference
 reference/
+
+# Local notes
+*.md
