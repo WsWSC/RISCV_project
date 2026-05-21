@@ -31,6 +31,25 @@ module regs(
     reg[31:0] regs[0:31];
     integer i;              // initial for loop
 
+    // ============================================================
+    // RAW Hazard / Forwarding
+    // ============================================================
+    // This core is a 3-stage pipeline: IF -> ID -> EX.
+    //
+    // A producer instruction writes its result in EX, while the next
+    // consumer instruction reads rs1/rs2 in ID during the same cycle.
+    // When ID.rs == EX.rd, forward the EX write-back data directly to
+    // the ID read port instead of returning the old register value.
+    //
+    // x0 is never forwarded because it is architecturally fixed at zero.
+    wire forward_rs1_from_ex = reg_w_en_i &&
+                               (reg_w_addr_i != `ZeroReg) &&
+                               (reg1_r_addr_i == reg_w_addr_i);
+
+    wire forward_rs2_from_ex = reg_w_en_i &&
+                               (reg_w_addr_i != `ZeroReg) &&
+                               (reg2_r_addr_i == reg_w_addr_i);
+
 
     // ============================================================
     //  Main logic
@@ -41,7 +60,7 @@ module regs(
             reg1_r_data_o = `ZeroWord;
         end else if (reg1_r_addr_i == `ZeroReg) begin
             reg1_r_data_o = `ZeroWord;
-        end else if (reg_w_en_i && (reg1_r_addr_i == reg_w_addr_i) && (reg_w_addr_i != `ZeroReg) ) begin   // RAW hazard forwarding: forward EX write-back to ID read port (exclude x0)
+        end else if (forward_rs1_from_ex) begin
             reg1_r_data_o = reg_w_data_i;
         end else begin
             reg1_r_data_o = regs[reg1_r_addr_i];
@@ -54,7 +73,7 @@ module regs(
             reg2_r_data_o = `ZeroWord;
         end else if (reg2_r_addr_i == `ZeroReg) begin
             reg2_r_data_o = `ZeroWord;
-        end else if (reg_w_en_i && (reg2_r_addr_i == reg_w_addr_i) && (reg_w_addr_i != `ZeroReg) ) begin   // RAW hazard forwarding: forward EX write-back to ID read port (exclude x0)
+        end else if (forward_rs2_from_ex) begin
             reg2_r_data_o = reg_w_data_i;
         end else begin
             reg2_r_data_o = regs[reg2_r_addr_i];

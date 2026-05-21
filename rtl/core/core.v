@@ -5,10 +5,12 @@
 //  License : Personal / Educational Use
 ////////////////////////////////////////////////////////////
 
+`include "defines.v"
+
 module core(
     input  wire         clk                 ,
     input  wire         rst_n               ,
-   
+
     // inst_rom   
     input  wire[31:0]   inst_i              ,
     output wire[31:0]   inst_addr_o         ,
@@ -37,7 +39,7 @@ module core(
     // if_id to id
     wire[31:0]  if_id_inst_addr_o           ;
     wire[31:0]  if_id_inst_o                ;
- 
+
     // id to regs
     wire[4:0]   id_rs1_addr_o               ;
     wire[4:0]   id_rs2_addr_o               ;
@@ -77,6 +79,9 @@ module core(
     wire        ex_flush_req_o              ;
     wire        ex_stall_req_o              ;
 
+    // hazard detect to ctrl
+    wire        load_use_hazard_req          ;
+
     // ex to data_ram read
     wire        ex_data_ram_r_en_o          ;
     wire[31:0]  ex_data_ram_r_addr_o        ;
@@ -112,9 +117,22 @@ module core(
     // ctrl to pc_reg
     wire[31:0]  ctrl_jump_addr_o            ;
     wire        ctrl_jump_en_o              ;
-    // ctrl to if_id & id_ex
+    wire        ctrl_pc_stall_flag_o         ;
+    // ctrl to if_id
+    wire        ctrl_if_id_flush_flag_o      ;
+    wire        ctrl_if_id_stall_flag_o      ;
+    // ctrl to id_ex
+    wire        ctrl_id_ex_flush_flag_o      ;
+    wire        ctrl_id_ex_stall_flag_o      ;
+    // aggregate debug flags
     wire        ctrl_flush_flag_o           ;
     wire        ctrl_stall_flag_o           ;
+
+    assign load_use_hazard_req =
+        (id_ex_inst_o[6:0] == `INST_TYPE_L) &&
+        (id_ex_reg_w_en_o == `WriteEnable) &&
+        (id_ex_rd_addr_o != `ZeroReg) &&
+        ((id_rs1_addr_o == id_ex_rd_addr_o) || (id_rs2_addr_o == id_ex_rd_addr_o));
 
 
     // ============================================================
@@ -126,7 +144,7 @@ module core(
         .rst_n              (rst_n                  ),
 
         // from ctrl    
-        .stall_flag_i       (ctrl_stall_flag_o      ),
+        .stall_flag_i       (ctrl_pc_stall_flag_o   ),
         .jump_addr_i        (ctrl_jump_addr_o       ),    
         .jump_en_i          (ctrl_jump_en_o         ),
 
@@ -139,8 +157,8 @@ module core(
         .rst_n              (rst_n                  ),
 
         //from ctrl 
-        .flush_flag_i       (ctrl_flush_flag_o      ),
-        .stall_flag_i       (ctrl_stall_flag_o      ),
+        .flush_flag_i       (ctrl_if_id_flush_flag_o),
+        .stall_flag_i       (ctrl_if_id_stall_flag_o),
 
         // from inst_rom    
         .inst_addr_i        (pc_reg_pc_addr_o       ),
@@ -199,8 +217,8 @@ module core(
         .rst_n              (rst_n                  ),
 
         // from ctrl        
-        .flush_flag_i       (ctrl_flush_flag_o      ),
-        .stall_flag_i       (ctrl_stall_flag_o      ),
+        .flush_flag_i       (ctrl_id_ex_flush_flag_o),
+        .stall_flag_i       (ctrl_id_ex_stall_flag_o),
 
         // from id      
         .inst_addr_i        (id_inst_addr_o         ),
@@ -340,9 +358,17 @@ module core(
         .jump_addr_i        (ex_jump_addr_o         ),
         .jump_en_i          (ex_jump_en_o           ),
 
+        // from hazard detect
+        .hazard_stall_req_i (load_use_hazard_req    ),
+
         // to pc_reg & if_id & id_ex        
         .flush_flag_o       (ctrl_flush_flag_o      ),
         .stall_flag_o       (ctrl_stall_flag_o      ),
+        .pc_stall_flag_o    (ctrl_pc_stall_flag_o   ),
+        .if_id_flush_flag_o (ctrl_if_id_flush_flag_o),
+        .if_id_stall_flag_o (ctrl_if_id_stall_flag_o),
+        .id_ex_flush_flag_o (ctrl_id_ex_flush_flag_o),
+        .id_ex_stall_flag_o (ctrl_id_ex_stall_flag_o),
         .jump_addr_o        (ctrl_jump_addr_o       ),
         .jump_en_o          (ctrl_jump_en_o         )
     );

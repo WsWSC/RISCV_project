@@ -9,36 +9,69 @@
 
 module ctrl(
     // from ex
-    input  wire         flush_req_i     ,
-    input  wire         stall_req_i     ,
-    input  wire[31:0]   jump_addr_i     ,
-    input  wire         jump_en_i       ,
+    input  wire         flush_req_i         ,
+    input  wire         stall_req_i         ,
+    input  wire[31:0]   jump_addr_i         ,
+    input  wire         jump_en_i           ,
 
-    // to pc_reg & if_id & id_ex
-    output reg          flush_flag_o    ,       // NOP
-    output reg          stall_flag_o    ,       // stall
-    output reg[31:0]    jump_addr_o     ,
+    // from hazard detect
+    input  wire         hazard_stall_req_i  ,
+
+    // aggregate debug / trace flags
+    output reg          flush_flag_o        ,       // flush or bubble
+    output reg          stall_flag_o        ,       // any pipeline hold
+
+    // to pc_reg
+    output reg          pc_stall_flag_o     ,
+
+    // to if_id
+    output reg          if_id_flush_flag_o  ,
+    output reg          if_id_stall_flag_o  ,
+
+    // to id_ex
+    output reg          id_ex_flush_flag_o  ,
+    output reg          id_ex_stall_flag_o  ,
+
+    // to pc_reg
+    output reg[31:0]    jump_addr_o         ,
     output reg          jump_en_o       
 );
 
     // ============================================================
     //  Main logic
     // ============================================================
-    // pass jump control signals & generate flush flag for pipeline control
+    // Priority:
+    //   1. jump/flush request: discard younger instructions
+    //   2. multi-cycle stall: hold PC, IF/ID, and ID/EX
+    //   3. load-use hazard: hold PC and IF/ID, inject NOP into ID/EX
+    //   4. normal: pipeline advances
     always @(*) begin
         // default
-        flush_flag_o = `FlushDisable ;
-        stall_flag_o = `StallDisable ;
-        jump_addr_o  = jump_addr_i   ;
-        jump_en_o    = jump_en_i     ;
+        flush_flag_o       = `FlushDisable ;
+        stall_flag_o       = `StallDisable ;
+        pc_stall_flag_o    = `StallDisable ;
+        if_id_flush_flag_o = `FlushDisable ;
+        if_id_stall_flag_o = `StallDisable ;
+        id_ex_flush_flag_o = `FlushDisable ;
+        id_ex_stall_flag_o = `StallDisable ;
+        jump_addr_o        = jump_addr_i   ;
+        jump_en_o          = jump_en_i     ;
 
         if (jump_en_i || flush_req_i) begin     // jump
-            flush_flag_o = `FlushEnable;
-            stall_flag_o = `StallDisable;        
+            if_id_flush_flag_o = `FlushEnable;
+            id_ex_flush_flag_o = `FlushEnable;
         end else if (stall_req_i) begin         // stall
-            flush_flag_o = `FlushDisable;
-            stall_flag_o = `StallEnable;
+            pc_stall_flag_o    = `StallEnable;
+            if_id_stall_flag_o = `StallEnable;
+            id_ex_stall_flag_o = `StallEnable;
+        end else if (hazard_stall_req_i) begin  // load-use bubble
+            pc_stall_flag_o    = `StallEnable;
+            if_id_stall_flag_o = `StallEnable;
+            id_ex_flush_flag_o = `FlushEnable;
         end
+
+        flush_flag_o = if_id_flush_flag_o || id_ex_flush_flag_o;
+        stall_flag_o = pc_stall_flag_o || if_id_stall_flag_o || id_ex_stall_flag_o;
     end
 
 endmodule
