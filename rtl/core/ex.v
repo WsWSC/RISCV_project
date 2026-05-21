@@ -104,11 +104,11 @@ module ex(
     wire[31:0]  op1_i_sll_op2_i    = (op1_i << op2_i[4:0]);                         // INST_SLLI  & INST_SLL
     wire[31:0]  op1_i_srl_op2_i    = (op1_i >> op2_i[4:0]);                         // INST_SRLI  & INST_SRL
     wire[31:0]  op1_i_sra_op2_i    = (op1_i_s >>> op2_i[4:0]);                      // INST_SRAI  & INST_SRA
- 
+
     // R-type 
     wire[31:0]  op1_i_add_op2_i    = (op1_i + op2_i);                               // INST_ADD_SUB add
     wire[31:0]  op1_i_sub_op2_i    = (op1_i - op2_i);                               // INST_ADD_SUB sub
- 
+
     // M-type 
 /* 
     wire[63:0]  op1_i_mul_op2_i    = (op1_i_s * op2_i_s);                           // INST_MUL & INST_MULH
@@ -119,7 +119,7 @@ module ex(
     wire[63:0]  op1_i_divu_op2_i   = (op1_i / op2_i);                               // INST_DIVU
     wire[31:0]  op1_i_rem_op2_i    = (op1_i_s % op2_i_s);                           // INST_REM
     wire[31:0]  op1_i_remu_op2_i   = (op1_i % op2_i);                               // INST_REMU
- 
+
     // B-type    
     wire        op1_i_eq_op2_i     = (op1_i == op2_i);                              // INST_BEQ 
     wire        op1_i_ne_op2_i     = (op1_i != op2_i);                              // INST_BNE
@@ -132,8 +132,7 @@ module ex(
     // load/store index
     wire[1:0]   load_index  = base_addr_add_addr_offset[1:0];
     wire[1:0]   store_index = base_addr_add_addr_offset[1:0];
-  
-  
+
     // ============================================================
     //  Main logic
     // ============================================================
@@ -248,7 +247,7 @@ module ex(
                         `INST_MUL, `INST_MULH, `INST_MULHSU, `INST_MULHU: begin
                             mul_start_o = (!mul_busy_i) && (!mul_ready_i);
                             stall_req_o = (!mul_ready_i);
- 
+
                             mul_funct3_o    = funct3      ;
                             mul_op1_o       = op1_i       ;
                             mul_op2_o       = op2_i       ;
@@ -303,7 +302,7 @@ module ex(
                             rd_data_o = op1_i_divu_op2_i ;
                             rd_w_en_o = `WriteEnable     ;
                         end
- 
+
                         `INST_REM: begin
                             rd_addr_o = rd_addr_i    ;
                             rd_w_en_o = `WriteEnable ;
@@ -325,7 +324,7 @@ module ex(
                             else
                                 rd_data_o = op1_i_remu_op2_i;
                         end
- */
+*/
                         default: begin
                             rd_addr_o   = `ZeroReg      ;
                             rd_data_o   = `ZeroWord     ;
@@ -635,7 +634,7 @@ module ex(
                 rd_addr_o    = rd_addr_i                 ;
                 rd_data_o    = inst_addr_i + 32'h4       ;
                 rd_w_en_o    = `WriteEnable              ;
- 
+
                 jump_addr_o  = base_addr_add_addr_offset ;
                 jump_en_o    = `JumpEnable               ;
             end
@@ -645,7 +644,7 @@ module ex(
                 rd_addr_o    = rd_addr_i           ;
                 rd_data_o    = inst_addr_i + 32'h4 ;
                 rd_w_en_o    = `WriteEnable        ;
- 
+
                 jump_addr_o  = (base_addr_add_addr_offset) & 32'hFFFF_FFFE ;       // JALR sets the least-significant bit of the target address to zero
                 jump_en_o    = `JumpEnable                       ;
             end
@@ -655,7 +654,7 @@ module ex(
                 rd_addr_o    = rd_addr_i    ;
                 rd_data_o    = op1_i        ;
                 rd_w_en_o    = `WriteEnable ;
- 
+
                 jump_addr_o  = `ZeroAddr    ;
                 jump_en_o    = `JumpDisable ;
             end
@@ -664,7 +663,7 @@ module ex(
                 rd_addr_o    = rd_addr_i       ;
                 rd_data_o    = op1_i_add_op2_i ;
                 rd_w_en_o    = `WriteEnable    ;
- 
+
                 jump_addr_o  = `ZeroAddr       ;
                 jump_en_o    = `JumpDisable    ;
             end
@@ -673,7 +672,7 @@ module ex(
                 rd_addr_o    = `ZeroReg      ;
                 rd_data_o    = `ZeroWord     ;
                 rd_w_en_o    = `WriteDisable ;
- 
+
                 jump_addr_o  = `ZeroAddr     ;
                 jump_en_o    = `JumpDisable  ;
             end
