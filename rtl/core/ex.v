@@ -17,6 +17,9 @@ module ex(
     input  wire         reg_w_en_i          ,
     input  wire[31:0]   base_addr_i         , 
     input  wire[31:0]   addr_offset_i       ,
+    input  wire[11:0]   csr_addr_i          ,
+    input  wire         csr_w_en_i          ,
+    input  wire[2:0]    csr_op_i            ,
 
     // to regs  
     output reg[4:0]     rd_addr_o           ,

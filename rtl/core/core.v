@@ -57,6 +57,9 @@ module core(
     wire        id_reg_w_en_o               ;
     wire[31:0]  id_base_addr_o              ;
     wire[31:0]  id_addr_offset_o            ;
+    wire[11:0]  id_csr_addr_o               ;
+    wire        id_csr_w_en_o               ;
+    wire[2:0]   id_csr_op_o                 ;
 
     // id_ex to ex
     wire[31:0]  id_ex_inst_addr_o           ;
@@ -67,6 +70,9 @@ module core(
     wire        id_ex_reg_w_en_o            ;
     wire[31:0]  id_ex_base_addr_o           ;
     wire[31:0]  id_ex_addr_offset_o         ;
+    wire[11:0]  id_ex_csr_addr_o            ;
+    wire        id_ex_csr_w_en_o            ;
+    wire[2:0]   id_ex_csr_op_o              ;
 
     // ex to regs
     wire[4:0]   ex_rd_addr_o                ;
@@ -197,7 +203,10 @@ module core(
         .rd_addr_o          (id_rd_addr_o           ),
         .reg_w_en_o         (id_reg_w_en_o          ),
         .base_addr_o        (id_base_addr_o         ),
-        .addr_offset_o      (id_addr_offset_o       )
+        .addr_offset_o      (id_addr_offset_o       ),
+        .csr_addr_o         (id_csr_addr_o          ),
+        .csr_w_en_o         (id_csr_w_en_o          ),
+        .csr_op_o           (id_csr_op_o            )
 
     );
 
@@ -236,6 +245,9 @@ module core(
         .reg_w_en_i         (id_reg_w_en_o          ), 
         .base_addr_i        (id_base_addr_o         ),
         .addr_offset_i      (id_addr_offset_o       ),
+        .csr_addr_i         (id_csr_addr_o          ),
+        .csr_w_en_i         (id_csr_w_en_o          ),
+        .csr_op_i           (id_csr_op_o            ),
 
         // to ex        
         .inst_addr_o        (id_ex_inst_addr_o      ),
@@ -245,7 +257,10 @@ module core(
         .rd_addr_o          (id_ex_rd_addr_o        ),
         .reg_w_en_o         (id_ex_reg_w_en_o       ),
         .base_addr_o   	    (id_ex_base_addr_o      ),
-		.addr_offset_o 	    (id_ex_addr_offset_o    )
+		.addr_offset_o 	    (id_ex_addr_offset_o    ),
+        .csr_addr_o         (id_ex_csr_addr_o       ),
+        .csr_w_en_o         (id_ex_csr_w_en_o       ),
+        .csr_op_o           (id_ex_csr_op_o         )
     );  
 
     ex ex_inst( 
@@ -258,6 +273,9 @@ module core(
         .reg_w_en_i         (id_ex_reg_w_en_o       ),
         .base_addr_i        (id_ex_base_addr_o      ),
         .addr_offset_i      (id_ex_addr_offset_o    ),
+        .csr_addr_i         (id_ex_csr_addr_o       ),
+        .csr_w_en_i         (id_ex_csr_w_en_o       ),
+        .csr_op_i           (id_ex_csr_op_o         ),
 
         // to regs  
         .rd_addr_o          (ex_rd_addr_o           ),
