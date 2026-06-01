@@ -79,6 +79,13 @@ module core(
     wire[31:0]  ex_rd_data_o                ;
     wire        ex_rd_w_en_o                ;
 
+    // ex to csr_reg
+    wire[11:0]  ex_csr_r_addr_o             ;
+    wire[31:0]  csr_reg_csr_r_data_o        ;
+    wire        ex_csr_w_en_o               ;
+    wire[11:0]  ex_csr_w_addr_o             ;
+    wire[31:0]  ex_csr_w_data_o             ;
+
     // ex to ctrl
     wire[31:0]  ex_jump_addr_o              ;
     wire        ex_jump_en_o                ;
@@ -277,6 +284,15 @@ module core(
         .csr_w_en_i         (id_ex_csr_w_en_o       ),
         .csr_op_i           (id_ex_csr_op_o         ),
 
+        // from csr_reg
+        .csr_r_data_i       (csr_reg_csr_r_data_o   ),
+
+        // to csr_reg
+        .csr_r_addr_o       (ex_csr_r_addr_o        ),
+        .csr_w_en_o         (ex_csr_w_en_o          ),
+        .csr_w_addr_o       (ex_csr_w_addr_o        ),
+        .csr_w_data_o       (ex_csr_w_data_o        ),
+
         // to regs  
         .rd_addr_o          (ex_rd_addr_o           ),
         .rd_data_o          (ex_rd_data_o           ),
@@ -381,13 +397,13 @@ module core(
         .rst_n              (rst_n                  ),
 
         // CSR read port
-        .csr_r_addr_i       (12'b0                  ),
-        .csr_r_data_o       (                       ),
+        .csr_r_addr_i       (ex_csr_r_addr_o        ),
+        .csr_r_data_o       (csr_reg_csr_r_data_o   ),
 
         // CSR write port
-        .csr_w_en_i         (`WriteDisable          ),
-        .csr_w_addr_i       (12'b0                  ),
-        .csr_w_data_i       (`ZeroWord              ),
+        .csr_w_en_i         (ex_csr_w_en_o          ),
+        .csr_w_addr_i       (ex_csr_w_addr_o        ),
+        .csr_w_data_i       (ex_csr_w_data_o        ),
 
         // CSR direct outputs
         .mtvec_o            (csr_mtvec_o            ),
