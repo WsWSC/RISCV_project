@@ -113,6 +113,13 @@ module core(
     wire[63:0]  div_div_result64_o          ;
     wire[4:0]   div_div_rd_waddr_o          ;
     wire[2:0]   div_div_funct3_o            ;
+
+    // csr_reg direct outputs
+    wire[31:0]  csr_mtvec_o                 ;
+    wire[31:0]  csr_mepc_o                  ;
+    wire[31:0]  csr_mcause_o                ;
+    wire[31:0]  csr_mtval_o                 ;
+    wire[31:0]  csr_mstatus_o               ;
        
     // ctrl to pc_reg
     wire[31:0]  ctrl_jump_addr_o            ;
@@ -349,6 +356,27 @@ module core(
         .div_result64_o    (div_div_result64_o     ),
         .div_rd_waddr_o    (div_div_rd_waddr_o     ),
         .div_funct3_o      (div_div_funct3_o       )
+    );
+
+    csr_reg csr_reg_inst(
+        .clk                (clk                    ),
+        .rst_n              (rst_n                  ),
+
+        // CSR read port
+        .csr_r_addr_i       (12'b0                  ),
+        .csr_r_data_o       (                       ),
+
+        // CSR write port
+        .csr_w_en_i         (`WriteDisable          ),
+        .csr_w_addr_i       (12'b0                  ),
+        .csr_w_data_i       (`ZeroWord              ),
+
+        // CSR direct outputs
+        .mtvec_o            (csr_mtvec_o            ),
+        .mepc_o             (csr_mepc_o             ),
+        .mcause_o           (csr_mcause_o           ),
+        .mtval_o            (csr_mtval_o            ),
+        .mstatus_o          (csr_mstatus_o          )
     );
 
     ctrl ctrl_inst( 
