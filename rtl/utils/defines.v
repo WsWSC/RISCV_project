@@ -121,3 +121,12 @@
 `define INST_FENCE      7'b0001111
 `define INST_ECALL      32'h73
 `define INST_EBREAK     32'h00100073
+
+// ============================================================
+// CSR addresses
+// ============================================================
+`define CSR_MSTATUS     12'h300
+`define CSR_MTVEC       12'h305
+`define CSR_MEPC        12'h341
+`define CSR_MCAUSE      12'h342
+`define CSR_MTVAL       12'h343
