@@ -133,6 +133,15 @@ module core(
     wire[31:0]  csr_mcause_o                ;
     wire[31:0]  csr_mtval_o                 ;
     wire[31:0]  csr_mstatus_o               ;
+
+    // clint to csr_reg / ctrl
+    wire        clint_trap_w_en_o            ;
+    wire[31:0]  clint_trap_mepc_o            ;
+    wire[31:0]  clint_trap_mcause_o          ;
+    wire[31:0]  clint_trap_mtval_o           ;
+    wire[31:0]  clint_trap_mstatus_o         ;
+    wire        clint_trap_jump_en_o         ;
+    wire[31:0]  clint_trap_jump_addr_o       ;
        
     // ctrl to pc_reg
     wire[31:0]  ctrl_jump_addr_o            ;
@@ -411,6 +420,33 @@ module core(
         .mcause_o           (csr_mcause_o           ),
         .mtval_o            (csr_mtval_o            ),
         .mstatus_o          (csr_mstatus_o          )
+    );
+
+    clint clint_inst(
+        .clk                (clk                    ),
+        .rst_n              (rst_n                  ),
+
+        // from CSR direct outputs
+        .csr_mtvec_i        (csr_mtvec_o            ),
+        .csr_mepc_i         (csr_mepc_o             ),
+        .csr_mstatus_i      (csr_mstatus_o          ),
+
+        // trap request
+        .trap_en_i          (`JumpDisable           ),
+        .trap_pc_i          (`ZeroAddr              ),
+        .trap_cause_i       (`ZeroWord              ),
+        .trap_tval_i        (`ZeroWord              ),
+
+        // to csr_reg trap write port
+        .trap_w_en_o        (clint_trap_w_en_o      ),
+        .trap_mepc_o        (clint_trap_mepc_o      ),
+        .trap_mcause_o      (clint_trap_mcause_o    ),
+        .trap_mtval_o       (clint_trap_mtval_o     ),
+        .trap_mstatus_o     (clint_trap_mstatus_o   ),
+
+        // to ctrl
+        .trap_jump_en_o     (clint_trap_jump_en_o   ),
+        .trap_jump_addr_o   (clint_trap_jump_addr_o )
     );
 
     ctrl ctrl_inst( 
