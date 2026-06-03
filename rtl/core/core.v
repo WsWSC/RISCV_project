@@ -25,7 +25,10 @@ module core(
     output wire         data_ram_w_en_o     ,
     output wire [3:0]   data_ram_w_sel_o    ,
     output wire [31:0]  data_ram_w_addr_o   ,
-    output wire [31:0]  data_ram_w_data_o   
+    output wire [31:0]  data_ram_w_data_o   ,
+
+    // interrupt
+    input  wire         external_irq_i
 
 );
 
@@ -466,6 +469,8 @@ module core(
         .trap_cause_i       (id_ex_trap_cause_o     ),
         .trap_tval_i        (id_ex_trap_tval_o      ),
         .mret_en_i          (id_ex_mret_en_o        ),
+        .external_irq_i     (external_irq_i         ),
+        .irq_pc_i           (pc_reg_pc_addr_o       ),
 
         // to csr_reg trap write port
         .trap_w_en_o        (clint_trap_w_en_o      ),
