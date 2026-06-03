@@ -1,0 +1,124 @@
+////////////////////////////////////////////////////////////
+//  RISC-V CPU Side Project
+//  Author  : WsWSC
+//  Created : 2026
+//  License : Personal / Educational Use
+////////////////////////////////////////////////////////////
+
+`timescale 1ns/1ps
+`include "defines.v"
+
+module csr_reg_tb;
+
+    reg         clk;
+    reg         rst_n;
+    reg [11:0]  csr_r_addr_i;
+    wire[31:0]  csr_r_data_o;
+    reg         csr_w_en_i;
+    reg [11:0]  csr_w_addr_i;
+    reg [31:0]  csr_w_data_i;
+    wire[31:0]  mtvec_o;
+    wire[31:0]  mepc_o;
+    wire[31:0]  mcause_o;
+    wire[31:0]  mtval_o;
+    wire[31:0]  mstatus_o;
+
+    integer errors;
+
+    always #5 clk = ~clk;
+
+    csr_reg dut(
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .csr_r_addr_i  (csr_r_addr_i),
+        .csr_r_data_o  (csr_r_data_o),
+        .csr_w_en_i    (csr_w_en_i),
+        .csr_w_addr_i  (csr_w_addr_i),
+        .csr_w_data_i  (csr_w_data_i),
+        .mtvec_o       (mtvec_o),
+        .mepc_o        (mepc_o),
+        .mcause_o      (mcause_o),
+        .mtval_o       (mtval_o),
+        .mstatus_o     (mstatus_o)
+    );
+
+    task check;
+        input[31:0] actual;
+        input[31:0] expected;
+        begin
+            if (actual !== expected) begin
+                $display("FAIL actual=%h expected=%h", actual, expected);
+                errors = errors + 1;
+            end
+        end
+    endtask
+
+    task write_csr;
+        input[11:0] addr;
+        input[31:0] data;
+        begin
+            @(negedge clk);
+            csr_w_en_i   = `WriteEnable;
+            csr_w_addr_i = addr;
+            csr_w_data_i = data;
+            @(negedge clk);
+            csr_w_en_i   = `WriteDisable;
+            csr_w_addr_i = 12'b0;
+            csr_w_data_i = `ZeroWord;
+        end
+    endtask
+
+    initial begin
+        clk          = 1'b0;
+        rst_n        = 1'b0;
+        csr_r_addr_i = 12'b0;
+        csr_w_en_i   = `WriteDisable;
+        csr_w_addr_i = 12'b0;
+        csr_w_data_i = `ZeroWord;
+        errors       = 0;
+
+        repeat(2) @(negedge clk);
+        rst_n = 1'b1;
+
+        csr_r_addr_i = `CSR_MTVEC;
+        #1 check(csr_r_data_o, `ZeroWord);
+        check(mtvec_o, `ZeroWord);
+
+        write_csr(`CSR_MTVEC, 32'h0000_0123);
+        csr_r_addr_i = `CSR_MTVEC;
+        #1 check(csr_r_data_o, 32'h0000_0123);
+        check(mtvec_o, 32'h0000_0123);
+
+        write_csr(`CSR_MEPC, 32'h0000_0040);
+        csr_r_addr_i = `CSR_MEPC;
+        #1 check(csr_r_data_o, 32'h0000_0040);
+        check(mepc_o, 32'h0000_0040);
+
+        write_csr(`CSR_MCAUSE, 32'h0000_000b);
+        csr_r_addr_i = `CSR_MCAUSE;
+        #1 check(csr_r_data_o, 32'h0000_000b);
+        check(mcause_o, 32'h0000_000b);
+
+        write_csr(`CSR_MTVAL, 32'hdead_beef);
+        csr_r_addr_i = `CSR_MTVAL;
+        #1 check(csr_r_data_o, 32'hdead_beef);
+        check(mtval_o, 32'hdead_beef);
+
+        write_csr(`CSR_MSTATUS, 32'h0000_0088);
+        csr_r_addr_i = `CSR_MSTATUS;
+        #1 check(csr_r_data_o, 32'h0000_0088);
+        check(mstatus_o, 32'h0000_0088);
+
+        csr_r_addr_i = 12'hfff;
+        #1 check(csr_r_data_o, `ZeroWord);
+
+        if (errors == 0) begin
+            $display("csr_reg_tb PASS");
+            $finish;
+        end else begin
+            $display("csr_reg_tb FAIL errors=%0d", errors);
+            $finish;
+        end
+    end
+
+endmodule
