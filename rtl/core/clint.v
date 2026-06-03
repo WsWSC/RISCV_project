@@ -14,6 +14,8 @@ module clint(
     // from CSR direct outputs
     input  wire[31:0]   csr_mtvec_i         ,
     input  wire[31:0]   csr_mepc_i          ,
+    input  wire[31:0]   csr_mcause_i        ,
+    input  wire[31:0]   csr_mtval_i         ,
     input  wire[31:0]   csr_mstatus_i       ,
 
     // trap request
@@ -35,12 +37,16 @@ module clint(
     output wire[31:0]   trap_jump_addr_o
 );
 
-    assign trap_w_en_o      = trap_en_i;
-    assign trap_mepc_o      = trap_pc_i;
-    assign trap_mcause_o    = trap_cause_i;
-    assign trap_mtval_o     = trap_tval_i;
-    assign trap_mstatus_o   = {csr_mstatus_i[31:8], csr_mstatus_i[3], csr_mstatus_i[6:4], 1'b0, csr_mstatus_i[2:0]};
-    assign trap_jump_en_o   = trap_en_i;
-    assign trap_jump_addr_o = csr_mtvec_i;
+    assign trap_w_en_o = trap_en_i || mret_en_i;
+
+    assign trap_mepc_o   = trap_en_i ? trap_pc_i    : csr_mepc_i;
+    assign trap_mcause_o = trap_en_i ? trap_cause_i : csr_mcause_i;
+    assign trap_mtval_o  = trap_en_i ? trap_tval_i  : csr_mtval_i;
+    assign trap_mstatus_o =
+        trap_en_i ? {csr_mstatus_i[31:8], csr_mstatus_i[3], csr_mstatus_i[6:4], 1'b0, csr_mstatus_i[2:0]} :
+                    {csr_mstatus_i[31:8], 1'b1, csr_mstatus_i[6:4], csr_mstatus_i[7], csr_mstatus_i[2:0]};
+
+    assign trap_jump_en_o   = trap_en_i || mret_en_i;
+    assign trap_jump_addr_o = trap_en_i ? csr_mtvec_i : csr_mepc_i;
 
 endmodule

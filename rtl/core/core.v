@@ -456,6 +456,8 @@ module core(
         // from CSR direct outputs
         .csr_mtvec_i        (csr_mtvec_o            ),
         .csr_mepc_i         (csr_mepc_o             ),
+        .csr_mcause_i       (csr_mcause_o           ),
+        .csr_mtval_i        (csr_mtval_o            ),
         .csr_mstatus_i      (csr_mstatus_o          ),
 
         // trap request
