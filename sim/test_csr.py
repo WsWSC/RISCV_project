@@ -10,6 +10,7 @@ OPCODE_SYSTEM = 0x73
 OPCODE_OP_IMM = 0x13
 OPCODE_OP = 0x33
 OPCODE_JAL = 0x6F
+INST_MRET = 0x30200073
 
 FUNCT3_ADDI = 0
 FUNCT3_SLTIU = 3
@@ -164,10 +165,34 @@ def main():
         jal_zero(),
     ]
 
+    mret_return = [
+        addi(3, 0, 5),
+        addi(5, 0, 0x44),
+        encode_csr(CSR_MTVEC, 5, FUNCT3_CSRRW, 0),
+        addi(5, 0, 0x08),
+        encode_csr(CSR_MSTATUS, 5, FUNCT3_CSRRW, 0),
+        0x00000073,
+        addi(10, 0, 0x55),
+        encode_csr(CSR_MSTATUS, 0, FUNCT3_CSRRS, 7),
+        addi(5, 0, 0x88),
+        sub(8, 7, 5),
+        sltiu(27, 8, 1),
+        addi(5, 0, 0x55),
+        sub(8, 10, 5),
+        sltiu(8, 8, 1),
+        and_(27, 27, 8),
+        addi(26, 0, 1),
+        jal_zero(),
+        addi(5, 0, 0x18),
+        encode_csr(CSR_MEPC, 5, FUNCT3_CSRRW, 0),
+        INST_MRET,
+    ]
+
     failures += run_core_case("csr_core_csrrw", csrrw_readback)
     failures += run_core_case("csr_core_csrrs", csrrs_readback)
     failures += run_core_case("csr_core_csrrc", csrrc_readback)
     failures += run_core_case("csr_core_ecall_trap", ecall_trap)
+    failures += run_core_case("csr_core_mret_return", mret_return)
 
     if failures:
         print("CSR tests failed")
