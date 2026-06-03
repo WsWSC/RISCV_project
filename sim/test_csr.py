@@ -42,6 +42,10 @@ def addi(rd, rs1, imm):
     return encode_i(imm, rs1, FUNCT3_ADDI, rd, OPCODE_OP_IMM)
 
 
+def lui(rd, imm20):
+    return ((imm20 & 0xFFFFF) << 12) | (rd << 7) | 0x37
+
+
 def sltiu(rd, rs1, imm):
     return encode_i(imm, rs1, FUNCT3_SLTIU, rd, OPCODE_OP_IMM)
 
@@ -76,9 +80,13 @@ def write_inst_data(insts):
             f.write(f"{inst:08x}\n")
 
 
-def run_core_case(name, insts):
+def run_core_case(name, insts, vvp_args=None):
     write_inst_data(insts)
-    rc = sim(["+timeout_cycles=1000"])
+    args = ["+timeout_cycles=1000"]
+    if vvp_args:
+        args.extend(vvp_args)
+
+    rc = sim(args)
     if rc != 0:
         print(f"{name}: FAIL")
         return 1
@@ -188,11 +196,39 @@ def main():
         INST_MRET,
     ]
 
+    external_irq = [
+        addi(3, 0, 6),
+        addi(5, 0, 0x30),
+        encode_csr(CSR_MTVEC, 5, FUNCT3_CSRRW, 0),
+        addi(5, 0, 0x08),
+        encode_csr(CSR_MSTATUS, 5, FUNCT3_CSRRW, 0),
+        jal_zero(),
+        jal_zero(),
+        jal_zero(),
+        jal_zero(),
+        jal_zero(),
+        jal_zero(),
+        jal_zero(),
+        encode_csr(CSR_MCAUSE, 0, FUNCT3_CSRRS, 7),
+        lui(5, 0x80000),
+        addi(5, 5, 11),
+        sub(8, 7, 5),
+        sltiu(27, 8, 1),
+        encode_csr(CSR_MSTATUS, 0, FUNCT3_CSRRS, 7),
+        addi(5, 0, 0x80),
+        sub(8, 7, 5),
+        sltiu(8, 8, 1),
+        and_(27, 27, 8),
+        addi(26, 0, 1),
+        jal_zero(),
+    ]
+
     failures += run_core_case("csr_core_csrrw", csrrw_readback)
     failures += run_core_case("csr_core_csrrs", csrrs_readback)
     failures += run_core_case("csr_core_csrrc", csrrc_readback)
     failures += run_core_case("csr_core_ecall_trap", ecall_trap)
     failures += run_core_case("csr_core_mret_return", mret_return)
+    failures += run_core_case("csr_core_external_irq", external_irq, ["+external_irq_cycle=8"])
 
     if failures:
         print("CSR tests failed")
