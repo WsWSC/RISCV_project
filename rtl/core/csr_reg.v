@@ -20,6 +20,13 @@ module csr_reg(
     input  wire[11:0]   csr_w_addr_i        ,
     input  wire[31:0]   csr_w_data_i        ,
 
+    // trap write port
+    input  wire         trap_w_en_i         ,
+    input  wire[31:0]   trap_mepc_i         ,
+    input  wire[31:0]   trap_mcause_i       ,
+    input  wire[31:0]   trap_mtval_i        ,
+    input  wire[31:0]   trap_mstatus_i      ,
+
     // CSR direct outputs
     output wire[31:0]   mtvec_o             ,
     output wire[31:0]   mepc_o              ,
@@ -47,6 +54,11 @@ module csr_reg(
             mcause  <= `ZeroWord;
             mtval   <= `ZeroWord;
             mstatus <= `ZeroWord;
+        end else if (trap_w_en_i == `WriteEnable) begin
+            mepc    <= trap_mepc_i;
+            mcause  <= trap_mcause_i;
+            mtval   <= trap_mtval_i;
+            mstatus <= trap_mstatus_i;
         end else if (csr_w_en_i == `WriteEnable) begin
             case (csr_w_addr_i)
                 `CSR_MTVEC  : mtvec   <= csr_w_data_i;

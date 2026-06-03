@@ -414,6 +414,13 @@ module core(
         .csr_w_addr_i       (ex_csr_w_addr_o        ),
         .csr_w_data_i       (ex_csr_w_data_o        ),
 
+        // trap write port
+        .trap_w_en_i        (clint_trap_w_en_o      ),
+        .trap_mepc_i        (clint_trap_mepc_o      ),
+        .trap_mcause_i      (clint_trap_mcause_o    ),
+        .trap_mtval_i       (clint_trap_mtval_o     ),
+        .trap_mstatus_i     (clint_trap_mstatus_o   ),
+
         // CSR direct outputs
         .mtvec_o            (csr_mtvec_o            ),
         .mepc_o             (csr_mepc_o             ),

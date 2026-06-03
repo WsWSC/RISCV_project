@@ -17,6 +17,11 @@ module csr_reg_tb;
     reg         csr_w_en_i;
     reg [11:0]  csr_w_addr_i;
     reg [31:0]  csr_w_data_i;
+    reg         trap_w_en_i;
+    reg [31:0]  trap_mepc_i;
+    reg [31:0]  trap_mcause_i;
+    reg [31:0]  trap_mtval_i;
+    reg [31:0]  trap_mstatus_i;
     wire[31:0]  mtvec_o;
     wire[31:0]  mepc_o;
     wire[31:0]  mcause_o;
@@ -35,6 +40,11 @@ module csr_reg_tb;
         .csr_w_en_i    (csr_w_en_i),
         .csr_w_addr_i  (csr_w_addr_i),
         .csr_w_data_i  (csr_w_data_i),
+        .trap_w_en_i   (trap_w_en_i),
+        .trap_mepc_i   (trap_mepc_i),
+        .trap_mcause_i (trap_mcause_i),
+        .trap_mtval_i  (trap_mtval_i),
+        .trap_mstatus_i(trap_mstatus_i),
         .mtvec_o       (mtvec_o),
         .mepc_o        (mepc_o),
         .mcause_o      (mcause_o),
@@ -75,6 +85,11 @@ module csr_reg_tb;
         csr_w_en_i   = `WriteDisable;
         csr_w_addr_i = 12'b0;
         csr_w_data_i = `ZeroWord;
+        trap_w_en_i   = `WriteDisable;
+        trap_mepc_i   = `ZeroWord;
+        trap_mcause_i = `ZeroWord;
+        trap_mtval_i  = `ZeroWord;
+        trap_mstatus_i = `ZeroWord;
         errors       = 0;
 
         repeat(2) @(negedge clk);
@@ -111,6 +126,29 @@ module csr_reg_tb;
 
         csr_r_addr_i = 12'hfff;
         #1 check(csr_r_data_o, `ZeroWord);
+
+        @(negedge clk);
+        trap_w_en_i    = `WriteEnable;
+        trap_mepc_i    = 32'h0000_0100;
+        trap_mcause_i  = 32'h0000_000b;
+        trap_mtval_i   = 32'h0000_0073;
+        trap_mstatus_i = 32'h0000_0080;
+        csr_w_en_i     = `WriteEnable;
+        csr_w_addr_i   = `CSR_MEPC;
+        csr_w_data_i   = 32'hffff_ffff;
+        @(negedge clk);
+        trap_w_en_i    = `WriteDisable;
+        csr_w_en_i     = `WriteDisable;
+
+        csr_r_addr_i = `CSR_MEPC;
+        #1 check(csr_r_data_o, 32'h0000_0100);
+        check(mepc_o, 32'h0000_0100);
+        csr_r_addr_i = `CSR_MCAUSE;
+        #1 check(csr_r_data_o, 32'h0000_000b);
+        csr_r_addr_i = `CSR_MTVAL;
+        #1 check(csr_r_data_o, 32'h0000_0073);
+        csr_r_addr_i = `CSR_MSTATUS;
+        #1 check(csr_r_data_o, 32'h0000_0080);
 
         if (errors == 0) begin
             $display("csr_reg_tb PASS");
