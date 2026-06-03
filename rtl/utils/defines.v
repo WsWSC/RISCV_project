@@ -145,3 +145,4 @@
 // ============================================================
 `define TRAP_CAUSE_BREAKPOINT 32'd3
 `define TRAP_CAUSE_ECALL_M    32'd11
+`define TRAP_CAUSE_M_EXTERNAL 32'h8000000b

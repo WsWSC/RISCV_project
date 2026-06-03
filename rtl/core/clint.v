@@ -41,16 +41,30 @@ module clint(
     output wire[31:0]   trap_jump_addr_o
 );
 
-    assign trap_w_en_o = trap_en_i || mret_en_i;
+    wire external_irq_taken = external_irq_i && csr_mstatus_i[3];
 
-    assign trap_mepc_o   = trap_en_i ? trap_pc_i    : csr_mepc_i;
-    assign trap_mcause_o = trap_en_i ? trap_cause_i : csr_mcause_i;
-    assign trap_mtval_o  = trap_en_i ? trap_tval_i  : csr_mtval_i;
+    assign trap_w_en_o = trap_en_i || external_irq_taken || mret_en_i;
+
+    assign trap_mepc_o =
+        trap_en_i          ? trap_pc_i :
+        external_irq_taken ? irq_pc_i  :
+                              csr_mepc_i;
+
+    assign trap_mcause_o =
+        trap_en_i          ? trap_cause_i :
+        external_irq_taken ? `TRAP_CAUSE_M_EXTERNAL :
+                              csr_mcause_i;
+
+    assign trap_mtval_o =
+        trap_en_i          ? trap_tval_i :
+        external_irq_taken ? `ZeroWord   :
+                              csr_mtval_i;
+
     assign trap_mstatus_o =
-        trap_en_i ? {csr_mstatus_i[31:8], csr_mstatus_i[3], csr_mstatus_i[6:4], 1'b0, csr_mstatus_i[2:0]} :
-                    {csr_mstatus_i[31:8], 1'b1, csr_mstatus_i[6:4], csr_mstatus_i[7], csr_mstatus_i[2:0]};
+        (trap_en_i || external_irq_taken) ? {csr_mstatus_i[31:8], csr_mstatus_i[3], csr_mstatus_i[6:4], 1'b0, csr_mstatus_i[2:0]} :
+                                            {csr_mstatus_i[31:8], 1'b1, csr_mstatus_i[6:4], csr_mstatus_i[7], csr_mstatus_i[2:0]};
 
-    assign trap_jump_en_o   = trap_en_i || mret_en_i;
-    assign trap_jump_addr_o = trap_en_i ? csr_mtvec_i : csr_mepc_i;
+    assign trap_jump_en_o   = trap_en_i || external_irq_taken || mret_en_i;
+    assign trap_jump_addr_o = (trap_en_i || external_irq_taken) ? csr_mtvec_i : csr_mepc_i;
 
 endmodule
