@@ -30,6 +30,7 @@ module id_ex(
     input  wire         trap_en_i           ,
     input  wire[31:0]   trap_cause_i        ,
     input  wire[31:0]   trap_tval_i         ,
+    input  wire         mret_en_i           ,
     
     // to ex    
     output wire[31:0]   inst_addr_o         ,
@@ -45,7 +46,8 @@ module id_ex(
     output wire[2:0]    csr_op_o            ,
     output wire         trap_en_o           ,
     output wire[31:0]   trap_cause_o        ,
-    output wire[31:0]   trap_tval_o
+    output wire[31:0]   trap_tval_o         ,
+    output wire         mret_en_o
 );
 
     // ============================================================
@@ -66,6 +68,7 @@ module id_ex(
     dff_set #(.DW(1) ) dff12(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`WriteDisable), .data_i(trap_en_i)    , .data_o(trap_en_o)      );
     dff_set #(.DW(32)) dff13(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(trap_cause_i) , .data_o(trap_cause_o)   );
     dff_set #(.DW(32)) dff14(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(trap_tval_i)  , .data_o(trap_tval_o)    );
+    dff_set #(.DW(1) ) dff15(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`WriteDisable), .data_i(mret_en_i)    , .data_o(mret_en_o)      );
 
 
 endmodule

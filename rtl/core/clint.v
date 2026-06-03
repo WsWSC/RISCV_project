@@ -21,6 +21,7 @@ module clint(
     input  wire[31:0]   trap_pc_i           ,
     input  wire[31:0]   trap_cause_i        ,
     input  wire[31:0]   trap_tval_i         ,
+    input  wire         mret_en_i           ,
 
     // to csr_reg trap write port
     output wire         trap_w_en_o         ,

@@ -34,7 +34,8 @@ module id(
     output reg[2:0]     csr_op_o            ,
     output reg          trap_en_o           ,
     output reg[31:0]    trap_cause_o        ,
-    output reg[31:0]    trap_tval_o
+    output reg[31:0]    trap_tval_o         ,
+    output reg          mret_en_o
 );
 
     // ============================================================
@@ -73,6 +74,7 @@ module id(
         trap_en_o         = `WriteDisable ;
         trap_cause_o      = `ZeroWord     ;
         trap_tval_o       = `ZeroWord     ;
+        mret_en_o         = `WriteDisable ;
 
         case(opcode) 
             // I-type
@@ -326,6 +328,8 @@ module id(
                             trap_en_o    = `WriteEnable;
                             trap_cause_o = `TRAP_CAUSE_BREAKPOINT;
                             trap_tval_o  = inst_i;
+                        end else if (inst_i == `INST_MRET) begin
+                            mret_en_o = `WriteEnable;
                         end
                     end
 
