@@ -28,7 +28,10 @@ module id(
     output reg[4:0]     rd_addr_o           ,       // send to "id_ex" DFF, rd register addr.
     output reg          reg_w_en_o          ,       // send to "id_ex" DFF, reg_w_en_o = reg write enable 
     output reg[31:0]    base_addr_o         ,       // b/l/s type used
-    output reg[31:0]    addr_offset_o
+    output reg[31:0]    addr_offset_o       ,
+    output reg[11:0]    csr_addr_o          ,
+    output reg          csr_w_en_o          ,
+    output reg[2:0]     csr_op_o
 );
 
     // ============================================================
@@ -61,6 +64,9 @@ module id(
         reg_w_en_o        = `WriteDisable ;
         base_addr_o       = `ZeroAddr     ;
         addr_offset_o     = `ZeroWord     ;
+        csr_addr_o        = 12'b0         ;
+        csr_w_en_o        = `WriteDisable ;
+        csr_op_o          = 3'b0          ;
 
         case(opcode) 
             // I-type
@@ -302,6 +308,50 @@ module id(
                 rd_addr_o   = rd                     ;
                 reg_w_en_o  = `WriteEnable           ;                                                    
             end   
+
+            `INST_TYPE_SYSTEM: begin
+                case(funct3)
+                    `INST_CSRRW, `INST_CSRRS, `INST_CSRRC: begin
+                        rs1_addr_o = rs1;
+                        rs2_addr_o = `ZeroReg;
+
+                        op1_o      = rs1_data_i;
+                        op2_o      = `ZeroWord;
+                        rd_addr_o  = rd;
+                        reg_w_en_o = `WriteEnable;
+                        csr_addr_o = inst_i[31:20];
+                        csr_op_o   = funct3;
+
+                        if ((funct3 == `INST_CSRRW) || (rs1 != `ZeroReg))
+                            csr_w_en_o = `WriteEnable;
+                    end
+
+                    `INST_CSRRWI, `INST_CSRRSI, `INST_CSRRCI: begin
+                        rs1_addr_o = `ZeroReg;
+                        rs2_addr_o = `ZeroReg;
+
+                        op1_o      = {27'b0, rs1};
+                        op2_o      = `ZeroWord;
+                        rd_addr_o  = rd;
+                        reg_w_en_o = `WriteEnable;
+                        csr_addr_o = inst_i[31:20];
+                        csr_op_o   = funct3;
+
+                        if ((funct3 == `INST_CSRRWI) || (rs1 != `ZeroReg))
+                            csr_w_en_o = `WriteEnable;
+                    end
+
+                    default: begin
+                        rs1_addr_o = `ZeroReg;
+                        rs2_addr_o = `ZeroReg;
+
+                        op1_o      = `ZeroWord;
+                        op2_o      = `ZeroWord;
+                        rd_addr_o  = `ZeroReg;
+                        reg_w_en_o = `WriteDisable;
+                    end
+                endcase
+            end
 
             default: begin
                 rs1_addr_o  = `ZeroReg      ;
