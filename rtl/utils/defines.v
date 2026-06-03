@@ -139,3 +139,9 @@
 `define CSR_MEPC        12'h341
 `define CSR_MCAUSE      12'h342
 `define CSR_MTVAL       12'h343
+
+// ============================================================
+// Trap cause values
+// ============================================================
+`define TRAP_CAUSE_BREAKPOINT 32'd3
+`define TRAP_CAUSE_ECALL_M    32'd11

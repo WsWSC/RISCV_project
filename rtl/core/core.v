@@ -60,6 +60,9 @@ module core(
     wire[11:0]  id_csr_addr_o               ;
     wire        id_csr_w_en_o               ;
     wire[2:0]   id_csr_op_o                 ;
+    wire        id_trap_en_o                ;
+    wire[31:0]  id_trap_cause_o             ;
+    wire[31:0]  id_trap_tval_o              ;
 
     // id_ex to ex
     wire[31:0]  id_ex_inst_addr_o           ;
@@ -73,6 +76,9 @@ module core(
     wire[11:0]  id_ex_csr_addr_o            ;
     wire        id_ex_csr_w_en_o            ;
     wire[2:0]   id_ex_csr_op_o              ;
+    wire        id_ex_trap_en_o             ;
+    wire[31:0]  id_ex_trap_cause_o          ;
+    wire[31:0]  id_ex_trap_tval_o           ;
 
     // ex to regs
     wire[4:0]   ex_rd_addr_o                ;
@@ -222,7 +228,10 @@ module core(
         .addr_offset_o      (id_addr_offset_o       ),
         .csr_addr_o         (id_csr_addr_o          ),
         .csr_w_en_o         (id_csr_w_en_o          ),
-        .csr_op_o           (id_csr_op_o            )
+        .csr_op_o           (id_csr_op_o            ),
+        .trap_en_o          (id_trap_en_o           ),
+        .trap_cause_o       (id_trap_cause_o        ),
+        .trap_tval_o        (id_trap_tval_o         )
 
     );
 
@@ -264,6 +273,9 @@ module core(
         .csr_addr_i         (id_csr_addr_o          ),
         .csr_w_en_i         (id_csr_w_en_o          ),
         .csr_op_i           (id_csr_op_o            ),
+        .trap_en_i          (id_trap_en_o           ),
+        .trap_cause_i       (id_trap_cause_o        ),
+        .trap_tval_i        (id_trap_tval_o         ),
 
         // to ex        
         .inst_addr_o        (id_ex_inst_addr_o      ),
@@ -276,7 +288,10 @@ module core(
 		.addr_offset_o 	    (id_ex_addr_offset_o    ),
         .csr_addr_o         (id_ex_csr_addr_o       ),
         .csr_w_en_o         (id_ex_csr_w_en_o       ),
-        .csr_op_o           (id_ex_csr_op_o         )
+        .csr_op_o           (id_ex_csr_op_o         ),
+        .trap_en_o          (id_ex_trap_en_o        ),
+        .trap_cause_o       (id_ex_trap_cause_o     ),
+        .trap_tval_o        (id_ex_trap_tval_o      )
     );  
 
     ex ex_inst( 
@@ -439,10 +454,10 @@ module core(
         .csr_mstatus_i      (csr_mstatus_o          ),
 
         // trap request
-        .trap_en_i          (`JumpDisable           ),
-        .trap_pc_i          (`ZeroAddr              ),
-        .trap_cause_i       (`ZeroWord              ),
-        .trap_tval_i        (`ZeroWord              ),
+        .trap_en_i          (id_ex_trap_en_o        ),
+        .trap_pc_i          (id_ex_inst_addr_o      ),
+        .trap_cause_i       (id_ex_trap_cause_o     ),
+        .trap_tval_i        (id_ex_trap_tval_o      ),
 
         // to csr_reg trap write port
         .trap_w_en_o        (clint_trap_w_en_o      ),
@@ -462,6 +477,10 @@ module core(
         .stall_req_i        (ex_stall_req_o         ),
         .jump_addr_i        (ex_jump_addr_o         ),
         .jump_en_i          (ex_jump_en_o           ),
+
+        // from clint
+        .trap_jump_en_i     (clint_trap_jump_en_o   ),
+        .trap_jump_addr_i   (clint_trap_jump_addr_o ),
 
         // from hazard detect
         .hazard_stall_req_i (load_use_hazard_req    ),

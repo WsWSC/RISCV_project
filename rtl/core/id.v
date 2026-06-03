@@ -31,7 +31,10 @@ module id(
     output reg[31:0]    addr_offset_o       ,
     output reg[11:0]    csr_addr_o          ,
     output reg          csr_w_en_o          ,
-    output reg[2:0]     csr_op_o
+    output reg[2:0]     csr_op_o            ,
+    output reg          trap_en_o           ,
+    output reg[31:0]    trap_cause_o        ,
+    output reg[31:0]    trap_tval_o
 );
 
     // ============================================================
@@ -67,6 +70,9 @@ module id(
         csr_addr_o        = 12'b0         ;
         csr_w_en_o        = `WriteDisable ;
         csr_op_o          = 3'b0          ;
+        trap_en_o         = `WriteDisable ;
+        trap_cause_o      = `ZeroWord     ;
+        trap_tval_o       = `ZeroWord     ;
 
         case(opcode) 
             // I-type
@@ -311,6 +317,18 @@ module id(
 
             `INST_TYPE_SYSTEM: begin
                 case(funct3)
+                    3'b000: begin
+                        if (inst_i == `INST_ECALL) begin
+                            trap_en_o    = `WriteEnable;
+                            trap_cause_o = `TRAP_CAUSE_ECALL_M;
+                            trap_tval_o  = `ZeroWord;
+                        end else if (inst_i == `INST_EBREAK) begin
+                            trap_en_o    = `WriteEnable;
+                            trap_cause_o = `TRAP_CAUSE_BREAKPOINT;
+                            trap_tval_o  = inst_i;
+                        end
+                    end
+
                     `INST_CSRRW, `INST_CSRRS, `INST_CSRRC: begin
                         rs1_addr_o = rs1;
                         rs2_addr_o = `ZeroReg;
