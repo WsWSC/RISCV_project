@@ -28,6 +28,9 @@ FUNCT3_OR = 6
 FUNCT3_CSRRW = 1
 FUNCT3_CSRRS = 2
 FUNCT3_CSRRC = 3
+FUNCT3_CSRRWI = 5
+FUNCT3_CSRRSI = 6
+FUNCT3_CSRRCI = 7
 
 CSR_MTVEC = 0x305
 CSR_MSTATUS = 0x300
@@ -110,7 +113,7 @@ def write_inst_data(insts):
             f.write(f"{inst:08x}\n")
 
 
-def run_core_case(name, insts, vvp_args=None):
+def run_core_case(name, insts, vvp_args=None, expected_fail=False):
     root = str(ROOT_DIR)
     with tempfile.NamedTemporaryFile(delete=False, suffix=".bin") as tmp:
         tmp_path = tmp.name
@@ -141,6 +144,14 @@ def run_core_case(name, insts, vvp_args=None):
     )
     output = result.stdout
     passed = result.returncode == 0 and "pass" in output and "fail" not in output.lower() and "timeout" not in output.lower()
+
+    if expected_fail and not passed:
+        print(f"{name}: XFAIL")
+        return 0
+
+    if expected_fail and passed:
+        print(f"{name}: XPASS")
+        return 1
 
     if not passed:
         print(f"{name}: FAIL")
@@ -203,6 +214,33 @@ def main():
         encode_csr(CSR_MTVEC, 0, FUNCT3_CSRRS, 7),
     ] + pass_if_x7_equals(0x11, 3)
 
+    csrrwi_readback = [
+        encode_csr(CSR_MSTATUS, 5, FUNCT3_CSRRWI, 0),
+        encode_csr(CSR_MSTATUS, 0, FUNCT3_CSRRS, 7),
+    ] + pass_if_x7_equals(0x05, 12)
+
+    csrrsi_readback = [
+        encode_csr(CSR_MSTATUS, 1, FUNCT3_CSRRWI, 0),
+        encode_csr(CSR_MSTATUS, 4, FUNCT3_CSRRSI, 0),
+        encode_csr(CSR_MSTATUS, 0, FUNCT3_CSRRS, 7),
+    ] + pass_if_x7_equals(0x05, 13)
+
+    csrrci_readback = [
+        encode_csr(CSR_MSTATUS, 7, FUNCT3_CSRRWI, 0),
+        encode_csr(CSR_MSTATUS, 2, FUNCT3_CSRRCI, 0),
+        encode_csr(CSR_MSTATUS, 0, FUNCT3_CSRRS, 7),
+    ] + pass_if_x7_equals(0x05, 14)
+
+    csr_no_write_zero_source = [
+        addi(5, 0, 0x12),
+        encode_csr(CSR_MTVEC, 5, FUNCT3_CSRRW, 0),
+        encode_csr(CSR_MTVEC, 0, FUNCT3_CSRRS, 0),       # CSRRS rs1=x0: read-only
+        encode_csr(CSR_MTVEC, 0, FUNCT3_CSRRC, 0),       # CSRRC rs1=x0: read-only
+        encode_csr(CSR_MTVEC, 0, FUNCT3_CSRRSI, 0),      # CSRRSI zimm=0: read-only
+        encode_csr(CSR_MTVEC, 0, FUNCT3_CSRRCI, 0),      # CSRRCI zimm=0: read-only
+        encode_csr(CSR_MTVEC, 0, FUNCT3_CSRRS, 7),
+    ] + pass_if_x7_equals(0x12, 15)
+
     ecall_trap = [
         addi(3, 0, 4),
         addi(5, 0, 0x20),
@@ -230,6 +268,34 @@ def main():
         jal_zero(),
     ]
 
+    ebreak_trap = [
+        addi(3, 0, 16),
+        addi(5, 0, 0x20),
+        encode_csr(CSR_MTVEC, 5, FUNCT3_CSRRW, 0),
+        0x00100073,
+        jal_zero(),
+        jal_zero(),
+        jal_zero(),
+        jal_zero(),
+        encode_csr(CSR_MEPC, 0, FUNCT3_CSRRS, 7),
+        addi(5, 0, 0x0c),
+        sub(8, 7, 5),
+        sltiu(27, 8, 1),
+        encode_csr(CSR_MCAUSE, 0, FUNCT3_CSRRS, 7),
+        addi(5, 0, 3),
+        sub(8, 7, 5),
+        sltiu(8, 8, 1),
+        and_(27, 27, 8),
+        encode_csr(CSR_MTVAL, 0, FUNCT3_CSRRS, 7),
+        lui(5, 0x00100),
+        addi(5, 5, 0x073),
+        sub(8, 7, 5),
+        sltiu(8, 8, 1),
+        and_(27, 27, 8),
+        addi(26, 0, 1),
+        jal_zero(),
+    ]
+
     mret_return = [
         addi(3, 0, 5),
         addi(5, 0, 0x44),
@@ -249,6 +315,20 @@ def main():
         addi(26, 0, 1),
         jal_zero(),
         addi(5, 0, 0x18),
+        encode_csr(CSR_MEPC, 5, FUNCT3_CSRRW, 0),
+        INST_MRET,
+    ]
+
+    trap_flush_younger_write = [
+        addi(3, 0, 17),
+        addi(5, 0, 0x20),
+        encode_csr(CSR_MTVEC, 5, FUNCT3_CSRRW, 0),
+        0x00000073,
+        addi(10, 0, 99),             # must be flushed by trap redirect
+        sub(8, 10, 0),
+        sltiu(27, 8, 1),
+        addi(26, 0, 1),
+        addi(5, 0, 0x10),            # handler @ 0x20: return to instruction after younger op
         encode_csr(CSR_MEPC, 5, FUNCT3_CSRRW, 0),
         INST_MRET,
     ]
@@ -410,8 +490,18 @@ def main():
     failures += run_core_case("csr_core_csrrw", csrrw_readback)
     failures += run_core_case("csr_core_csrrs", csrrs_readback)
     failures += run_core_case("csr_core_csrrc", csrrc_readback)
+    failures += run_core_case("csr_core_csrrwi", csrrwi_readback)
+    failures += run_core_case("csr_core_csrrsi", csrrsi_readback)
+    failures += run_core_case("csr_core_csrrci", csrrci_readback)
+    failures += run_core_case("csr_core_no_write_zero_source", csr_no_write_zero_source)
     failures += run_core_case("csr_core_ecall_trap", ecall_trap)
+    failures += run_core_case("csr_core_ebreak_trap", ebreak_trap)
     failures += run_core_case("csr_core_mret_return", mret_return)
+    failures += run_core_case(
+        "csr_core_trap_flush_younger_write",
+        trap_flush_younger_write,
+        expected_fail=True,
+    )
     failures += run_core_case("csr_core_external_irq", external_irq, ["+external_irq_cycle=12"])
     failures += run_core_case("csr_core_external_irq_masked", external_irq_masked, ["+external_irq_cycle=12"])
     failures += run_core_case("csr_core_misaligned_load_trap", misaligned_load_trap)
