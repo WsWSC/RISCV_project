@@ -49,6 +49,7 @@ module id(
     wire[4:0]   rs2     = inst_i[24:20];
     wire[6:0]   funct7  = inst_i[31:25];
 
+    reg          illegal_inst;
 
     // ============================================================
     //  Main logic
@@ -75,6 +76,7 @@ module id(
         trap_cause_o      = `ZeroWord     ;
         trap_tval_o       = `ZeroWord     ;
         mret_en_o         = `WriteDisable ;
+        illegal_inst      = 1'b0          ;
 
         case(opcode) 
             // I-type
@@ -91,23 +93,22 @@ module id(
                     end
 
                     `INST_SLLI, `INST_SRI: begin
-                        rs1_addr_o = rs1            ;
-                        rs2_addr_o = `ZeroReg       ;
+                        if ((funct3 == `INST_SLLI && funct7 == 7'b000_0000) ||
+                            (funct3 == `INST_SRI  && (funct7 == 7'b000_0000 || funct7 == 7'b010_0000))) begin
+                            rs1_addr_o = rs1            ;
+                            rs2_addr_o = `ZeroReg       ;
 
-                        op1_o      = rs1_data_i     ;
-                        op2_o      = {27'b0, inst_i[24:20]} ;
-                        rd_addr_o  = rd             ;   
-                        reg_w_en_o = `WriteEnable   ;
+                            op1_o      = rs1_data_i     ;
+                            op2_o      = {27'b0, inst_i[24:20]} ;
+                            rd_addr_o  = rd             ;
+                            reg_w_en_o = `WriteEnable   ;
+                        end else begin
+                            illegal_inst = 1'b1;
+                        end
                     end
                     
                     default: begin
-                        rs1_addr_o = `ZeroReg      ;
-                        rs2_addr_o = `ZeroReg      ;
-
-                        op1_o      = `ZeroWord     ;
-                        op2_o      = `ZeroWord     ;
-                        rd_addr_o  = `ZeroReg      ;
-                        reg_w_en_o = `WriteDisable ;
+                        illegal_inst = 1'b1;
                     end
                     
                 endcase
@@ -128,13 +129,7 @@ module id(
                         end
 
                         default: begin
-                            rs1_addr_o = `ZeroReg      ;
-                            rs2_addr_o = `ZeroReg      ;
-
-                            op1_o      = `ZeroWord     ;
-                            op2_o      = `ZeroWord     ;
-                            rd_addr_o  = `ZeroReg      ;
-                            reg_w_en_o = `WriteDisable ;
+                            illegal_inst = 1'b1;
                         end
 
                     endcase
@@ -142,33 +137,37 @@ module id(
                 end else begin                          // R-type
                     case(funct3)
                         `INST_ADD_SUB, `INST_SLT, `INST_SLTU, `INST_XOR, `INST_OR, `INST_AND: begin
-                            rs1_addr_o = rs1;
-                            rs2_addr_o = rs2;
+                            if ((funct3 == `INST_ADD_SUB && (funct7 == 7'b000_0000 || funct7 == 7'b010_0000)) ||
+                                (funct3 != `INST_ADD_SUB && funct7 == 7'b000_0000)) begin
+                                rs1_addr_o = rs1;
+                                rs2_addr_o = rs2;
 
-                            op1_o      = rs1_data_i;
-                            op2_o      = rs2_data_i;
-                            rd_addr_o  = rd;
-                            reg_w_en_o = `WriteEnable;
+                                op1_o      = rs1_data_i;
+                                op2_o      = rs2_data_i;
+                                rd_addr_o  = rd;
+                                reg_w_en_o = `WriteEnable;
+                            end else begin
+                                illegal_inst = 1'b1;
+                            end
                         end
 
                         `INST_SLL, `INST_SR: begin
-                            rs1_addr_o = rs1;
-                            rs2_addr_o = rs2;
+                            if ((funct3 == `INST_SLL && funct7 == 7'b000_0000) ||
+                                (funct3 == `INST_SR  && (funct7 == 7'b000_0000 || funct7 == 7'b010_0000))) begin
+                                rs1_addr_o = rs1;
+                                rs2_addr_o = rs2;
 
-                            op1_o      = rs1_data_i;
-                            op2_o      = {27'b0, rs2_data_i[4:0]};
-                            rd_addr_o  = rd;
-                            reg_w_en_o = `WriteEnable;
+                                op1_o      = rs1_data_i;
+                                op2_o      = {27'b0, rs2_data_i[4:0]};
+                                rd_addr_o  = rd;
+                                reg_w_en_o = `WriteEnable;
+                            end else begin
+                                illegal_inst = 1'b1;
+                            end
                         end
 
                         default: begin
-                            rs1_addr_o = `ZeroReg      ;
-                            rs2_addr_o = `ZeroReg      ;
-
-                            op1_o      = `ZeroWord     ;
-                            op2_o      = `ZeroWord     ;
-                            rd_addr_o  = `ZeroReg      ;
-                            reg_w_en_o = `WriteDisable ;
+                            illegal_inst = 1'b1;
                         end
 
                     endcase
@@ -192,15 +191,7 @@ module id(
                     end
 
                     default: begin
-                        rs1_addr_o    = `ZeroReg      ;
-                        rs2_addr_o    = `ZeroReg      ;
-
-                        op1_o         = `ZeroWord     ;
-                        op2_o         = `ZeroWord     ;
-                        rd_addr_o     = `ZeroReg      ;
-                        reg_w_en_o    = `WriteDisable ;
-                        base_addr_o   = `ZeroAddr     ;
-                        addr_offset_o = `ZeroWord     ;
+                        illegal_inst = 1'b1;
                     end
 
                 endcase
@@ -223,15 +214,7 @@ module id(
                     end
 
                     default: begin
-                        rs1_addr_o          = `ZeroReg      ;
-                        rs2_addr_o          = `ZeroReg      ;
-
-                        op1_o               = `ZeroWord     ;
-                        op2_o               = `ZeroWord     ;
-                        rd_addr_o           = `ZeroReg      ;
-                        reg_w_en_o         = `WriteDisable ;
-                        base_addr_o         = `ZeroAddr     ;
-                        addr_offset_o       = `ZeroWord     ;
+                        illegal_inst = 1'b1;
 
                     end
 
@@ -255,15 +238,7 @@ module id(
                     end
 
                     default: begin
-                        rs1_addr_o          = `ZeroReg      ;
-                        rs2_addr_o          = `ZeroReg      ;
-
-                        op1_o               = `ZeroWord     ;
-                        op2_o               = `ZeroWord     ;
-                        rd_addr_o           = `ZeroReg      ;
-                        reg_w_en_o          = `WriteDisable ;
-                        base_addr_o         = `ZeroAddr     ;
-                        addr_offset_o       = `ZeroWord     ;
+                        illegal_inst = 1'b1;
 
                     end
 
@@ -285,15 +260,19 @@ module id(
 
             // I-type jump
             `INST_JALR: begin
-                rs1_addr_o      = rs1                       ;
-                rs2_addr_o      = `ZeroReg                  ;
+                if (funct3 == 3'b000) begin
+                    rs1_addr_o      = rs1                       ;
+                    rs2_addr_o      = `ZeroReg                  ;
 
-                op1_o           = `ZeroWord                 ;
-                op2_o           = `ZeroWord                 ;
-                rd_addr_o       = rd                        ;
-                reg_w_en_o      = `WriteEnable              ;
-                base_addr_o     = rs1_data_i                ;
-                addr_offset_o   = {{20{inst_i[31]}}, inst_i[31:20]}  ;
+                    op1_o           = `ZeroWord                 ;
+                    op2_o           = `ZeroWord                 ;
+                    rd_addr_o       = rd                        ;
+                    reg_w_en_o      = `WriteEnable              ;
+                    base_addr_o     = rs1_data_i                ;
+                    addr_offset_o   = {{20{inst_i[31]}}, inst_i[31:20]}  ;
+                end else begin
+                    illegal_inst = 1'b1;
+                end
             end   
 
             // U-type
@@ -317,6 +296,9 @@ module id(
                 reg_w_en_o  = `WriteEnable           ;                                                    
             end   
 
+            `INST_FENCE: begin
+            end
+
             `INST_TYPE_SYSTEM: begin
                 case(funct3)
                     3'b000: begin
@@ -330,6 +312,8 @@ module id(
                             trap_tval_o  = inst_i;
                         end else if (inst_i == `INST_MRET) begin
                             mret_en_o = `WriteEnable;
+                        end else begin
+                            illegal_inst = 1'b1;
                         end
                     end
 
@@ -364,28 +348,34 @@ module id(
                     end
 
                     default: begin
-                        rs1_addr_o = `ZeroReg;
-                        rs2_addr_o = `ZeroReg;
-
-                        op1_o      = `ZeroWord;
-                        op2_o      = `ZeroWord;
-                        rd_addr_o  = `ZeroReg;
-                        reg_w_en_o = `WriteDisable;
+                        illegal_inst = 1'b1;
                     end
                 endcase
             end
 
             default: begin
-                rs1_addr_o  = `ZeroReg      ;
-                rs2_addr_o  = `ZeroReg      ;
-
-                op1_o       = `ZeroWord     ;
-                op2_o       = `ZeroWord     ;
-                rd_addr_o   = `ZeroReg      ;
-                reg_w_en_o  = `WriteDisable ;
+                illegal_inst = 1'b1;
             end
 
         endcase
+
+        if (illegal_inst) begin
+            rs1_addr_o    = `ZeroReg      ;
+            rs2_addr_o    = `ZeroReg      ;
+            op1_o         = `ZeroWord     ;
+            op2_o         = `ZeroWord     ;
+            rd_addr_o     = `ZeroReg      ;
+            reg_w_en_o    = `WriteDisable ;
+            base_addr_o   = `ZeroAddr     ;
+            addr_offset_o = `ZeroWord     ;
+            csr_addr_o    = 12'b0         ;
+            csr_w_en_o    = `WriteDisable ;
+            csr_op_o      = 3'b0          ;
+            trap_en_o     = `WriteEnable  ;
+            trap_cause_o  = `TRAP_CAUSE_ILLEGAL_INST;
+            trap_tval_o   = inst_i        ;
+            mret_en_o     = `WriteDisable ;
+        end
     end
 
 
