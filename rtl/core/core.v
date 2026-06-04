@@ -464,6 +464,9 @@ module core(
         .trap_mtval_i       (clint_trap_mtval_o     ),
         .trap_mstatus_i     (clint_trap_mstatus_o   ),
 
+        // interrupt pending set
+        .external_irq_i     (external_irq_i         ),
+
         // CSR direct outputs
         .mtvec_o            (csr_mtvec_o            ),
         .mepc_o             (csr_mepc_o             ),

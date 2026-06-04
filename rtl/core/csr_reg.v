@@ -27,6 +27,9 @@ module csr_reg(
     input  wire[31:0]   trap_mtval_i        ,
     input  wire[31:0]   trap_mstatus_i      ,
 
+    // interrupt pending set
+    input  wire         external_irq_i       ,
+
     // CSR direct outputs
     output wire[31:0]   mtvec_o             ,
     output wire[31:0]   mepc_o              ,
@@ -60,23 +63,35 @@ module csr_reg(
             mstatus <= `ZeroWord;
             mie     <= `ZeroWord;
             mip     <= `ZeroWord;
-        end else if (trap_w_en_i == `WriteEnable) begin
-            mepc    <= trap_mepc_i;
-            mcause  <= trap_mcause_i;
-            mtval   <= trap_mtval_i;
-            mstatus <= trap_mstatus_i;
-        end else if (csr_w_en_i == `WriteEnable) begin
-            case (csr_w_addr_i)
-                `CSR_MTVEC  : mtvec   <= csr_w_data_i;
-                `CSR_MEPC   : mepc    <= csr_w_data_i;
-                `CSR_MCAUSE : mcause  <= csr_w_data_i;
-                `CSR_MTVAL  : mtval   <= csr_w_data_i;
-                `CSR_MSTATUS: mstatus <= csr_w_data_i;
-                `CSR_MIE    : mie     <= csr_w_data_i;
-                `CSR_MIP    : mip     <= csr_w_data_i;
-                default     : begin
-                end
-            endcase
+        end else begin
+            if (trap_w_en_i == `WriteEnable) begin
+                mepc    <= trap_mepc_i;
+                mcause  <= trap_mcause_i;
+                mtval   <= trap_mtval_i;
+                mstatus <= trap_mstatus_i;
+            end else if (csr_w_en_i == `WriteEnable) begin
+                case (csr_w_addr_i)
+                    `CSR_MTVEC  : mtvec   <= csr_w_data_i;
+                    `CSR_MEPC   : mepc    <= csr_w_data_i;
+                    `CSR_MCAUSE : mcause  <= csr_w_data_i;
+                    `CSR_MTVAL  : mtval   <= csr_w_data_i;
+                    `CSR_MSTATUS: mstatus <= csr_w_data_i;
+                    `CSR_MIE    : mie     <= csr_w_data_i;
+                    `CSR_MIP    : begin
+                        if (external_irq_i == `WriteEnable)
+                            mip <= csr_w_data_i | `CSR_MIP_MEIP;
+                        else
+                            mip <= csr_w_data_i;
+                    end
+                    default     : begin
+                    end
+                endcase
+            end
+
+            if ((external_irq_i == `WriteEnable) &&
+                !((csr_w_en_i == `WriteEnable) && (csr_w_addr_i == `CSR_MIP))) begin
+                mip <= mip | `CSR_MIP_MEIP;
+            end
         end
     end
 

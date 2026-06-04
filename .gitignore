@@ -20,6 +20,7 @@ sim/*.vvp
 
 # Local custom CPU tests
 custom_cpu_tests/
+sim/csr_test_bin/
 
 # Temporary / log files
 *.log
