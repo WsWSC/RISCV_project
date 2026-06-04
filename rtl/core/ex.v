@@ -627,6 +627,9 @@ module ex(
                             data_ram_w_en_o   = `WriteDisable ;
                             data_ram_w_sel_o  = 4'b0000       ;
                             data_ram_w_data_o = `ZeroWord     ;
+                            trap_en_o         = `WriteEnable  ;
+                            trap_cause_o      = `TRAP_CAUSE_STORE_MISALIGNED;
+                            trap_tval_o       = base_addr_add_addr_offset;
                         end else begin
                             case (store_index[1])
                                 1'b0: begin                         // ..00 : write low halfword -> byte0 & byte1
@@ -650,6 +653,9 @@ module ex(
                             data_ram_w_en_o   = `WriteDisable ;
                             data_ram_w_sel_o  = 4'b0000       ;
                             data_ram_w_data_o = `ZeroWord     ;
+                            trap_en_o         = `WriteEnable  ;
+                            trap_cause_o      = `TRAP_CAUSE_STORE_MISALIGNED;
+                            trap_tval_o       = base_addr_add_addr_offset;
                         end else begin
                             data_ram_w_en_o   = `WriteEnable ;
                             data_ram_w_sel_o  = 4'b1111      ;
