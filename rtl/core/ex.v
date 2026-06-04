@@ -17,18 +17,6 @@ module ex(
     input  wire         reg_w_en_i          ,
     input  wire[31:0]   base_addr_i         , 
     input  wire[31:0]   addr_offset_i       ,
-    input  wire[11:0]   csr_addr_i          ,
-    input  wire         csr_w_en_i          ,
-    input  wire[2:0]    csr_op_i            ,
-
-    // from csr_reg
-    input  wire[31:0]   csr_r_data_i        ,
-
-    // to csr_reg
-    output reg [11:0]   csr_r_addr_o        ,
-    output reg          csr_w_en_o          ,
-    output reg [11:0]   csr_w_addr_o        ,
-    output reg [31:0]   csr_w_data_o        ,
 
     // to regs  
     output reg[4:0]     rd_addr_o           ,
@@ -180,11 +168,6 @@ module ex(
         data_ram_w_data_o = `ZeroWord     ;
         data_ram_r_en_o   = `ReadDisable  ;
         data_ram_r_addr_o = `ZeroAddr     ;
-
-        csr_r_addr_o = 12'b0         ;
-        csr_w_en_o   = `WriteDisable ;
-        csr_w_addr_o = 12'b0         ;
-        csr_w_data_o = `ZeroWord     ;
 
         case(opcode) 
             // I-type
@@ -683,49 +666,6 @@ module ex(
 
                 jump_addr_o  = `ZeroAddr       ;
                 jump_en_o    = `JumpDisable    ;
-            end
-
-            `INST_TYPE_SYSTEM: begin
-                case (csr_op_i)
-                    `INST_CSRRW, `INST_CSRRWI: begin
-                        csr_r_addr_o = csr_addr_i;
-                        csr_w_en_o   = csr_w_en_i;
-                        csr_w_addr_o = csr_addr_i;
-                        csr_w_data_o = op1_i;
-
-                        rd_addr_o = rd_addr_i;
-                        rd_data_o = csr_r_data_i;
-                        rd_w_en_o = reg_w_en_i;
-                    end
-
-                    `INST_CSRRS, `INST_CSRRSI: begin
-                        csr_r_addr_o = csr_addr_i;
-                        csr_w_en_o   = csr_w_en_i;
-                        csr_w_addr_o = csr_addr_i;
-                        csr_w_data_o = csr_r_data_i | op1_i;
-
-                        rd_addr_o = rd_addr_i;
-                        rd_data_o = csr_r_data_i;
-                        rd_w_en_o = reg_w_en_i;
-                    end
-
-                    `INST_CSRRC, `INST_CSRRCI: begin
-                        csr_r_addr_o = csr_addr_i;
-                        csr_w_en_o   = csr_w_en_i;
-                        csr_w_addr_o = csr_addr_i;
-                        csr_w_data_o = csr_r_data_i & (~op1_i);
-
-                        rd_addr_o = rd_addr_i;
-                        rd_data_o = csr_r_data_i;
-                        rd_w_en_o = reg_w_en_i;
-                    end
-
-                    default: begin
-                        rd_addr_o = `ZeroReg;
-                        rd_data_o = `ZeroWord;
-                        rd_w_en_o = `WriteDisable;
-                    end
-                endcase
             end
 
             default: begin
