@@ -254,12 +254,35 @@ def main():
         jal_zero(),
     ]
 
+    external_irq_masked = [
+        addi(3, 0, 7),
+        addi(5, 0, 0x40),
+        encode_csr(CSR_MTVEC, 5, FUNCT3_CSRRW, 0),
+        addi(5, 0, 0x08),
+        encode_csr(CSR_MSTATUS, 5, FUNCT3_CSRRW, 0),
+        addi(0, 0, 0),
+        addi(0, 0, 0),
+        addi(0, 0, 0),
+        addi(0, 0, 0),
+        addi(0, 0, 0),
+        addi(0, 0, 0),
+        addi(0, 0, 0),
+        addi(0, 0, 0),
+        addi(27, 0, 1),
+        addi(26, 0, 1),
+        jal_zero(),
+        addi(27, 0, 0),
+        addi(26, 0, 1),
+        jal_zero(),
+    ]
+
     failures += run_core_case("csr_core_csrrw", csrrw_readback)
     failures += run_core_case("csr_core_csrrs", csrrs_readback)
     failures += run_core_case("csr_core_csrrc", csrrc_readback)
     failures += run_core_case("csr_core_ecall_trap", ecall_trap)
     failures += run_core_case("csr_core_mret_return", mret_return)
     failures += run_core_case("csr_core_external_irq", external_irq, ["+external_irq_cycle=12"])
+    failures += run_core_case("csr_core_external_irq_masked", external_irq_masked, ["+external_irq_cycle=12"])
 
     if failures:
         print("CSR tests failed")
