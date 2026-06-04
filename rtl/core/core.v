@@ -501,7 +501,7 @@ module core(
         .trap_jump_en_i     (clint_trap_jump_en_o   ),
         .trap_jump_addr_i   (clint_trap_jump_addr_o ),
 
-        // from hazard detect
+        // load-use hazard request
         .hazard_stall_req_i (load_use_hazard_req    ),
 
         // to pc_reg & if_id & id_ex        

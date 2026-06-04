@@ -18,7 +18,7 @@ module ctrl(
     input  wire         trap_jump_en_i      ,
     input  wire[31:0]   trap_jump_addr_i    ,
 
-    // from hazard detect
+    // load-use hazard request
     input  wire         hazard_stall_req_i  ,
 
     // aggregate debug / trace flags
