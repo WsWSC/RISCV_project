@@ -32,7 +32,9 @@ module csr_reg(
     output wire[31:0]   mepc_o              ,
     output wire[31:0]   mcause_o            ,
     output wire[31:0]   mtval_o             ,
-    output wire[31:0]   mstatus_o
+    output wire[31:0]   mstatus_o           ,
+    output wire[31:0]   mie_o               ,
+    output wire[31:0]   mip_o
 );
 
     // ============================================================
@@ -43,6 +45,8 @@ module csr_reg(
     reg[31:0]   mcause                      ;
     reg[31:0]   mtval                       ;
     reg[31:0]   mstatus                     ;
+    reg[31:0]   mie                         ;
+    reg[31:0]   mip                         ;
 
     // ============================================================
     //  CSR Write
@@ -54,6 +58,8 @@ module csr_reg(
             mcause  <= `ZeroWord;
             mtval   <= `ZeroWord;
             mstatus <= `ZeroWord;
+            mie     <= `ZeroWord;
+            mip     <= `ZeroWord;
         end else if (trap_w_en_i == `WriteEnable) begin
             mepc    <= trap_mepc_i;
             mcause  <= trap_mcause_i;
@@ -66,6 +72,8 @@ module csr_reg(
                 `CSR_MCAUSE : mcause  <= csr_w_data_i;
                 `CSR_MTVAL  : mtval   <= csr_w_data_i;
                 `CSR_MSTATUS: mstatus <= csr_w_data_i;
+                `CSR_MIE    : mie     <= csr_w_data_i;
+                `CSR_MIP    : mip     <= csr_w_data_i;
                 default     : begin
                 end
             endcase
@@ -82,6 +90,8 @@ module csr_reg(
             `CSR_MCAUSE : csr_r_data_o = mcause;
             `CSR_MTVAL  : csr_r_data_o = mtval;
             `CSR_MSTATUS: csr_r_data_o = mstatus;
+            `CSR_MIE    : csr_r_data_o = mie;
+            `CSR_MIP    : csr_r_data_o = mip;
             default     : csr_r_data_o = `ZeroWord;
         endcase
     end
@@ -91,5 +101,7 @@ module csr_reg(
     assign mcause_o  = mcause;
     assign mtval_o   = mtval;
     assign mstatus_o = mstatus;
+    assign mie_o     = mie;
+    assign mip_o     = mip;
 
 endmodule

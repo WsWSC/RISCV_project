@@ -27,6 +27,8 @@ module csr_reg_tb;
     wire[31:0]  mcause_o;
     wire[31:0]  mtval_o;
     wire[31:0]  mstatus_o;
+    wire[31:0]  mie_o;
+    wire[31:0]  mip_o;
 
     integer errors;
 
@@ -49,7 +51,9 @@ module csr_reg_tb;
         .mepc_o        (mepc_o),
         .mcause_o      (mcause_o),
         .mtval_o       (mtval_o),
-        .mstatus_o     (mstatus_o)
+        .mstatus_o     (mstatus_o),
+        .mie_o         (mie_o),
+        .mip_o         (mip_o)
     );
 
     task check;
@@ -123,6 +127,16 @@ module csr_reg_tb;
         csr_r_addr_i = `CSR_MSTATUS;
         #1 check(csr_r_data_o, 32'h0000_0088);
         check(mstatus_o, 32'h0000_0088);
+
+        write_csr(`CSR_MIE, 32'h0000_0800);
+        csr_r_addr_i = `CSR_MIE;
+        #1 check(csr_r_data_o, 32'h0000_0800);
+        check(mie_o, 32'h0000_0800);
+
+        write_csr(`CSR_MIP, 32'h0000_0800);
+        csr_r_addr_i = `CSR_MIP;
+        #1 check(csr_r_data_o, 32'h0000_0800);
+        check(mip_o, 32'h0000_0800);
 
         csr_r_addr_i = 12'hfff;
         #1 check(csr_r_data_o, `ZeroWord);

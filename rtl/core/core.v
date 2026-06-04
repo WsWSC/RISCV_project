@@ -144,6 +144,8 @@ module core(
     wire[31:0]  csr_mcause_o                ;
     wire[31:0]  csr_mtval_o                 ;
     wire[31:0]  csr_mstatus_o               ;
+    wire[31:0]  csr_mie_o                   ;
+    wire[31:0]  csr_mip_o                   ;
 
     // clint to csr_reg / ctrl
     wire        clint_trap_w_en_o            ;
@@ -449,7 +451,9 @@ module core(
         .mepc_o             (csr_mepc_o             ),
         .mcause_o           (csr_mcause_o           ),
         .mtval_o            (csr_mtval_o            ),
-        .mstatus_o          (csr_mstatus_o          )
+        .mstatus_o          (csr_mstatus_o          ),
+        .mie_o              (csr_mie_o              ),
+        .mip_o              (csr_mip_o              )
     );
 
     clint clint_inst(
