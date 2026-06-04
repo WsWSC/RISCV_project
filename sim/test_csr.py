@@ -10,10 +10,14 @@ from compile_and_sim import bin_to_mem
 OPCODE_SYSTEM = 0x73
 OPCODE_OP_IMM = 0x13
 OPCODE_OP = 0x33
+OPCODE_LOAD = 0x03
+OPCODE_STORE = 0x23
 OPCODE_JAL = 0x6F
 INST_MRET = 0x30200073
 
 FUNCT3_ADDI = 0
+FUNCT3_LW = 2
+FUNCT3_SW = 2
 FUNCT3_SLTIU = 3
 FUNCT3_AND = 7
 FUNCT3_OR = 6
@@ -26,6 +30,7 @@ CSR_MSTATUS = 0x300
 CSR_MIE = 0x304
 CSR_MEPC = 0x341
 CSR_MCAUSE = 0x342
+CSR_MTVAL = 0x343
 
 
 def encode_i(imm, rs1, funct3, rd, opcode):
@@ -34,6 +39,17 @@ def encode_i(imm, rs1, funct3, rd, opcode):
 
 def encode_r(funct7, rs2, rs1, funct3, rd, opcode):
     return (funct7 << 25) | (rs2 << 20) | (rs1 << 15) | (funct3 << 12) | (rd << 7) | opcode
+
+
+def encode_s(imm, rs2, rs1, funct3, opcode):
+    return (
+        (((imm >> 5) & 0x7F) << 25)
+        | (rs2 << 20)
+        | (rs1 << 15)
+        | (funct3 << 12)
+        | ((imm & 0x1F) << 7)
+        | opcode
+    )
 
 
 def encode_csr(csr, rs1, funct3, rd):
@@ -46,6 +62,14 @@ def addi(rd, rs1, imm):
 
 def lui(rd, imm20):
     return ((imm20 & 0xFFFFF) << 12) | (rd << 7) | 0x37
+
+
+def lw(rd, rs1, imm):
+    return encode_i(imm, rs1, FUNCT3_LW, rd, OPCODE_LOAD)
+
+
+def sw(rs2, rs1, imm):
+    return encode_s(imm, rs2, rs1, FUNCT3_SW, OPCODE_STORE)
 
 
 def sltiu(rd, rs1, imm):
@@ -276,6 +300,60 @@ def main():
         jal_zero(),
     ]
 
+    misaligned_load_trap = [
+        addi(3, 0, 8),
+        addi(5, 0, 0x20),
+        encode_csr(CSR_MTVEC, 5, FUNCT3_CSRRW, 0),
+        addi(6, 0, 1),
+        lw(9, 6, 0),
+        jal_zero(),
+        jal_zero(),
+        jal_zero(),
+        encode_csr(CSR_MEPC, 0, FUNCT3_CSRRS, 7),
+        addi(5, 0, 0x10),
+        sub(8, 7, 5),
+        sltiu(27, 8, 1),
+        encode_csr(CSR_MCAUSE, 0, FUNCT3_CSRRS, 7),
+        addi(5, 0, 4),
+        sub(8, 7, 5),
+        sltiu(8, 8, 1),
+        and_(27, 27, 8),
+        encode_csr(CSR_MTVAL, 0, FUNCT3_CSRRS, 7),
+        addi(5, 0, 1),
+        sub(8, 7, 5),
+        sltiu(8, 8, 1),
+        and_(27, 27, 8),
+        addi(26, 0, 1),
+        jal_zero(),
+    ]
+
+    misaligned_store_trap = [
+        addi(3, 0, 9),
+        addi(5, 0, 0x20),
+        encode_csr(CSR_MTVEC, 5, FUNCT3_CSRRW, 0),
+        addi(6, 0, 2),
+        addi(7, 0, 0x55),
+        sw(7, 6, 0),
+        jal_zero(),
+        jal_zero(),
+        encode_csr(CSR_MEPC, 0, FUNCT3_CSRRS, 7),
+        addi(5, 0, 0x14),
+        sub(8, 7, 5),
+        sltiu(27, 8, 1),
+        encode_csr(CSR_MCAUSE, 0, FUNCT3_CSRRS, 7),
+        addi(5, 0, 6),
+        sub(8, 7, 5),
+        sltiu(8, 8, 1),
+        and_(27, 27, 8),
+        encode_csr(CSR_MTVAL, 0, FUNCT3_CSRRS, 7),
+        addi(5, 0, 2),
+        sub(8, 7, 5),
+        sltiu(8, 8, 1),
+        and_(27, 27, 8),
+        addi(26, 0, 1),
+        jal_zero(),
+    ]
+
     failures += run_core_case("csr_core_csrrw", csrrw_readback)
     failures += run_core_case("csr_core_csrrs", csrrs_readback)
     failures += run_core_case("csr_core_csrrc", csrrc_readback)
@@ -283,6 +361,8 @@ def main():
     failures += run_core_case("csr_core_mret_return", mret_return)
     failures += run_core_case("csr_core_external_irq", external_irq, ["+external_irq_cycle=12"])
     failures += run_core_case("csr_core_external_irq_masked", external_irq_masked, ["+external_irq_cycle=12"])
+    failures += run_core_case("csr_core_misaligned_load_trap", misaligned_load_trap)
+    failures += run_core_case("csr_core_misaligned_store_trap", misaligned_store_trap)
 
     if failures:
         print("CSR tests failed")
