@@ -150,6 +150,11 @@ module core(
     wire[31:0]  csr_mie_o                   ;
     wire[31:0]  csr_mip_o                   ;
 
+    // trap request to clint
+    wire        trap_en                      ;
+    wire[31:0]  trap_cause                   ;
+    wire[31:0]  trap_tval                    ;
+
     // clint to csr_reg / ctrl
     wire        clint_trap_w_en_o            ;
     wire[31:0]  clint_trap_mepc_o            ;
@@ -179,6 +184,10 @@ module core(
         (id_ex_reg_w_en_o == `WriteEnable) &&
         (id_ex_rd_addr_o != `ZeroReg) &&
         ((id_rs1_addr_o == id_ex_rd_addr_o) || (id_rs2_addr_o == id_ex_rd_addr_o));
+
+    assign trap_en    = ex_trap_en_o || id_ex_trap_en_o;
+    assign trap_cause = ex_trap_en_o ? ex_trap_cause_o : id_ex_trap_cause_o;
+    assign trap_tval  = ex_trap_en_o ? ex_trap_tval_o  : id_ex_trap_tval_o;
 
 
     // ============================================================
@@ -479,10 +488,10 @@ module core(
         .csr_mip_i          (csr_mip_o              ),
 
         // trap request
-        .trap_en_i          (ex_trap_en_o || id_ex_trap_en_o),
+        .trap_en_i          (trap_en                ),
         .trap_pc_i          (id_ex_inst_addr_o      ),
-        .trap_cause_i       (ex_trap_en_o ? ex_trap_cause_o    : id_ex_trap_cause_o),
-        .trap_tval_i        (ex_trap_en_o ? ex_trap_tval_o     : id_ex_trap_tval_o),
+        .trap_cause_i       (trap_cause             ),
+        .trap_tval_i        (trap_tval              ),
         .mret_en_i          (id_ex_mret_en_o        ),
         .external_irq_i     (external_irq_i         ),
         .irq_pc_i           (pc_reg_pc_addr_o       ),
