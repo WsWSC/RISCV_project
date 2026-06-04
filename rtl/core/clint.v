@@ -39,18 +39,38 @@ module clint(
     output wire[31:0]   trap_mstatus_o      ,
 
     // to ctrl
+    output wire         clint_hold_req_o    ,
     output wire         trap_jump_en_o      ,
     output wire[31:0]   trap_jump_addr_o
 );
 
     // Priority: synchronous trap > external interrupt > mret
-    wire sync_trap_taken = trap_en_i;
+    reg         jump_pending;
+    reg[31:0]  jump_addr;
+
+    wire clint_idle = (jump_pending == `JumpDisable);
+    wire sync_trap_taken = clint_idle && trap_en_i;
     wire external_irq_pending = external_irq_i || csr_mip_i[11];
-    wire external_irq_taken = (!sync_trap_taken) && external_irq_pending && csr_mstatus_i[3] && csr_mie_i[11];
-    wire mret_taken = (!sync_trap_taken) && (!external_irq_taken) && mret_en_i;
+    wire external_irq_taken = clint_idle && (!sync_trap_taken) && external_irq_pending && csr_mstatus_i[3] && csr_mie_i[11];
+    wire mret_taken = clint_idle && (!sync_trap_taken) && (!external_irq_taken) && mret_en_i;
+    wire clint_entry_en = sync_trap_taken || external_irq_taken || mret_taken;
     wire[31:0] mtvec_base = {csr_mtvec_i[31:2], 2'b00};
 
-    assign trap_w_en_o = sync_trap_taken || external_irq_taken || mret_taken;
+    always @(posedge clk or negedge rst_n) begin
+        if (rst_n == 1'b0) begin
+            jump_pending <= `JumpDisable;
+            jump_addr    <= `ZeroAddr;
+        end else if (clint_entry_en) begin
+            jump_pending <= `JumpEnable;
+            jump_addr    <= (sync_trap_taken || external_irq_taken) ? mtvec_base : csr_mepc_i;
+        end else begin
+            jump_pending <= `JumpDisable;
+            jump_addr    <= `ZeroAddr;
+        end
+    end
+
+    assign clint_hold_req_o = clint_entry_en;
+    assign trap_w_en_o = clint_entry_en;
 
     assign trap_mepc_o =
         sync_trap_taken    ? trap_pc_i :
@@ -71,7 +91,7 @@ module clint(
         (sync_trap_taken || external_irq_taken) ? {csr_mstatus_i[31:8], csr_mstatus_i[3], csr_mstatus_i[6:4], 1'b0, csr_mstatus_i[2:0]} :
                                             {csr_mstatus_i[31:8], 1'b1, csr_mstatus_i[6:4], csr_mstatus_i[7], csr_mstatus_i[2:0]};
 
-    assign trap_jump_en_o   = sync_trap_taken || external_irq_taken || mret_taken;
-    assign trap_jump_addr_o = (sync_trap_taken || external_irq_taken) ? mtvec_base : csr_mepc_i;
+    assign trap_jump_en_o   = jump_pending;
+    assign trap_jump_addr_o = jump_addr;
 
 endmodule

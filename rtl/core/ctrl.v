@@ -15,6 +15,7 @@ module ctrl(
     input  wire         jump_en_i           ,
 
     // from clint
+    input  wire         clint_hold_req_i    ,
     input  wire         trap_jump_en_i      ,
     input  wire[31:0]   trap_jump_addr_i    ,
 
@@ -45,11 +46,12 @@ module ctrl(
     //  Main logic
     // ============================================================
     // Priority:
-    //   1. trap request: save trap CSRs and jump to mtvec
-    //   2. jump/flush request: discard younger instructions
-    //   3. multi-cycle stall: hold PC, IF/ID, and ID/EX
-    //   4. load-use hazard: hold PC and IF/ID, inject NOP into ID/EX
-    //   5. normal: pipeline advances
+    //   1. trap jump: jump to mtvec/mepc after CSR update
+    //   2. clint hold: hold pipeline while CLINT writes trap CSRs
+    //   3. jump/flush request: discard younger instructions
+    //   4. multi-cycle stall: hold PC, IF/ID, and ID/EX
+    //   5. load-use hazard: hold PC and IF/ID, inject NOP into ID/EX
+    //   6. normal: pipeline advances
     always @(*) begin
         // default
         flush_flag_o       = `FlushDisable ;
@@ -67,6 +69,10 @@ module ctrl(
             id_ex_flush_flag_o = `FlushEnable;
             jump_addr_o        = trap_jump_addr_i;
             jump_en_o          = `JumpEnable;
+        end else if (clint_hold_req_i) begin    // CLINT CSR update
+            pc_stall_flag_o    = `StallEnable;
+            if_id_stall_flag_o = `StallEnable;
+            id_ex_stall_flag_o = `StallEnable;
         end else if (jump_en_i || flush_req_i) begin     // jump
             if_id_flush_flag_o = `FlushEnable;
             id_ex_flush_flag_o = `FlushEnable;

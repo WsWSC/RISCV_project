@@ -156,6 +156,7 @@ module core(
     wire[31:0]  clint_trap_mcause_o          ;
     wire[31:0]  clint_trap_mtval_o           ;
     wire[31:0]  clint_trap_mstatus_o         ;
+    wire        clint_hold_req_o             ;
     wire        clint_trap_jump_en_o         ;
     wire[31:0]  clint_trap_jump_addr_o       ;
        
@@ -494,6 +495,7 @@ module core(
         .trap_mstatus_o     (clint_trap_mstatus_o   ),
 
         // to ctrl
+        .clint_hold_req_o   (clint_hold_req_o       ),
         .trap_jump_en_o     (clint_trap_jump_en_o   ),
         .trap_jump_addr_o   (clint_trap_jump_addr_o )
     );
@@ -506,6 +508,7 @@ module core(
         .jump_en_i          (ex_jump_en_o           ),
 
         // from clint
+        .clint_hold_req_i   (clint_hold_req_o       ),
         .trap_jump_en_i     (clint_trap_jump_en_o   ),
         .trap_jump_addr_i   (clint_trap_jump_addr_o ),
 
