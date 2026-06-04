@@ -153,6 +153,7 @@ def run_core_case(name, insts, vvp_args=None):
 
 def run_csr_reg_tb():
     root = str(ROOT_DIR)
+    out_vvp = Path(__file__).with_name("csr_reg_tb.vvp")
     cmd = [
         "iverilog",
         "-g2012",
@@ -161,7 +162,7 @@ def run_csr_reg_tb():
         "-I",
         os.path.join(root, "rtl", "core"),
         "-o",
-        "csr_reg_tb.vvp",
+        str(out_vvp),
         os.path.join(root, "rtl", "utils", "defines.v"),
         os.path.join(root, "rtl", "core", "csr_reg.v"),
         os.path.join(root, "custom_cpu_tests", "csr", "csr_reg_tb.v"),
@@ -171,7 +172,7 @@ def run_csr_reg_tb():
     if proc.returncode != 0:
         return proc.returncode
 
-    proc = subprocess.run(["vvp", "csr_reg_tb.vvp"], cwd=str(ROOT_DIR), text=True)
+    proc = subprocess.run(["vvp", str(out_vvp)], cwd=str(ROOT_DIR), text=True)
     return proc.returncode
 
 
