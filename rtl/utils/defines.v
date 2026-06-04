@@ -146,5 +146,7 @@
 // Trap cause values
 // ============================================================
 `define TRAP_CAUSE_BREAKPOINT 32'd3
+`define TRAP_CAUSE_LOAD_MISALIGNED  32'd4
+`define TRAP_CAUSE_STORE_MISALIGNED 32'd6
 `define TRAP_CAUSE_ECALL_M    32'd11
 `define TRAP_CAUSE_M_EXTERNAL 32'h8000000b

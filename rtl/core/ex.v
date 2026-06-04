@@ -69,6 +69,11 @@ module ex(
     output reg          flush_req_o         ,       // NOP
     output reg          stall_req_o         ,       // stall, mul will stall
 
+    // to clint
+    output reg          trap_en_o           ,
+    output reg[31:0]    trap_cause_o        ,
+    output reg[31:0]    trap_tval_o         ,
+
     // from data_ram read
     input  wire[31:0]   data_ram_r_data_i   ,
 
@@ -173,6 +178,10 @@ module ex(
         jump_en_o   = `JumpDisable  ;
         flush_req_o = `FlushDisable ;
         stall_req_o = 1'b0;
+
+        trap_en_o    = `WriteDisable;
+        trap_cause_o = `ZeroWord;
+        trap_tval_o  = `ZeroWord;
 
         data_ram_w_en_o	  = `WriteDisable ;
         data_ram_w_sel_o  = 4'b0          ;
@@ -496,8 +505,12 @@ module ex(
                         rd_w_en_o = `WriteEnable ;
 
                         if (load_index[0] == 1'b1) begin        // misaligned halfword address check (..01 or ..11)
-                            rd_w_en_o = `WriteDisable ;
-                            rd_data_o = `ZeroWord     ;
+                            data_ram_r_en_o = `ReadDisable;
+                            rd_w_en_o       = `WriteDisable ;
+                            rd_data_o       = `ZeroWord     ;
+                            trap_en_o       = `WriteEnable  ;
+                            trap_cause_o    = `TRAP_CAUSE_LOAD_MISALIGNED;
+                            trap_tval_o     = base_addr_add_addr_offset;
                         end else begin
                             case (load_index[1])
                                 1'b0    : rd_data_o = { {16{data_ram_r_data_i[15]}}, data_ram_r_data_i[15: 0] } ;     // low half
@@ -514,8 +527,12 @@ module ex(
                         rd_addr_o = rd_addr_i;
 
                         if (load_index != 2'b00) begin          // misaligned word address check (..01 or .. 10 or ..11)
-                            rd_data_o = `ZeroWord         ;
-                            rd_w_en_o = `WriteDisable     ;   
+                            data_ram_r_en_o = `ReadDisable;
+                            rd_data_o       = `ZeroWord         ;
+                            rd_w_en_o       = `WriteDisable     ;
+                            trap_en_o       = `WriteEnable      ;
+                            trap_cause_o    = `TRAP_CAUSE_LOAD_MISALIGNED;
+                            trap_tval_o     = base_addr_add_addr_offset;
                         end else begin
                             rd_data_o = data_ram_r_data_i ;
                             rd_w_en_o = `WriteEnable      ;
@@ -547,8 +564,12 @@ module ex(
                         rd_w_en_o = `WriteEnable ;
 
                         if (load_index[0] == 1'b1) begin        // misaligned halfword address check (..01 or ..11)
-                            rd_w_en_o = `WriteDisable ;  
-                            rd_data_o = `ZeroWord     ;
+                            data_ram_r_en_o = `ReadDisable;
+                            rd_w_en_o       = `WriteDisable ;
+                            rd_data_o       = `ZeroWord     ;
+                            trap_en_o       = `WriteEnable  ;
+                            trap_cause_o    = `TRAP_CAUSE_LOAD_MISALIGNED;
+                            trap_tval_o     = base_addr_add_addr_offset;
                         end else begin
                             case (load_index[1])
                                 1'b0: rd_data_o = {16'b0, data_ram_r_data_i[15: 0]} ;

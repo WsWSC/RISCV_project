@@ -102,6 +102,9 @@ module core(
     wire        ex_jump_en_o                ;
     wire        ex_flush_req_o              ;
     wire        ex_stall_req_o              ;
+    wire        ex_trap_en_o                ;
+    wire[31:0]  ex_trap_cause_o             ;
+    wire[31:0]  ex_trap_tval_o              ;
 
     // hazard detect to ctrl
     wire        load_use_hazard_req          ;
@@ -366,6 +369,11 @@ module core(
         .flush_req_o        (ex_flush_req_o         ),
         .stall_req_o        (ex_stall_req_o         ),
 
+        // to clint
+        .trap_en_o          (ex_trap_en_o           ),
+        .trap_cause_o       (ex_trap_cause_o        ),
+        .trap_tval_o        (ex_trap_tval_o         ),
+
         // from data_ram read   
         .data_ram_r_data_i  (data_ram_r_data_i      ),
 
@@ -470,10 +478,10 @@ module core(
         .csr_mip_i          (csr_mip_o              ),
 
         // trap request
-        .trap_en_i          (id_ex_trap_en_o        ),
+        .trap_en_i          (ex_trap_en_o || id_ex_trap_en_o),
         .trap_pc_i          (id_ex_inst_addr_o      ),
-        .trap_cause_i       (id_ex_trap_cause_o     ),
-        .trap_tval_i        (id_ex_trap_tval_o      ),
+        .trap_cause_i       (ex_trap_en_o ? ex_trap_cause_o    : id_ex_trap_cause_o),
+        .trap_tval_i        (ex_trap_en_o ? ex_trap_tval_o     : id_ex_trap_tval_o),
         .mret_en_i          (id_ex_mret_en_o        ),
         .external_irq_i     (external_irq_i         ),
         .irq_pc_i           (pc_reg_pc_addr_o       ),
