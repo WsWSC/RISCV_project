@@ -466,6 +466,8 @@ module core(
         .csr_mcause_i       (csr_mcause_o           ),
         .csr_mtval_i        (csr_mtval_o            ),
         .csr_mstatus_i      (csr_mstatus_o          ),
+        .csr_mie_i          (csr_mie_o              ),
+        .csr_mip_i          (csr_mip_o              ),
 
         // trap request
         .trap_en_i          (id_ex_trap_en_o        ),

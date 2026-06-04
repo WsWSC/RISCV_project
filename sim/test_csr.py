@@ -1,9 +1,10 @@
 import os
 import subprocess
 import sys
+import tempfile
 
 from compile_and_sim import project_root
-from compile_and_sim import sim
+from compile_and_sim import bin_to_mem
 
 
 OPCODE_SYSTEM = 0x73
@@ -22,6 +23,7 @@ FUNCT3_CSRRC = 3
 
 CSR_MTVEC = 0x305
 CSR_MSTATUS = 0x300
+CSR_MIE = 0x304
 CSR_MEPC = 0x341
 CSR_MCAUSE = 0x342
 
@@ -81,14 +83,40 @@ def write_inst_data(insts):
 
 
 def run_core_case(name, insts, vvp_args=None):
-    write_inst_data(insts)
+    root = project_root()
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".bin") as tmp:
+        tmp_path = tmp.name
+        for inst in insts:
+            tmp.write(inst.to_bytes(4, byteorder="little"))
+
+    out_mem = os.path.join(root, "sim", "test_bin", "inst_data.txt")
+    bin_to_mem(tmp_path, out_mem)
+    os.unlink(tmp_path)
+
     args = ["+timeout_cycles=1000"]
     if vvp_args:
         args.extend(vvp_args)
 
-    rc = sim(args)
-    if rc != 0:
+    cmd = [
+        sys.executable,
+        "-c",
+        "import sys, compile_and_sim; sys.exit(compile_and_sim.sim(sys.argv[1:]))",
+    ]
+    cmd.extend(args)
+    result = subprocess.run(
+        cmd,
+        cwd=os.path.dirname(__file__),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        timeout=30,
+    )
+    output = result.stdout
+    passed = result.returncode == 0 and "pass" in output and "fail" not in output.lower() and "timeout" not in output.lower()
+
+    if not passed:
         print(f"{name}: FAIL")
+        print(output.rstrip())
         return 1
 
     print(f"{name}: PASS")
@@ -198,10 +226,13 @@ def main():
 
     external_irq = [
         addi(3, 0, 6),
-        addi(5, 0, 0x30),
+        addi(5, 0, 0x3c),
         encode_csr(CSR_MTVEC, 5, FUNCT3_CSRRW, 0),
         addi(5, 0, 0x08),
         encode_csr(CSR_MSTATUS, 5, FUNCT3_CSRRW, 0),
+        lui(5, 0x1),
+        addi(5, 5, 0x800),
+        encode_csr(CSR_MIE, 5, FUNCT3_CSRRW, 0),
         jal_zero(),
         jal_zero(),
         jal_zero(),
@@ -228,7 +259,7 @@ def main():
     failures += run_core_case("csr_core_csrrc", csrrc_readback)
     failures += run_core_case("csr_core_ecall_trap", ecall_trap)
     failures += run_core_case("csr_core_mret_return", mret_return)
-    failures += run_core_case("csr_core_external_irq", external_irq, ["+external_irq_cycle=8"])
+    failures += run_core_case("csr_core_external_irq", external_irq, ["+external_irq_cycle=12"])
 
     if failures:
         print("CSR tests failed")

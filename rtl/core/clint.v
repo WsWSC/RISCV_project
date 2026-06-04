@@ -17,6 +17,8 @@ module clint(
     input  wire[31:0]   csr_mcause_i        ,
     input  wire[31:0]   csr_mtval_i         ,
     input  wire[31:0]   csr_mstatus_i       ,
+    input  wire[31:0]   csr_mie_i           ,
+    input  wire[31:0]   csr_mip_i           ,
 
     // trap request
     input  wire         trap_en_i           ,
@@ -41,7 +43,8 @@ module clint(
     output wire[31:0]   trap_jump_addr_o
 );
 
-    wire external_irq_taken = external_irq_i && csr_mstatus_i[3];
+    wire external_irq_pending = external_irq_i || csr_mip_i[11];
+    wire external_irq_taken = external_irq_pending && csr_mstatus_i[3] && csr_mie_i[11];
 
     assign trap_w_en_o = trap_en_i || external_irq_taken || mret_en_i;
 
