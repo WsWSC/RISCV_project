@@ -32,3 +32,8 @@ reference/
 # Local notes
 *.md
 AGENTS.md
+
+# Tracked CSR regression input
+!sim/csr_test_bin/
+!sim/csr_test_bin/README.md
+!sim/csr_test_bin/*.bin

@@ -1,57 +1,63 @@
 # CSR Test Binaries
 
-This folder is reserved for CSR and exception regression binaries.
+This folder contains CSR and exception regression binaries.
 
-It is intentionally separate from `sim/test_bin/` so normal RV32I/RV32M regression can stay stable while CSR and trap behavior is still being defined.
+It is intentionally separate from `sim/test_bin/` so normal RV32I/RV32M regression can stay stable while CSR and trap behavior is tested by its own runner.
 
-## Current Scope
-
-This branch only establishes the folder and documentation.
-
-Do not add executable CSR `.bin` files here until all of the following are true:
+## Layout
 
 ```text
-- CSR RTL behavior is finalized enough to test.
-- The testbench pass/fail convention is confirmed.
-- The binary is known to run and report PASS/FAIL deterministically.
-- The test is ready to be included in a CSR-specific regression flow.
+sim/
+  test_csr.py
+  csr_test_bin/
+    rv32csr-p-*.bin
 ```
 
-## Planned File Names
+## File Names
 
 CSR instruction tests:
 
 ```text
-csr-p-csrrw.bin
-csr-p-csrrs.bin
-csr-p-csrrc.bin
-csr-p-csrrwi.bin
-csr-p-csrrsi.bin
-csr-p-csrrci.bin
+rv32csr-p-csrrw.bin
+rv32csr-p-csrrs.bin
+rv32csr-p-csrrc.bin
+rv32csr-p-csrrwi.bin
+rv32csr-p-csrrsi.bin
+rv32csr-p-csrrci.bin
+rv32csr-p-mscratch.bin
 ```
 
 Synchronous trap and return tests:
 
 ```text
-csr-p-mret.bin
-csr-p-ecall.bin
-csr-p-ebreak.bin
-csr-p-illegal.bin
-csr-p-misalign-load.bin
-csr-p-misalign-store.bin
+rv32csr-p-mret.bin
+rv32csr-p-ecall.bin
+rv32csr-p-ebreak.bin
+rv32csr-p-illegal_inst.bin
+rv32csr-p-misaligned_load.bin
+rv32csr-p-misaligned_store.bin
+rv32csr-p-mtvec_align.bin
+rv32csr-p-trap_flush.bin
 ```
 
-Future interrupt tests, only after interrupt behavior is stable:
+CSR access validation tests:
 
 ```text
-csr-p-external-irq.bin
-csr-p-external-irq-masked.bin
-csr-p-timer-irq.bin
+rv32csr-p-invalid_csr.bin
+rv32csr-p-readonly_csr_write.bin
+```
+
+Interrupt tests:
+
+```text
+rv32csr-p-external_irq.bin
+rv32csr-p-external_irq_masked.bin
+rv32csr-p-external_irq_pending_latch.bin
 ```
 
 ## Pass/Fail Convention
 
-CSR binaries should follow the existing testbench convention unless the testbench flow is intentionally changed later:
+CSR binaries follow the existing testbench convention:
 
 ```text
 x26 = 1: test finished
@@ -62,23 +68,22 @@ x3      : fail case id
 
 ## Regression Policy
 
-This folder should not be scanned by `sim/test_all.py`.
+This folder is not scanned by `sim/test_all.py`.
 
-When CSR tests are ready, add a separate CSR runner, for example:
-
-```text
-sim/test_csr.py
-```
-
-That runner should scan only this folder and should not affect normal RV32I/RV32M regression.
-
-## Do Not Commit Yet
-
-Until the CSR flow is stable, do not commit:
+CSR tests are run by:
 
 ```text
-- empty placeholder .bin files
-- generated inst_data.txt files
-- temporary VVP/VCD artifacts
-- experimental CSR tests that do not have deterministic PASS/FAIL behavior
+python sim/test_csr.py
 ```
+
+That runner scans only this folder and should not affect normal RV32I/RV32M regression.
+
+## Generated Files
+
+The runners convert each source `.bin` into:
+
+```text
+sim/inst_data.txt
+```
+
+That file is generated simulation input and should not be committed.
