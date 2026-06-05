@@ -12,9 +12,7 @@ CSR_VVP_ARGS = {
     "external_irq_pending_latch": ["+external_irq_cycle=5"],
 }
 
-EXPECTED_FAIL = {
-    "trap_flush",
-}
+EXPECTED_FAIL = set()
 
 
 def project_root():
