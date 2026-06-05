@@ -136,7 +136,7 @@ def run(test_binfile, trace=False, dump=False, timeout_cycles=None):
     rtl_dir = project_root()
 
     # output filename
-    out_mem = rtl_dir + r'/sim/test_bin/inst_data.txt'
+    out_mem = rtl_dir + r'/sim/inst_data.txt'
 
     # bin to mem
     bin_to_mem(test_binfile, out_mem)
