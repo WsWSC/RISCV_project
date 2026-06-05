@@ -7,7 +7,8 @@
 
 module soc(
     input   wire        clk,
-    input   wire        rst_n
+    input   wire        rst_n,
+    input   wire        external_irq_i
 );
 
     // ============================================================
@@ -50,7 +51,9 @@ module soc(
         .data_ram_w_en_o    (core_data_ram_w_en_o       ),
         .data_ram_w_sel_o   (core_data_ram_w_sel_o      ),
         .data_ram_w_addr_o  (core_data_ram_w_addr_o     ),
-        .data_ram_w_data_o  (core_data_ram_w_data_o     )
+        .data_ram_w_data_o  (core_data_ram_w_data_o     ),
+
+        .external_irq_i     (external_irq_i             )
     );
 
     inst_rom inst_rom_inst(

@@ -119,5 +119,45 @@
 `define INST_RET        32'h00008067
 
 `define INST_FENCE      7'b0001111
+`define INST_TYPE_SYSTEM 7'b1110011
 `define INST_ECALL      32'h73
 `define INST_EBREAK     32'h00100073
+
+// SYSTEM CSR instruction funct3
+`define INST_CSRRW      3'b001
+`define INST_CSRRS      3'b010
+`define INST_CSRRC      3'b011
+`define INST_CSRRWI     3'b101
+`define INST_CSRRSI     3'b110
+`define INST_CSRRCI     3'b111
+
+// ============================================================
+// CSR addresses
+// ============================================================
+`define CSR_CYCLE       12'hc00
+`define CSR_CYCLEH      12'hc80
+`define CSR_MSTATUS     12'h300
+`define CSR_MIE         12'h304
+`define CSR_MTVEC       12'h305
+`define CSR_MSCRATCH    12'h340
+`define CSR_MEPC        12'h341
+`define CSR_MCAUSE      12'h342
+`define CSR_MTVAL       12'h343
+`define CSR_MIP         12'h344
+
+// CSR bit masks
+`define CSR_MSTATUS_MIE 32'h0000_0008
+`define CSR_MSTATUS_MPIE 32'h0000_0080
+`define CSR_MSTATUS_MASK 32'h0000_0088
+`define CSR_MIE_MEIE    32'h0000_0800
+`define CSR_MIP_MEIP    32'h0000_0800
+
+// ============================================================
+// Trap cause values
+// ============================================================
+`define TRAP_CAUSE_ILLEGAL_INST 32'd2
+`define TRAP_CAUSE_BREAKPOINT 32'd3
+`define TRAP_CAUSE_LOAD_MISALIGNED  32'd4
+`define TRAP_CAUSE_STORE_MISALIGNED 32'd6
+`define TRAP_CAUSE_ECALL_M    32'd11
+`define TRAP_CAUSE_M_EXTERNAL 32'h8000000b

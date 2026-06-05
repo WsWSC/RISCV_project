@@ -93,6 +93,8 @@ def compile():
     iverilog_cmd.append(root_dir + '/rtl/core/ex.v')
     iverilog_cmd.append(root_dir + '/rtl/core/mul.v')
     iverilog_cmd.append(root_dir + '/rtl/core/div.v')
+    iverilog_cmd.append(root_dir + '/rtl/core/csr_reg.v')
+    iverilog_cmd.append(root_dir + '/rtl/core/clint.v')
     iverilog_cmd.append(root_dir + '/rtl/core/ctrl.v')
 
     # memory

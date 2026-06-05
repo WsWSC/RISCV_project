@@ -12,12 +12,14 @@ module tb;
 
     reg clk;
     reg rst_n;
+    reg external_irq;
 
     always #10 clk = ~clk;
 
     initial begin
         clk   <= 1'b1;
         rst_n <= 1'b0;
+        external_irq <= 1'b0;
 
         #30
         rst_n <= 1'b1;
@@ -43,6 +45,8 @@ module tb;
     integer timeout_cycles;
     integer trace_en;
     integer dump_en;
+    integer external_irq_cycle;
+    integer external_irq_cycle_en;
 
     initial begin
         cycle_count   = 0;
@@ -57,6 +61,7 @@ module tb;
         timeout_cycles = 100000;
         trace_en = $test$plusargs("trace");
         dump_en  = $test$plusargs("dump");
+        external_irq_cycle_en = $value$plusargs("external_irq_cycle=%d", external_irq_cycle);
 
         if (!$value$plusargs("timeout_cycles=%d", timeout_cycles))
             timeout_cycles = 100000;
@@ -64,6 +69,16 @@ module tb;
         if (dump_en) begin
             $dumpfile("tb.vcd");
             $dumpvars(0, tb);
+        end
+    end
+
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            external_irq <= 1'b0;
+        end else if (external_irq_cycle_en && (cycle_count == external_irq_cycle)) begin
+            external_irq <= 1'b1;
+        end else begin
+            external_irq <= 1'b0;
         end
     end
 
@@ -228,7 +243,8 @@ module tb;
 
     soc soc_inst(
         .clk        (clk),
-        .rst_n      (rst_n)
+        .rst_n      (rst_n),
+        .external_irq_i(external_irq)
     );
 
 endmodule
