@@ -43,7 +43,9 @@ module csr_reg(
     // ============================================================
     //  CSR Register Declarations
     // ============================================================
+    reg[63:0]   cycle                       ;
     reg[31:0]   mtvec                       ;
+    reg[31:0]   mscratch                    ;
     reg[31:0]   mepc                        ;
     reg[31:0]   mcause                      ;
     reg[31:0]   mtval                       ;
@@ -56,7 +58,9 @@ module csr_reg(
     // ============================================================
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
+            cycle   <= 64'b0;
             mtvec   <= `ZeroWord;
+            mscratch <= `ZeroWord;
             mepc    <= `ZeroWord;
             mcause  <= `ZeroWord;
             mtval   <= `ZeroWord;
@@ -64,6 +68,8 @@ module csr_reg(
             mie     <= `ZeroWord;
             mip     <= `ZeroWord;
         end else begin
+            cycle <= cycle + 64'd1;
+
             if (trap_w_en_i == `WriteEnable) begin
                 mepc    <= trap_mepc_i;
                 mcause  <= trap_mcause_i;
@@ -71,19 +77,20 @@ module csr_reg(
                 mstatus <= trap_mstatus_i & `CSR_MSTATUS_MASK;
             end else if (csr_w_en_i == `WriteEnable) begin
                 case (csr_w_addr_i)
-                    `CSR_MTVEC  : mtvec   <= csr_w_data_i;
-                    `CSR_MEPC   : mepc    <= csr_w_data_i;
-                    `CSR_MCAUSE : mcause  <= csr_w_data_i;
-                    `CSR_MTVAL  : mtval   <= csr_w_data_i;
-                    `CSR_MSTATUS: mstatus <= csr_w_data_i & `CSR_MSTATUS_MASK;
-                    `CSR_MIE    : mie     <= csr_w_data_i & `CSR_MIE_MEIE;
-                    `CSR_MIP    : begin
+                    `CSR_MTVEC   : mtvec    <= csr_w_data_i;
+                    `CSR_MSCRATCH: mscratch <= csr_w_data_i;
+                    `CSR_MEPC    : mepc     <= csr_w_data_i;
+                    `CSR_MCAUSE  : mcause   <= csr_w_data_i;
+                    `CSR_MTVAL   : mtval    <= csr_w_data_i;
+                    `CSR_MSTATUS : mstatus  <= csr_w_data_i & `CSR_MSTATUS_MASK;
+                    `CSR_MIE     : mie      <= csr_w_data_i & `CSR_MIE_MEIE;
+                    `CSR_MIP     : begin
                         if (external_irq_i == `WriteEnable)
                             mip <= (csr_w_data_i & `CSR_MIP_MEIP) | `CSR_MIP_MEIP;
                         else
                             mip <= csr_w_data_i & `CSR_MIP_MEIP;
                     end
-                    default     : begin
+                    default      : begin
                     end
                 endcase
             end
@@ -100,14 +107,17 @@ module csr_reg(
     // ============================================================
     always @(*) begin
         case (csr_r_addr_i)
-            `CSR_MTVEC  : csr_r_data_o = mtvec;
-            `CSR_MEPC   : csr_r_data_o = mepc;
-            `CSR_MCAUSE : csr_r_data_o = mcause;
-            `CSR_MTVAL  : csr_r_data_o = mtval;
-            `CSR_MSTATUS: csr_r_data_o = mstatus;
-            `CSR_MIE    : csr_r_data_o = mie;
-            `CSR_MIP    : csr_r_data_o = mip;
-            default     : csr_r_data_o = `ZeroWord;
+            `CSR_CYCLE   : csr_r_data_o = cycle[31:0];
+            `CSR_CYCLEH  : csr_r_data_o = cycle[63:32];
+            `CSR_MTVEC   : csr_r_data_o = mtvec;
+            `CSR_MSCRATCH: csr_r_data_o = mscratch;
+            `CSR_MEPC    : csr_r_data_o = mepc;
+            `CSR_MCAUSE  : csr_r_data_o = mcause;
+            `CSR_MTVAL   : csr_r_data_o = mtval;
+            `CSR_MSTATUS : csr_r_data_o = mstatus;
+            `CSR_MIE     : csr_r_data_o = mie;
+            `CSR_MIP     : csr_r_data_o = mip;
+            default      : csr_r_data_o = `ZeroWord;
         endcase
     end
 
