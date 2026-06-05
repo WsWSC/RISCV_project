@@ -143,6 +143,10 @@
 `define CSR_MIP         12'h344
 
 // CSR bit masks
+`define CSR_MSTATUS_MIE 32'h0000_0008
+`define CSR_MSTATUS_MPIE 32'h0000_0080
+`define CSR_MSTATUS_MASK 32'h0000_0088
+`define CSR_MIE_MEIE    32'h0000_0800
 `define CSR_MIP_MEIP    32'h0000_0800
 
 // ============================================================
