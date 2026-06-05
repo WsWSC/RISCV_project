@@ -48,6 +48,39 @@ module id(
     wire[4:0]   rs1     = inst_i[19:15];
     wire[4:0]   rs2     = inst_i[24:20];
     wire[6:0]   funct7  = inst_i[31:25];
+    wire[11:0]  csr_addr = inst_i[31:20];
+
+    wire        csr_inst = (opcode == `INST_TYPE_SYSTEM) &&
+                           ((funct3 == `INST_CSRRW)  ||
+                            (funct3 == `INST_CSRRS)  ||
+                            (funct3 == `INST_CSRRC)  ||
+                            (funct3 == `INST_CSRRWI) ||
+                            (funct3 == `INST_CSRRSI) ||
+                            (funct3 == `INST_CSRRCI));
+
+    wire        csr_write_req = (funct3 == `INST_CSRRW)  ||
+                                (funct3 == `INST_CSRRWI) ||
+                                (((funct3 == `INST_CSRRS)  ||
+                                  (funct3 == `INST_CSRRC)  ||
+                                  (funct3 == `INST_CSRRSI) ||
+                                  (funct3 == `INST_CSRRCI)) && (rs1 != `ZeroReg));
+
+    wire        csr_read_only = (csr_addr == `CSR_CYCLE) ||
+                                (csr_addr == `CSR_CYCLEH);
+
+    wire        csr_valid = (csr_addr == `CSR_CYCLE)    ||
+                            (csr_addr == `CSR_CYCLEH)   ||
+                            (csr_addr == `CSR_MSTATUS)  ||
+                            (csr_addr == `CSR_MIE)      ||
+                            (csr_addr == `CSR_MTVEC)    ||
+                            (csr_addr == `CSR_MSCRATCH) ||
+                            (csr_addr == `CSR_MEPC)     ||
+                            (csr_addr == `CSR_MCAUSE)   ||
+                            (csr_addr == `CSR_MTVAL)    ||
+                            (csr_addr == `CSR_MIP);
+
+    wire        csr_illegal = csr_inst && ((!csr_valid) ||
+                                           (csr_write_req && csr_read_only));
 
     reg          illegal_inst;
 
@@ -318,33 +351,41 @@ module id(
                     end
 
                     `INST_CSRRW, `INST_CSRRS, `INST_CSRRC: begin
-                        rs1_addr_o = rs1;
-                        rs2_addr_o = `ZeroReg;
+                        if (csr_illegal) begin
+                            illegal_inst = 1'b1;
+                        end else begin
+                            rs1_addr_o = rs1;
+                            rs2_addr_o = `ZeroReg;
 
-                        op1_o      = rs1_data_i;
-                        op2_o      = `ZeroWord;
-                        rd_addr_o  = rd;
-                        reg_w_en_o = `WriteEnable;
-                        csr_addr_o = inst_i[31:20];
-                        csr_op_o   = funct3;
+                            op1_o      = rs1_data_i;
+                            op2_o      = `ZeroWord;
+                            rd_addr_o  = rd;
+                            reg_w_en_o = `WriteEnable;
+                            csr_addr_o = csr_addr;
+                            csr_op_o   = funct3;
 
-                        if ((funct3 == `INST_CSRRW) || (rs1 != `ZeroReg))
-                            csr_w_en_o = `WriteEnable;
+                            if ((funct3 == `INST_CSRRW) || (rs1 != `ZeroReg))
+                                csr_w_en_o = `WriteEnable;
+                        end
                     end
 
                     `INST_CSRRWI, `INST_CSRRSI, `INST_CSRRCI: begin
-                        rs1_addr_o = `ZeroReg;
-                        rs2_addr_o = `ZeroReg;
+                        if (csr_illegal) begin
+                            illegal_inst = 1'b1;
+                        end else begin
+                            rs1_addr_o = `ZeroReg;
+                            rs2_addr_o = `ZeroReg;
 
-                        op1_o      = {27'b0, rs1};
-                        op2_o      = `ZeroWord;
-                        rd_addr_o  = rd;
-                        reg_w_en_o = `WriteEnable;
-                        csr_addr_o = inst_i[31:20];
-                        csr_op_o   = funct3;
+                            op1_o      = {27'b0, rs1};
+                            op2_o      = `ZeroWord;
+                            rd_addr_o  = rd;
+                            reg_w_en_o = `WriteEnable;
+                            csr_addr_o = csr_addr;
+                            csr_op_o   = funct3;
 
-                        if ((funct3 == `INST_CSRRWI) || (rs1 != `ZeroReg))
-                            csr_w_en_o = `WriteEnable;
+                            if ((funct3 == `INST_CSRRWI) || (rs1 != `ZeroReg))
+                                csr_w_en_o = `WriteEnable;
+                        end
                     end
 
                     default: begin
