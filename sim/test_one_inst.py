@@ -37,7 +37,7 @@ def main(name='addi', trace=False, dump=False, timeout_cycles=None):
         return 1
 
     # output filename
-    out_mem = rtl_dir + r'/sim/test_bin/inst_data.txt'
+    out_mem = rtl_dir + r'/sim/inst_data.txt'
     
     # bin to mem
     bin_to_mem(test_binfile, out_mem)

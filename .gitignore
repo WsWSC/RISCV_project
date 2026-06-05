@@ -17,6 +17,7 @@ sim/test_bin/*
 !sim/test_bin/*.bin
 sim/__pycache__/
 sim/*.vvp
+sim/inst_data.txt
 
 # Local custom CPU tests
 custom_cpu_tests/

@@ -26,7 +26,7 @@ module tb;
     // rom default val
     initial begin
         // python auto test used
-        $readmemh("../sim/test_bin/inst_data.txt", tb.soc_inst.inst_rom_inst.rom_mem );
+        $readmemh("../sim/inst_data.txt", tb.soc_inst.inst_rom_inst.rom_mem );
     end
 
     // ============================================================

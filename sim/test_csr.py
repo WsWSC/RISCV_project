@@ -38,7 +38,7 @@ def test_name(file_bin):
 
 
 def run_one(file_bin, args):
-    out_mem = os.path.join(project_root(), "sim", "test_bin", "inst_data.txt")
+    out_mem = os.path.join(project_root(), "sim", "inst_data.txt")
     bin_to_mem(file_bin, out_mem)
 
     name = test_name(file_bin)
