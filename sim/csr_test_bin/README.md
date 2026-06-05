@@ -24,7 +24,13 @@ rv32csr-p-csrrc.bin
 rv32csr-p-csrrwi.bin
 rv32csr-p-csrrsi.bin
 rv32csr-p-csrrci.bin
+rv32csr-p-csrrw_old_value.bin
+rv32csr-p-csrrs_old_value.bin
+rv32csr-p-csrrc_old_value.bin
 rv32csr-p-mscratch.bin
+rv32csr-p-mepc_rw.bin
+rv32csr-p-mcause_rw.bin
+rv32csr-p-mtval_rw.bin
 ```
 
 Synchronous trap and return tests:
@@ -45,6 +51,12 @@ CSR access validation tests:
 ```text
 rv32csr-p-invalid_csr.bin
 rv32csr-p-readonly_csr_write.bin
+rv32csr-p-mstatus_mask.bin
+rv32csr-p-mie_mask.bin
+rv32csr-p-mip_mask.bin
+rv32csr-p-mip_clear.bin
+rv32csr-p-cycle_read.bin
+rv32csr-p-cycleh_read.bin
 ```
 
 Interrupt tests:
