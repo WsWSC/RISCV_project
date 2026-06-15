@@ -2,8 +2,7 @@
 
 
 This project implements a modular **3-Stage Pipeline RV32IM RISC-V CPU (Verilog HDL)**,
-with emphasis on micro-architecture clarity, pipeline control, machine-mode trap handling,
-and automated verification.
+with automated verification for ISA, CSR, trap, and interrupt behavior.
 
 
 ## Table of Contents
@@ -13,31 +12,25 @@ and automated verification.
   - [System Organization](#system-organization)
     - [Core Architecture](#core-architecture)
     - [SoC Structure](#soc-structure)
-  - [Hazard Control](#hazard-control)
-  - [CSR and Trap Control](#csr-and-trap-control)
 - [Implementation Status](#implementation-status)
   - [Implemented](#implemented)
   - [Not Implemented](#not-implemented)
 - [Prerequisites](#prerequisites)
 - [Simulation & Verification](#simulation--verification)
-  - [Test Commands](#test-commands)
   - [Test Result Summary](#test-result-summary)
 - [Reference](#reference)
-
-
-
 
 
 ## Repository Layout
 ```text
 rtl/
- ├─ core/                 # CPU pipeline, execution, CSR, and trap modules
- ├─ mem/                  # Instruction ROM and Data RAM
+ ├─ core/                 # Pipeline core, CSR, and trap modules
+ ├─ mem/                  # Instruction ROM / Data RAM
  ├─ soc/                  # SoC wrapper
- └─ utils/                # Shared definitions and utilities
+ └─ utils/                # Shared definitions & utilities
 
 sim/
- ├─ compile_and_sim.py    # Compile RTL and run one binary
+ ├─ compile_and_sim.py    # Compile and run simulation
  ├─ test_all.py           # RV32I / RV32M regression
  ├─ test_one_inst.py      # Single instruction test
  ├─ test_csr.py           # CSR / trap / interrupt regression
@@ -51,14 +44,8 @@ img/
  └─ Architecture diagrams
 ```
 
-
-
-
 ## Architecture
-The processor is implemented as a modular 3-stage pipeline core,
-decoupled from SoC integration logic.
-
-The EX stage also handles memory access, CSR execution, and register write-back.
+The processor is a modular 3-stage pipeline core with a small simulation SoC.
 
 
 ### 3-Stage Pipeline
@@ -83,123 +70,34 @@ The processor is organized into two major layers:
 #### Core Architecture
 ![Core](img/Architecture_core.png)
 
-The **Core** contains:
-
-- Program counter and pipeline datapath
-- IF/ID and ID/EX pipeline registers
-- Instruction decoder
-- Integer register file
-- RV32I execution logic
-- Multi-cycle RV32M execution units
-- Hazard detection and forwarding logic
-- Machine-mode CSR register file
-- Trap and interrupt control logic
-- Pipeline stall, flush, and redirect control
-
-The Core is responsible for instruction execution, memory access,
-trap handling, and register write-back.
+The **Core** contains the pipeline datapath, register file, ALU, load/store logic,
+multi-cycle RV32M units, forwarding / hazard control, CSR registers, and trap control.
 
 
 #### SoC Structure
 ![SoC](img/Architecture_soc.png)
 
-The **SoC layer** integrates:
-
-- Core
-- Instruction ROM
-- Data RAM
-- External interrupt input
-
-It acts as a lightweight wrapper for simulation and testing.
-
-
-### Hazard Control
-The current pipeline includes:
-
-- EX-to-ID register forwarding
-- Load-use hazard detection
-- Load-use pipeline bubble insertion
-- Branch and jump pipeline flush
-- Multi-cycle MUL/DIV pipeline stall
-
-For a load-use dependency, the control logic holds the PC and IF/ID register,
-then flushes ID/EX to insert one pipeline bubble.
-
-
-### CSR and Trap Control
-The Core includes a machine-mode CSR register file and trap controller.
-
-Supported CSR instructions:
-
-- CSRRW / CSRRS / CSRRC
-- CSRRWI / CSRRSI / CSRRCI
-
-Implemented CSRs:
-
-- cycle / cycleh
-- mstatus
-- mie
-- mtvec
-- mscratch
-- mepc
-- mcause
-- mtval
-- mip
-
-Supported trap and return behavior:
-
-- ECALL
-- EBREAK
-- Illegal instruction
-- Invalid CSR access
-- Misaligned load
-- Misaligned store
-- MRET
-- Machine external interrupt
-
-Trap entry updates `mepc`, `mcause`, `mtval`, and `mstatus`,
-then redirects execution to the aligned `mtvec` base address.
-
-
-
+The **SoC layer** integrates the Core, Instruction ROM, Data RAM, and external interrupt input.
 
 ## Implementation Status
 
 
 ### Implemented
-- 3-stage pipeline (IF / ID / EX)
+- 3-stage RV32IM pipeline core
 - IF/ID and ID/EX pipeline registers
-- Register File (2R1W)
-- RV32I R / I / B / J / U-type instructions
-- Byte / halfword / word Load and Store
-- Branch and Jump redirect
-- EX-to-ID data forwarding
-- Load-use hazard detection and pipeline bubble
-- RV32M extension (multi-cycle MUL / DIV / REM)
-- Machine-mode CSR instructions
-- Machine-mode CSR register file
-- Synchronous exception handling
-- MRET return flow
-- Machine external interrupt
-- Automated RV32I / RV32M regression
-- Automated CSR / trap / interrupt regression
-
-
-
+- Load / store, branch / jump, and write-back logic
+- EX-to-ID forwarding and load-use bubble
+- Machine-mode CSR, trap, `mret`, and external interrupt support
+- RV32I / RV32M and CSR / trap / interrupt regression tests
 
 
 ## Not Implemented
-- FENCE / FENCE.I full architectural behavior
-- Timer interrupt
-- Software interrupt
-- Vectored `mtvec` mode
-- Multiple privilege levels
-- Memory-mapped peripherals
-- Standard bus interface
-- Cache and branch prediction
-
-
-
+- Full privileged architecture
+- Timer / software interrupt
+- Vectored `mtvec`
+- RIB (RISC-V Internal Bus)
+- MMIO peripherals / standard bus
+- Cache / branch prediction
 
 ## Prerequisites
 Before running the simulation, make sure the following tools are installed:
@@ -219,16 +117,8 @@ iverilog -V
 vvp -V
 ```
 
-
-
-
 ## Simulation & Verification
-The design is validated through automated instruction-level,
-CSR, exception, and interrupt regression tests.
-
-
-### Test Commands
-Run all commands from the repository root.
+The design is validated through Python-driven Icarus Verilog regression tests.
 
 ```powershell
 # Run all RV32I / RV32M instruction tests
@@ -246,40 +136,21 @@ Debug options:
 ```powershell
 python sim\test_one_inst.py addi --trace
 python sim\test_one_inst.py addi --dump
-python sim\test_one_inst.py addi --timeout-cycles 5000
 python sim\test_csr.py --verbose
 python sim\test_csr.py --trace
 ```
 
 
 ### Test Result Summary
-| Category              | Coverage                                      | Status |
-|-----------------------|-----------------------------------------------|--------|
-| RV32I Arithmetic      | R-type and I-type instructions                | PASS   |
-| Load / Store          | Byte, halfword, and word access               | PASS   |
-| Branch / Jump         | B-type, JAL, and JALR                          | PASS   |
-| LUI / AUIPC           | U-type instructions                           | PASS   |
-| RV32M Extension       | Multiply, divide, and remainder               | PASS   |
-| Hazard Control        | Forwarding and load-use dependency            | PASS   |
-| CSR Instructions      | Register and immediate CSR operations         | PASS   |
-| Synchronous Traps     | ECALL, EBREAK, illegal and misaligned access   | PASS   |
-| Trap Return           | MRET                                          | PASS   |
-| External Interrupt    | Enable, mask, and pending behavior             | PASS   |
+| Category           | Coverage                            | Status |
+|--------------------|-------------------------------------|--------|
+| RV32I / RV32M      | Integer, load/store, branch, M-ext  | PASS   |
+| Pipeline Hazards   | Forwarding and load-use bubble      | PASS   |
+| CSR / Trap         | CSR ops, exceptions, `mret`         | PASS   |
+| External Interrupt | Enable, mask, pending behavior      | PASS   |
 
-The testbench uses the following pass/fail convention:
-
-```text
-x26 = 1    Test finished
-x27 = 1    Pass
-x27 = 0    Fail
-x3         Failed test case ID
-```
-
-Generated simulation files such as `sim/inst_data.txt`, `sim/out.vvp`,
-waveforms, and Python cache files are not part of the source code.
-
-
-
+Generated files such as `sim/inst_data.txt`, `sim/out.vvp`, waveform files,
+and Python cache files are not part of the source code.
 
 ## Reference
 [1] [SI-RISCV Project](https://github.com/SI-RISCV/e200_opensource)
