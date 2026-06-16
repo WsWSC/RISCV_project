@@ -15,7 +15,7 @@ module pc_reg(
     input  wire         jump_en_i           ,
 
     // to inst_mem
-    output reg  [31:0]  pc_addr_o           
+    output reg  [31:0]  pc_addr_o
 );
 
     // ============================================================
@@ -26,10 +26,10 @@ module pc_reg(
             pc_addr_o <= 32'b0;
         else if (jump_en_i)
             pc_addr_o <= jump_addr_i;                   // jump
-        else if (stall_flag_i)          
+        else if (stall_flag_i)
             pc_addr_o <= pc_addr_o;                     // hold
         else
-            pc_addr_o <= pc_addr_o + 32'd4;  
+            pc_addr_o <= pc_addr_o + 32'd4;
     end
 
 endmodule

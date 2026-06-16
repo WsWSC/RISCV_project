@@ -90,13 +90,13 @@ module div #(
     reg         quot_sign;
     reg         rem_sign;
 
-    reg [31:0]  div_op1_shift;      // shifts left each cycle (feeds MSB into remainder)
-    reg [31:0]  div_op2_const;      // constant divisor magnitude
+    reg [31:0]  div_op1_shift;      // dividend shift
+    reg [31:0]  div_op2_const;      // divisor magnitude
 
-    reg [32:0]  remainder;          // 33-bit remainder accumulator
-    reg [31:0]  quotient;           // 32-bit quotient
+    reg [32:0]  remainder;          // remainder
+    reg [31:0]  quotient;           // quotient
 
-    // One-iteration combinational next-state
+    // Divide step
     wire [32:0] remainder_shift = {remainder[31:0], div_op1_shift[31]};
     wire [32:0] div_op2_33      = {1'b0, div_op2_const};
 
@@ -104,7 +104,7 @@ module div #(
     wire [32:0] remainder_next  = ge_div_op2 ? (remainder_shift - div_op2_33) : remainder_shift;
     wire [31:0] quotient_next   = {quotient[30:0], ge_div_op2};
 
-    // Final corrected results (based on the "next" values at last iteration)
+    // Signed result fixup
     wire [31:0] quot_mag_final  = quotient_next;
     wire [31:0] rem_mag_final   = remainder_next[31:0];
 
@@ -138,7 +138,7 @@ module div #(
             remainder       <= 33'd0;
             quotient        <= 32'd0;
         end else begin
-            div_ready_o <= 1'b0; // default (pulse in END)
+            div_ready_o <= 1'b0; // default
 
             case (state)
                 STATE_IDLE: begin
@@ -150,7 +150,7 @@ module div #(
                         div_rd_waddr_o  <= div_reg_waddr_i;
                         div_is_signed_r <= start_is_signed;
 
-                        // fast special-case handling
+                        // special cases
                         if (div_by_zero) begin                  // quotient = all 1s, remainder = dividend
                             div_result64_o <= {div_op1_i, 32'hFFFF_FFFF};
                             state          <= STATE_END;
@@ -187,7 +187,7 @@ module div #(
                     div_op1_shift <= div_op1_shift << 1;
 
                     if (step == LATENCY - 1) begin
-                        // always output {remainder, quotient} for EX to select
+                        // pack result
                         div_result64_o <= pack_qr_final;
                         state          <= STATE_END;
                     end else begin

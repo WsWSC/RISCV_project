@@ -6,9 +6,9 @@
 ////////////////////////////////////////////////////////////
 
 module soc(
-    input   wire        clk,
-    input   wire        rst_n,
-    input   wire        external_irq_i
+    input wire          clk,
+    input wire          rst_n,
+    input wire          external_irq_i
 );
 
     // ============================================================
@@ -58,13 +58,12 @@ module soc(
         .clk                (clk                ),
         .rst_n              (rst_n              ),
 
-        // write data, #todo
+        // write disabled
         .w_en_i             (1'b0               ),
         .w_addr_i           (32'b0              ),
         .w_data_i           (32'b0              ),
 
-        // read data, always enable
-        //.r_en_i             (1'b1),
+        // read data
         .r_addr_i           (core_inst_addr_o   ),
 
         .r_data_o           (inst_rom_inst_o    )
@@ -80,8 +79,7 @@ module soc(
         .w_addr_i           (core_data_ram_w_addr_o     ),
         .w_data_i           (core_data_ram_w_data_o     ),
 
-        // read data    
-        //.r_en_i             (data_ram_r_en_o            ),
+        // read data
         .r_addr_i           (core_data_ram_r_addr_o     ),
 
         .r_data_o           (data_ram_data_ram_r_data_i )

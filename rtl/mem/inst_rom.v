@@ -11,7 +11,7 @@ module inst_rom (
     input  wire                 clk,
     input  wire                 rst_n,
 
-    // write interface (usually unused for instruction ROM)
+    // write interface
     input  wire                 w_en_i,
     input  wire [`MemAddrBus]   w_addr_i,
     input  wire [`MemDataBus]   w_data_i,
@@ -29,14 +29,14 @@ module inst_rom (
     // ============================================================
     //  Main logic
     // ============================================================
-    // write data, #todo
+    // write data
     always @(posedge clk) begin
         if (w_en_i == `WriteEnable) begin
             rom_mem[w_addr_i[31:2]] <= w_data_i;
         end
     end
 
-    // Combinational read data, always enable
+    // combinational read
     always @(*) begin
         if (!rst_n) begin
             r_data_o = `ZeroWord;

@@ -30,10 +30,10 @@ module dff_set #(
     always @(posedge clk) begin
         if (!rst_n) begin
             data_o <= set_data;
-        end else if (flush_flag_i == `FlushEnable) begin        // set to NOP/0
-            data_o <= set_data;          
-        end else if (stall_flag_i == `StallEnable) begin        // hold value (freeze)
-            data_o <= data_o;            
+        end else if (flush_flag_i == `FlushEnable) begin        // flush
+            data_o <= set_data;
+        end else if (stall_flag_i == `StallEnable) begin        // hold
+            data_o <= data_o;
         end else begin
             data_o <= data_i;
         end

@@ -39,7 +39,7 @@ module ctrl(
 
     // to pc_reg
     output reg[31:0]    jump_addr_o         ,
-    output reg          jump_en_o       
+    output reg          jump_en_o
 );
 
     // ============================================================

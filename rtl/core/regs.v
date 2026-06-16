@@ -73,10 +73,10 @@ module regs(
         end
     end
 
-    // ex stage, wirte reg 
+    // ex stage, write rd
     always @(posedge clk) begin
         if (!rst_n) begin
-            for (i = 1; i <= 31; i = i + 1) begin     // reg x0 is always 0, no need reset
+            for (i = 1; i <= 31; i = i + 1) begin     // x0 is fixed zero
                 regs[i] <= `ZeroWord;
             end
         end else if(reg_w_en_i && (reg_w_addr_i != `ZeroReg) ) begin

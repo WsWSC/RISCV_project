@@ -12,8 +12,8 @@
 `define JumpDisable     1'b0
 `define FlushEnable     1'b1
 `define FlushDisable    1'b0
-`define StallEnable   1'b1
-`define StallDisable  1'b0
+`define StallEnable     1'b1
+`define StallDisable    1'b0
 
 `define WriteEnable     1'b1
 `define WriteDisable    1'b0
@@ -67,7 +67,7 @@
 
 // R/M-type (opcode = 0110011)
 `define INST_TYPE_R_M   7'b0110011
-// R type inst
+// R-type inst
 `define INST_ADD_SUB    3'b000
 `define INST_SLL        3'b001
 `define INST_SLT        3'b010
@@ -76,7 +76,7 @@
 `define INST_SR         3'b101
 `define INST_OR         3'b110
 `define INST_AND        3'b111
-// M type inst  
+// M-type inst
 `define FUNCT7_TYPE_M   7'b000_0001
 `define INST_MUL        3'b000
 `define INST_MULH       3'b001
@@ -87,7 +87,7 @@
 `define INST_REM        3'b110
 `define INST_REMU       3'b111
 
-// Branch (opcode = 1100011) 
+// Branch (opcode = 1100011)
 `define INST_TYPE_B     7'b1100011
 `define INST_BEQ        3'b000
 `define INST_BNE        3'b001

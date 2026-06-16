@@ -31,8 +31,8 @@ module id_ex(
     input  wire[31:0]   trap_cause_i        ,
     input  wire[31:0]   trap_tval_i         ,
     input  wire         mret_en_i           ,
-    
-    // to ex    
+
+    // to ex
     output wire[31:0]   inst_addr_o         ,
     output wire[31:0]   inst_o              ,
     output wire[31:0]   op1_o               ,
@@ -53,7 +53,7 @@ module id_ex(
     // ============================================================
     //  Main logic
     // ============================================================
-    // pass instruction addr & instruction
+    // pass to ex
     dff_set #(.DW(32)) dff1 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroAddr)    , .data_i(inst_addr_i)  , .data_o(inst_addr_o)    );
     dff_set #(.DW(32)) dff2 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`INST_NOP)    , .data_i(inst_i)       , .data_o(inst_o)         );
     dff_set #(.DW(32)) dff3 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(op1_i)        , .data_o(op1_o)          );

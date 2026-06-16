@@ -11,7 +11,7 @@ module if_id(
     input  wire         clk             ,
     input  wire         rst_n           ,
 
-    // from ctrl    
+    // from ctrl
     input  wire         flush_flag_i    ,
     input  wire         stall_flag_i    ,
 
@@ -21,7 +21,7 @@ module if_id(
 
     // to id
     output wire[31:0]   inst_addr_o     ,
-    output wire[31:0]   inst_o          
+    output wire[31:0]   inst_o
 );
 
     // ============================================================

@@ -11,14 +11,14 @@ module core(
     input  wire         clk                 ,
     input  wire         rst_n               ,
 
-    // inst_rom   
+    // inst_rom
     input  wire[31:0]   inst_i              ,
     output wire[31:0]   inst_addr_o         ,
 
     // data_ram
     // read (from ex)
     output wire         data_ram_r_en_o     ,
-    output wire [31:0]  data_ram_r_addr_o   ,  
+    output wire [31:0]  data_ram_r_addr_o   ,
     input  wire [31:0]  data_ram_r_data_i   ,
 
     // write (from ex)
@@ -164,7 +164,7 @@ module core(
     wire        clint_hold_req_o             ;
     wire        clint_trap_jump_en_o         ;
     wire[31:0]  clint_trap_jump_addr_o       ;
-       
+
     // ctrl to pc_reg
     wire[31:0]  ctrl_jump_addr_o             ;
     wire        ctrl_jump_en_o               ;
@@ -198,12 +198,12 @@ module core(
         .clk                (clk                    ),
         .rst_n              (rst_n                  ),
 
-        // from ctrl    
+        // from ctrl
         .stall_flag_i       (ctrl_pc_stall_flag_o   ),
-        .jump_addr_i        (ctrl_jump_addr_o       ),    
+        .jump_addr_i        (ctrl_jump_addr_o       ),
         .jump_en_i          (ctrl_jump_en_o         ),
 
-        // output           
+        // output
         .pc_addr_o          (pc_reg_pc_addr_o       )
     );
 
@@ -211,15 +211,15 @@ module core(
         .clk                (clk                    ),
         .rst_n              (rst_n                  ),
 
-        //from ctrl 
+        // from ctrl
         .flush_flag_i       (ctrl_if_id_flush_flag_o),
         .stall_flag_i       (ctrl_if_id_stall_flag_o),
 
-        // from inst_rom    
+        // from inst_rom
         .inst_addr_i        (pc_reg_pc_addr_o       ),
         .inst_i             (inst_i                 ),
 
-        // to id    
+        // to id
         .inst_addr_o        (if_id_inst_addr_o      ),
         .inst_o             (if_id_inst_o           )
     );
@@ -229,11 +229,11 @@ module core(
         .inst_addr_i        (if_id_inst_addr_o      ),
         .inst_i             (if_id_inst_o           ),
 
-        // to regs  
+        // to regs
         .rs1_addr_o         (id_rs1_addr_o          ),
         .rs2_addr_o         (id_rs2_addr_o          ),
 
-        // from regs    
+        // from regs
         .rs1_data_i         (regs_reg1_r_data_o     ),
         .rs2_data_i         (regs_reg2_r_data_o     ),
 
@@ -260,35 +260,35 @@ module core(
         .clk                (clk                    ),
         .rst_n              (rst_n                  ),
 
-        // from id  
+        // from id
         .reg1_r_addr_i      (id_rs1_addr_o          ),
         .reg2_r_addr_i      (id_rs2_addr_o          ),
 
-        // to id        
+        // to id
         .reg1_r_data_o      (regs_reg1_r_data_o     ),
         .reg2_r_data_o      (regs_reg2_r_data_o     ),
 
-        // from ex      
+        // from ex
         .reg_w_addr_i       (ex_rd_addr_o           ),
         .reg_w_data_i       (ex_rd_data_o           ),
         .reg_w_en_i         (ex_rd_w_en_o           )
-    );  
+    );
 
-    id_ex id_ex_inst(   
+    id_ex id_ex_inst(
         .clk                (clk                    ),
         .rst_n              (rst_n                  ),
 
-        // from ctrl        
+        // from ctrl
         .flush_flag_i       (ctrl_id_ex_flush_flag_o),
         .stall_flag_i       (ctrl_id_ex_stall_flag_o),
 
-        // from id      
+        // from id
         .inst_addr_i        (id_inst_addr_o         ),
         .inst_i             (id_inst_o              ),
         .op1_i              (id_op1_o               ),
         .op2_i              (id_op2_o               ),
         .rd_addr_i          (id_rd_addr_o           ),
-        .reg_w_en_i         (id_reg_w_en_o          ), 
+        .reg_w_en_i         (id_reg_w_en_o          ),
         .base_addr_i        (id_base_addr_o         ),
         .addr_offset_i      (id_addr_offset_o       ),
         .csr_addr_i         (id_csr_addr_o          ),
@@ -299,15 +299,15 @@ module core(
         .trap_tval_i        (id_trap_tval_o         ),
         .mret_en_i          (id_mret_en_o           ),
 
-        // to ex        
+        // to ex
         .inst_addr_o        (id_ex_inst_addr_o      ),
         .inst_o             (id_ex_inst_o           ),
         .op1_o              (id_ex_op1_o            ),
         .op2_o              (id_ex_op2_o            ),
         .rd_addr_o          (id_ex_rd_addr_o        ),
         .reg_w_en_o         (id_ex_reg_w_en_o       ),
-        .base_addr_o   	    (id_ex_base_addr_o      ),
-		.addr_offset_o 	    (id_ex_addr_offset_o    ),
+        .base_addr_o        (id_ex_base_addr_o      ),
+        .addr_offset_o      (id_ex_addr_offset_o    ),
         .csr_addr_o         (id_ex_csr_addr_o       ),
         .csr_w_en_o         (id_ex_csr_w_en_o       ),
         .csr_op_o           (id_ex_csr_op_o         ),
@@ -315,10 +315,10 @@ module core(
         .trap_cause_o       (id_ex_trap_cause_o     ),
         .trap_tval_o        (id_ex_trap_tval_o      ),
         .mret_en_o          (id_ex_mret_en_o        )
-    );  
+    );
 
-    ex ex_inst( 
-        // from id_ex   
+    ex ex_inst(
+        // from id_ex
         .inst_addr_i        (id_ex_inst_addr_o      ),
         .inst_i             (id_ex_inst_o           ),
         .op1_i              (id_ex_op1_o            ),
@@ -340,7 +340,7 @@ module core(
         .csr_w_addr_o       (ex_csr_w_addr_o        ),
         .csr_w_data_o       (ex_csr_w_data_o        ),
 
-        // to regs  
+        // to regs
         .rd_addr_o          (ex_rd_addr_o           ),
         .rd_data_o          (ex_rd_data_o           ),
         .rd_w_en_o          (ex_rd_w_en_o           ),
@@ -373,7 +373,7 @@ module core(
         .div_op2_o          (ex_div_op2_o           ),
         .div_reg_waddr_o    (ex_div_reg_waddr_o     ),
 
-        // to ctrl  
+        // to ctrl
         .jump_addr_o        (ex_jump_addr_o         ),
         .jump_en_o          (ex_jump_en_o           ),
         .flush_req_o        (ex_flush_req_o         ),
@@ -384,19 +384,19 @@ module core(
         .trap_cause_o       (ex_trap_cause_o        ),
         .trap_tval_o        (ex_trap_tval_o         ),
 
-        // from data_ram read   
+        // from data_ram read
         .data_ram_r_data_i  (data_ram_r_data_i      ),
 
         // to data_ram read
         .data_ram_r_en_o    (ex_data_ram_r_en_o     ),
         .data_ram_r_addr_o  (ex_data_ram_r_addr_o   ),
 
-        // to data_ram write            
+        // to data_ram write
         .data_ram_w_en_o    (data_ram_w_en_o        ),
-	    .data_ram_w_sel_o   (data_ram_w_sel_o       ),
-	    .data_ram_w_addr_o  (data_ram_w_addr_o      ),
-	    .data_ram_w_data_o  (data_ram_w_data_o      )
-    );  
+        .data_ram_w_sel_o   (data_ram_w_sel_o       ),
+        .data_ram_w_addr_o  (data_ram_w_addr_o      ),
+        .data_ram_w_data_o  (data_ram_w_data_o      )
+    );
 
     assign data_ram_r_en_o   = ex_data_ram_r_en_o;
     assign data_ram_r_addr_o = ex_data_ram_r_addr_o;
@@ -516,8 +516,8 @@ module core(
         .trap_jump_addr_o   (clint_trap_jump_addr_o )
     );
 
-    ctrl ctrl_inst( 
-        // from ex  
+    ctrl ctrl_inst(
+        // from ex
         .flush_req_i        (ex_flush_req_o         ),
         .stall_req_i        (ex_stall_req_o         ),
         .jump_addr_i        (ex_jump_addr_o         ),
@@ -531,7 +531,7 @@ module core(
         // load-use hazard request
         .hazard_stall_req_i (load_use_hazard_req    ),
 
-        // to pc_reg & if_id & id_ex        
+        // to pc_reg & if_id & id_ex
         .flush_flag_o       (ctrl_flush_flag_o      ),
         .stall_flag_o       (ctrl_stall_flag_o      ),
         .pc_stall_flag_o    (ctrl_pc_stall_flag_o   ),

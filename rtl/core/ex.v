@@ -10,12 +10,12 @@
 module ex(
     // from id_ex
     input  wire[31:0]   inst_addr_i         ,
-    input  wire[31:0]   inst_i              ,  
+    input  wire[31:0]   inst_i              ,
     input  wire[31:0]   op1_i               ,
     input  wire[31:0]   op2_i               ,
     input  wire[4:0]    rd_addr_i           ,
     input  wire         reg_w_en_i          ,
-    input  wire[31:0]   base_addr_i         , 
+    input  wire[31:0]   base_addr_i         ,
     input  wire[31:0]   addr_offset_i       ,
     input  wire[11:0]   csr_addr_i          ,
     input  wire         csr_w_en_i          ,
@@ -30,7 +30,7 @@ module ex(
     output reg [11:0]   csr_w_addr_o        ,
     output reg [31:0]   csr_w_data_o        ,
 
-    // to regs  
+    // to regs
     output reg[4:0]     rd_addr_o           ,
     output reg[31:0]    rd_data_o           ,
     output reg          rd_w_en_o           ,
@@ -63,7 +63,7 @@ module ex(
     output reg[31:0]    div_op2_o           ,
     output reg[4:0]     div_reg_waddr_o     ,
 
-    // to ctrl  
+    // to ctrl
     output reg[31:0]    jump_addr_o         ,
     output reg          jump_en_o           ,
     output reg          flush_req_o         ,       // NOP
@@ -82,10 +82,10 @@ module ex(
     output reg[31:0]    data_ram_r_addr_o    ,
 
     // to data_ram write
-    output reg	 	    data_ram_w_en_o	    ,
-	output reg[3:0]     data_ram_w_sel_o    ,
-	output reg[31:0]    data_ram_w_addr_o   ,
-	output reg[31:0]    data_ram_w_data_o   	
+    output reg          data_ram_w_en_o      ,
+    output reg[3:0]     data_ram_w_sel_o     ,
+    output reg[31:0]    data_ram_w_addr_o    ,
+    output reg[31:0]    data_ram_w_data_o
 );
 
     // ============================================================
@@ -114,7 +114,7 @@ module ex(
 
     // I-type
     wire[31:0]  op1_i_slt_op2_i    = (op1_i_s < op2_i_s) ? 32'd1 : 32'd0;           // INST_SLTI  & INST_SLT
-    wire[31:0]  op1_i_sltu_op2_i   = (op1_i < op2_i)     ? 32'd1 : 32'd0;           // INST_SLTIU & INST_SLTU 
+    wire[31:0]  op1_i_sltu_op2_i   = (op1_i < op2_i)     ? 32'd1 : 32'd0;           // INST_SLTIU & INST_SLTU
     wire[31:0]  op1_i_xor_op2_i    = (op1_i ^ op2_i);                               // INST_XORI  & INST_XOR
     wire[31:0]  op1_i_or_op2_i     = (op1_i | op2_i);                               // INST_ORI   & INST_OR
     wire[31:0]  op1_i_and_op2_i    = (op1_i & op2_i);                               // INST_ANDI  & INST_AND
@@ -122,23 +122,23 @@ module ex(
     wire[31:0]  op1_i_srl_op2_i    = (op1_i >> op2_i[4:0]);                         // INST_SRLI  & INST_SRL
     wire[31:0]  op1_i_sra_op2_i    = (op1_i_s >>> op2_i[4:0]);                      // INST_SRAI  & INST_SRA
 
-    // R-type 
+    // R-type
     wire[31:0]  op1_i_add_op2_i    = (op1_i + op2_i);                               // INST_ADD_SUB add
     wire[31:0]  op1_i_sub_op2_i    = (op1_i - op2_i);                               // INST_ADD_SUB sub
 
-    // M-type 
-/* 
+    // M-type
+/*
     wire[63:0]  op1_i_mul_op2_i    = (op1_i_s * op2_i_s);                           // INST_MUL & INST_MULH
     wire[63:0]  op1_i_mulhsu_op2_i = (op1_i_s * $signed({1'b0, op2_i}));            // INST_MULHSU (make op2 32bit unsigned -> 33bit signed)
     wire[63:0]  op1_i_mulhu_op2_i  = (op1_i * op2_i);                               // INST_MULHU
-*/    
+*/
     wire[63:0]  op1_i_div_op2_i    = (op1_i_s / op2_i_s);                           // INST_DIV
     wire[63:0]  op1_i_divu_op2_i   = (op1_i / op2_i);                               // INST_DIVU
     wire[31:0]  op1_i_rem_op2_i    = (op1_i_s % op2_i_s);                           // INST_REM
     wire[31:0]  op1_i_remu_op2_i   = (op1_i % op2_i);                               // INST_REMU
 
-    // B-type    
-    wire        op1_i_eq_op2_i     = (op1_i == op2_i);                              // INST_BEQ 
+    // B-type
+    wire        op1_i_eq_op2_i     = (op1_i == op2_i);                              // INST_BEQ
     wire        op1_i_ne_op2_i     = (op1_i != op2_i);                              // INST_BNE
     wire        op1_i_lt_op2_i     = (op1_i_s <  op2_i_s);                          // INST_BLT,  1 = op1_i <  op2_i, 0 = op1_i >= op2_i
     wire        op1_i_ge_op2_i     = (op1_i_s >= op2_i_s);                          // INST_BGE,  1 = op1_i >= op2_i, 0 = op1_i <  op2_i
@@ -162,7 +162,7 @@ module ex(
 
         // default mul outputs
         mul_start_o     = 1'b0;
-        
+
         mul_funct3_o    = 3'b0;
         mul_op1_o       = 32'b0;
         mul_op2_o       = 32'b0;
@@ -184,7 +184,7 @@ module ex(
         trap_cause_o = `ZeroWord;
         trap_tval_o  = `ZeroWord;
 
-        data_ram_w_en_o	  = `WriteDisable ;
+        data_ram_w_en_o  = `WriteDisable ;
         data_ram_w_sel_o  = 4'b0          ;
         data_ram_w_addr_o = `ZeroAddr     ;
         data_ram_w_data_o = `ZeroWord     ;
@@ -196,11 +196,11 @@ module ex(
         csr_w_addr_o = 12'b0         ;
         csr_w_data_o = `ZeroWord     ;
 
-        case(opcode) 
+        case(opcode)
             // I-type
             `INST_TYPE_I: begin
                 case(funct3)
-                    `INST_ADDI: begin      
+                    `INST_ADDI: begin
                         rd_addr_o   = rd_addr_i       ;
                         rd_data_o   = op1_i_add_op2_i ;
                         rd_w_en_o   = `WriteEnable    ;
@@ -250,20 +250,20 @@ module ex(
                         end else if (funct7 == 7'b010_0000) begin   // INST_SRAI
                             rd_addr_o   = rd_addr_i       ;
                             rd_data_o   = op1_i_sra_op2_i ;
-                            rd_w_en_o   = `WriteEnable    ;    
-                        end else begin                              // illegal input, funct7 error 
+                            rd_w_en_o   = `WriteEnable    ;
+                        end else begin                              // illegal funct7
                             rd_addr_o   = `ZeroReg        ;
                             rd_data_o   = `ZeroWord       ;
                             rd_w_en_o   = `WriteDisable   ;
                         end
                     end
-                    
+
                     default: begin
                         rd_addr_o   = `ZeroReg      ;
                         rd_data_o   = `ZeroWord     ;
                         rd_w_en_o   = `WriteDisable ;
                     end
-                    
+
                 endcase
             end
 
@@ -317,7 +317,7 @@ module ex(
 
                         end
 
-/* 
+/*
                         `INST_DIV: begin
                             rd_addr_o = rd_addr_i       ;
                             rd_data_o = op1_i_div_op2_i ;
@@ -334,11 +334,11 @@ module ex(
                             rd_addr_o = rd_addr_i    ;
                             rd_w_en_o = `WriteEnable ;
 
-                            if (op2_i == 0)                                             
+                            if (op2_i == 0)
                                 rd_data_o = op1_i;
                             else if (op1_i == 32'h80000000 && op2_i == 32'hFFFFFFFF)        // overflow detection
                                 rd_data_o = 0;
-                            else                                                        
+                            else
                                 rd_data_o = op1_i_rem_op2_i;
                         end
 
@@ -355,9 +355,9 @@ module ex(
                         default: begin
                             rd_addr_o   = `ZeroReg      ;
                             rd_data_o   = `ZeroWord     ;
-                            rd_w_en_o   = `WriteDisable ;     
+                            rd_w_en_o   = `WriteDisable ;
                         end
-                    endcase 
+                    endcase
                 end else begin                          // R-type
                     case(funct3)
                         `INST_ADD_SUB: begin
@@ -373,7 +373,7 @@ module ex(
                                 rd_addr_o   = `ZeroReg        ;
                                 rd_data_o   = `ZeroWord       ;
                                 rd_w_en_o   = `WriteDisable   ;
-                            end  
+                            end
                         end
 
                         `INST_SLL: begin
@@ -408,8 +408,8 @@ module ex(
                             end else if (funct7 == 7'b010_0000) begin   // INST_SRA
                                 rd_addr_o   = rd_addr_i       ;
                                 rd_data_o   = op1_i_sra_op2_i ;
-                                rd_w_en_o   = `WriteEnable    ;    
-                            end else begin                              // illegal input, funct7 error 
+                                rd_w_en_o   = `WriteEnable    ;
+                            end else begin                              // illegal funct7
                                 rd_addr_o   = `ZeroReg        ;
                                 rd_data_o   = `ZeroWord       ;
                                 rd_w_en_o   = `WriteDisable   ;
@@ -431,7 +431,7 @@ module ex(
                         default: begin
                             rd_addr_o   = `ZeroReg      ;
                             rd_data_o   = `ZeroWord     ;
-                            rd_w_en_o   = `WriteDisable ;				
+                            rd_w_en_o   = `WriteDisable ;
                         end
 
                     endcase
@@ -496,8 +496,8 @@ module ex(
                             2'b11   : rd_data_o = { {24{data_ram_r_data_i[31]} }, data_ram_r_data_i[31:24] } ;
                             default : rd_data_o = `ZeroWord;
                         endcase
-                    end 
-                    
+                    end
+
                     `INST_LH: begin
                         data_ram_r_en_o   = `ReadEnable;
                         data_ram_r_addr_o = base_addr_add_addr_offset;
@@ -540,7 +540,7 @@ module ex(
                         end
                     end
 
-                    
+
                     `INST_LBU: begin
                         data_ram_r_en_o   = `ReadEnable;
                         data_ram_r_addr_o = base_addr_add_addr_offset;
@@ -556,7 +556,7 @@ module ex(
                             default : rd_data_o = `ZeroWord                         ;
                         endcase
                     end
-                    
+
                     `INST_LHU: begin
                         data_ram_r_en_o   = `ReadEnable;
                         data_ram_r_addr_o = base_addr_add_addr_offset;
@@ -588,7 +588,7 @@ module ex(
                 endcase
             end
 
-            // S-tpye
+            // S-type
             `INST_TYPE_S: begin
                 case (funct3)
                     `INST_SB: begin
@@ -646,11 +646,11 @@ module ex(
                         end
                     end
 
-                    
+
                     `INST_SW: begin
                         data_ram_w_addr_o = base_addr_add_addr_offset;
 
-                        if (store_index != 2'b00) begin         // misaligned halfword address check 
+                        if (store_index != 2'b00) begin         // misaligned halfword address check
                             data_ram_w_en_o   = `WriteDisable ;
                             data_ram_w_sel_o  = 4'b0000       ;
                             data_ram_w_data_o = `ZeroWord     ;
@@ -665,7 +665,7 @@ module ex(
                     end
 
                     default: begin
-                        data_ram_w_en_o	    = `WriteDisable ;
+                        data_ram_w_en_o    = `WriteDisable ;
                         data_ram_w_sel_o    = 4'b0          ;
                         data_ram_w_addr_o   = `ZeroAddr     ;
                         data_ram_w_data_o   = `ZeroWord     ;
@@ -673,7 +673,7 @@ module ex(
 
                 endcase
             end
-            
+
             // J-type jump
             `INST_JAL: begin
                 rd_addr_o    = rd_addr_i                 ;

@@ -25,7 +25,7 @@ module mul #(
     output reg         mul_ready_o      ,
     output reg  [63:0] mul_result64_o   ,
     output reg  [4:0]  mul_rd_waddr_o   ,
-    output reg  [2:0]  mul_funct3_o         
+    output reg  [2:0]  mul_funct3_o
 );
 
     // ============================================================
@@ -74,8 +74,8 @@ module mul #(
 
     reg [1:0]  state        ;
     reg [5:0]  step         ;
-    
-    
+
+
     // ============================================================
     //  Internal Signals
     // ============================================================
@@ -143,15 +143,15 @@ module mul #(
                         mul_result64_o <= sign ? neg64(acc_next) : acc_next;
                     end else begin
                         step <= step + 6'd1;
-                    end 
+                    end
 
                 end
 
-                STATE_END: begin                // END                     
+                STATE_END: begin                // END
                     state <= STATE_IDLE;
                     mul_busy_o  <= 1'b0;
                     mul_ready_o <= 1'b1;
-                    
+
                     step <= 6'd0;
 
                 end
