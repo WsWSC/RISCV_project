@@ -50,7 +50,7 @@ module id(
     wire[6:0]   funct7  = inst_i[31:25];
     wire[11:0]  csr_addr = inst_i[31:20];
 
-    wire        csr_inst = (opcode == `INST_TYPE_SYSTEM) &&
+    wire        csr_inst = (opcode == `INST_CSR) &&
                            ((funct3 == `INST_CSRRW)  ||
                             (funct3 == `INST_CSRRS)  ||
                             (funct3 == `INST_CSRRC)  ||
@@ -332,7 +332,7 @@ module id(
             `INST_FENCE: begin
             end
 
-            `INST_TYPE_SYSTEM: begin
+            `INST_CSR: begin
                 case(funct3)
                     3'b000: begin
                         if (inst_i == `INST_ECALL) begin

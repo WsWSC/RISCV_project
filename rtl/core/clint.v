@@ -46,7 +46,7 @@ module clint(
 
     // Priority: synchronous trap > external interrupt > mret
     reg         jump_pending                   ;
-    reg[31:0]  jump_addr                       ;
+    reg[31:0]   jump_addr                      ;
 
     wire[31:0]  mtvec_base                     ;
 
@@ -65,6 +65,8 @@ module clint(
         clint_entry_en     = `WriteDisable;
         next_jump_addr     = csr_mepc_i;
 
+
+        // Priority: synchronous trap > external interrupt > mret
         if (jump_pending == `JumpDisable) begin
             if (trap_en_i) begin
                 sync_trap_taken = `WriteEnable;

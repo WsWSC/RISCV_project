@@ -712,7 +712,7 @@ module ex(
                 jump_en_o    = `JumpDisable    ;
             end
 
-            `INST_TYPE_SYSTEM: begin
+            `INST_CSR: begin
                 case (csr_op_i)
                     `INST_CSRRW, `INST_CSRRWI: begin
                         csr_r_addr_o = csr_addr_i;
