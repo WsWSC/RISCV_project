@@ -11,26 +11,26 @@ module csr_reg(
     input  wire         clk                 ,
     input  wire         rst_n               ,
 
-    // CSR read port
+    // from ex
     input  wire[11:0]   csr_r_addr_i        ,
     output reg [31:0]   csr_r_data_o        ,
 
-    // CSR write port
+    // from ex
     input  wire         csr_w_en_i          ,
     input  wire[11:0]   csr_w_addr_i        ,
     input  wire[31:0]   csr_w_data_i        ,
 
-    // trap write port
+    // from clint
     input  wire         trap_w_en_i         ,
     input  wire[31:0]   trap_mepc_i         ,
     input  wire[31:0]   trap_mcause_i       ,
     input  wire[31:0]   trap_mtval_i        ,
     input  wire[31:0]   trap_mstatus_i      ,
 
-    // interrupt pending set
-    input  wire         external_irq_i       ,
+    // from core
+    input  wire         external_irq_i      ,
 
-    // CSR direct outputs
+    // to clint
     output wire[31:0]   mtvec_o             ,
     output wire[31:0]   mepc_o              ,
     output wire[31:0]   mcause_o            ,
@@ -58,37 +58,37 @@ module csr_reg(
     // ============================================================
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            cycle   <= 64'b0;
-            mtvec   <= `ZeroWord;
-            mscratch <= `ZeroWord;
-            mepc    <= `ZeroWord;
-            mcause  <= `ZeroWord;
-            mtval   <= `ZeroWord;
-            mstatus <= `ZeroWord;
-            mie     <= `ZeroWord;
-            mip     <= `ZeroWord;
+            cycle    <= 64'b0     ;
+            mtvec    <= `ZeroWord ;
+            mscratch <= `ZeroWord ;
+            mepc     <= `ZeroWord ;
+            mcause   <= `ZeroWord ;
+            mtval    <= `ZeroWord ;
+            mstatus  <= `ZeroWord ;
+            mie      <= `ZeroWord ;
+            mip      <= `ZeroWord ;
         end else begin
             cycle <= cycle + 64'd1;
 
             if (trap_w_en_i == `WriteEnable) begin
-                mepc    <= trap_mepc_i;
-                mcause  <= trap_mcause_i;
-                mtval   <= trap_mtval_i;
+                mepc    <= trap_mepc_i                       ;
+                mcause  <= trap_mcause_i                     ;
+                mtval   <= trap_mtval_i                      ;
                 mstatus <= trap_mstatus_i & `CSR_MSTATUS_MASK;
             end else if (csr_w_en_i == `WriteEnable) begin
                 case (csr_w_addr_i)
-                    `CSR_MTVEC   : mtvec    <= csr_w_data_i;
-                    `CSR_MSCRATCH: mscratch <= csr_w_data_i;
-                    `CSR_MEPC    : mepc     <= csr_w_data_i;
-                    `CSR_MCAUSE  : mcause   <= csr_w_data_i;
-                    `CSR_MTVAL   : mtval    <= csr_w_data_i;
+                    `CSR_MTVEC   : mtvec    <= csr_w_data_i                    ;
+                    `CSR_MSCRATCH: mscratch <= csr_w_data_i                    ;
+                    `CSR_MEPC    : mepc     <= csr_w_data_i                    ;
+                    `CSR_MCAUSE  : mcause   <= csr_w_data_i                    ;
+                    `CSR_MTVAL   : mtval    <= csr_w_data_i                    ;
                     `CSR_MSTATUS : mstatus  <= csr_w_data_i & `CSR_MSTATUS_MASK;
-                    `CSR_MIE     : mie      <= csr_w_data_i & `CSR_MIE_MEIE;
+                    `CSR_MIE     : mie      <= csr_w_data_i & `CSR_MIE_MEIE    ;
                     `CSR_MIP     : begin
                         if (external_irq_i == `InterruptAssert)
                             mip <= (csr_w_data_i & `CSR_MIP_MEIP) | `CSR_MIP_MEIP;
                         else
-                            mip <= csr_w_data_i & `CSR_MIP_MEIP;
+                            mip <= csr_w_data_i & `CSR_MIP_MEIP                  ;
                     end
                     default      : begin
                     end

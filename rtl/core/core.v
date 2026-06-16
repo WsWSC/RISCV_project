@@ -90,7 +90,7 @@ module core(
     wire[31:0]  ex_rd_data_o                ;
     wire        ex_rd_w_en_o                ;
 
-    // ex to csr_reg
+    // from ex, to csr_reg
     wire[11:0]  ex_csr_r_addr_o             ;
     wire[31:0]  csr_reg_csr_r_data_o        ;
     wire        ex_csr_w_en_o               ;
@@ -141,21 +141,21 @@ module core(
     wire[4:0]   div_div_rd_waddr_o          ;
     wire[2:0]   div_div_funct3_o            ;
 
-    // csr_reg direct outputs
-    wire[31:0]  csr_mtvec_o                 ;
-    wire[31:0]  csr_mepc_o                  ;
-    wire[31:0]  csr_mcause_o                ;
-    wire[31:0]  csr_mtval_o                 ;
-    wire[31:0]  csr_mstatus_o               ;
-    wire[31:0]  csr_mie_o                   ;
-    wire[31:0]  csr_mip_o                   ;
+    // from csr_reg, to clint
+    wire[31:0]  csr_mtvec_o                  ;
+    wire[31:0]  csr_mepc_o                   ;
+    wire[31:0]  csr_mcause_o                 ;
+    wire[31:0]  csr_mtval_o                  ;
+    wire[31:0]  csr_mstatus_o                ;
+    wire[31:0]  csr_mie_o                    ;
+    wire[31:0]  csr_mip_o                    ;
 
-    // trap request to clint
+    // from id_ex/ex, to clint
     wire        trap_en                      ;
     wire[31:0]  trap_cause                   ;
     wire[31:0]  trap_tval                    ;
 
-    // clint to csr_reg / ctrl
+    // from clint, to csr_reg / ctrl
     wire        clint_trap_w_en_o            ;
     wire[31:0]  clint_trap_mepc_o            ;
     wire[31:0]  clint_trap_mcause_o          ;
@@ -166,8 +166,8 @@ module core(
     wire[31:0]  clint_trap_jump_addr_o       ;
        
     // ctrl to pc_reg
-    wire[31:0]  ctrl_jump_addr_o            ;
-    wire        ctrl_jump_en_o              ;
+    wire[31:0]  ctrl_jump_addr_o             ;
+    wire        ctrl_jump_en_o               ;
     wire        ctrl_pc_stall_flag_o         ;
     // ctrl to if_id
     wire        ctrl_if_id_flush_flag_o      ;
@@ -176,8 +176,8 @@ module core(
     wire        ctrl_id_ex_flush_flag_o      ;
     wire        ctrl_id_ex_stall_flag_o      ;
     // aggregate debug flags
-    wire        ctrl_flush_flag_o           ;
-    wire        ctrl_stall_flag_o           ;
+    wire        ctrl_flush_flag_o            ;
+    wire        ctrl_stall_flag_o            ;
 
     assign load_use_hazard_req =
         (id_ex_inst_o[6:0] == `INST_TYPE_L) &&
@@ -185,9 +185,9 @@ module core(
         (id_ex_rd_addr_o != `ZeroReg) &&
         ((id_rs1_addr_o == id_ex_rd_addr_o) || (id_rs2_addr_o == id_ex_rd_addr_o));
 
-    assign trap_en    = ex_trap_en_o || id_ex_trap_en_o;
+    assign trap_en    = ex_trap_en_o || id_ex_trap_en_o                    ;
     assign trap_cause = ex_trap_en_o ? ex_trap_cause_o : id_ex_trap_cause_o;
-    assign trap_tval  = ex_trap_en_o ? ex_trap_tval_o  : id_ex_trap_tval_o;
+    assign trap_tval  = ex_trap_en_o ? ex_trap_tval_o  : id_ex_trap_tval_o ;
 
 
     // ============================================================
@@ -448,26 +448,26 @@ module core(
         .clk                (clk                    ),
         .rst_n              (rst_n                  ),
 
-        // CSR read port
+        // from ex
         .csr_r_addr_i       (ex_csr_r_addr_o        ),
         .csr_r_data_o       (csr_reg_csr_r_data_o   ),
 
-        // CSR write port
+        // from ex
         .csr_w_en_i         (ex_csr_w_en_o          ),
         .csr_w_addr_i       (ex_csr_w_addr_o        ),
         .csr_w_data_i       (ex_csr_w_data_o        ),
 
-        // trap write port
+        // from clint
         .trap_w_en_i        (clint_trap_w_en_o      ),
         .trap_mepc_i        (clint_trap_mepc_o      ),
         .trap_mcause_i      (clint_trap_mcause_o    ),
         .trap_mtval_i       (clint_trap_mtval_o     ),
         .trap_mstatus_i     (clint_trap_mstatus_o   ),
 
-        // interrupt pending set
+        // from core
         .external_irq_i     (external_irq_i         ),
 
-        // CSR direct outputs
+        // to clint
         .mtvec_o            (csr_mtvec_o            ),
         .mepc_o             (csr_mepc_o             ),
         .mcause_o           (csr_mcause_o           ),
@@ -481,7 +481,7 @@ module core(
         .clk                (clk                    ),
         .rst_n              (rst_n                  ),
 
-        // from CSR direct outputs
+        // from csr_reg
         .csr_mtvec_i        (csr_mtvec_o            ),
         .csr_mepc_i         (csr_mepc_o             ),
         .csr_mcause_i       (csr_mcause_o           ),
@@ -490,16 +490,20 @@ module core(
         .csr_mie_i          (csr_mie_o              ),
         .csr_mip_i          (csr_mip_o              ),
 
-        // trap request
+        // from core, merged from id_ex/ex
         .trap_en_i          (trap_en                ),
         .trap_pc_i          (id_ex_inst_addr_o      ),
         .trap_cause_i       (trap_cause             ),
         .trap_tval_i        (trap_tval              ),
         .mret_en_i          (id_ex_mret_en_o        ),
+
+        // from core
         .external_irq_i     (external_irq_i         ),
+
+        // from pc_reg
         .irq_pc_i           (pc_reg_pc_addr_o       ),
 
-        // to csr_reg trap write port
+        // to csr_reg
         .trap_w_en_o        (clint_trap_w_en_o      ),
         .trap_mepc_o        (clint_trap_mepc_o      ),
         .trap_mcause_o      (clint_trap_mcause_o    ),
