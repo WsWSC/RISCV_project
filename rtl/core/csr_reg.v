@@ -85,7 +85,7 @@ module csr_reg(
                     `CSR_MSTATUS : mstatus  <= csr_w_data_i & `CSR_MSTATUS_MASK;
                     `CSR_MIE     : mie      <= csr_w_data_i & `CSR_MIE_MEIE;
                     `CSR_MIP     : begin
-                        if (external_irq_i == `WriteEnable)
+                        if (external_irq_i == `InterruptAssert)
                             mip <= (csr_w_data_i & `CSR_MIP_MEIP) | `CSR_MIP_MEIP;
                         else
                             mip <= csr_w_data_i & `CSR_MIP_MEIP;
@@ -95,7 +95,7 @@ module csr_reg(
                 endcase
             end
 
-            if ((external_irq_i == `WriteEnable) &&
+            if ((external_irq_i == `InterruptAssert) &&
                 !((csr_w_en_i == `WriteEnable) && (csr_w_addr_i == `CSR_MIP))) begin
                 mip <= mip | `CSR_MIP_MEIP;
             end

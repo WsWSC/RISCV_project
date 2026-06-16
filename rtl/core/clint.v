@@ -70,7 +70,7 @@ module clint(
                 sync_trap_taken = `WriteEnable;
                 clint_entry_en  = `WriteEnable;
                 next_jump_addr  = mtvec_base;
-            end else if ((external_irq_i || csr_mip_i[11]) &&
+            end else if (((external_irq_i == `InterruptAssert) || csr_mip_i[11]) &&
                          csr_mstatus_i[3] && csr_mie_i[11]) begin
                 external_irq_taken = `WriteEnable;
                 clint_entry_en     = `WriteEnable;

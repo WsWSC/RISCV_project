@@ -20,6 +20,9 @@
 `define ReadEnable      1'b1
 `define ReadDisable     1'b0
 
+`define InterruptAssert   1'b1
+`define InterruptDeassert 1'b0
+
 
 // ============================================================
 // Bus widths / sizes
