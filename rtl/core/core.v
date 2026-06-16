@@ -96,6 +96,9 @@ module core(
     wire        ex_csr_w_en_o               ;
     wire[11:0]  ex_csr_w_addr_o             ;
     wire[31:0]  ex_csr_w_data_o             ;
+    wire        csr_reg_csr_w_en            ;
+    wire[11:0]  csr_reg_csr_w_addr          ;
+    wire[31:0]  csr_reg_csr_w_data          ;
 
     // ex to ctrl
     wire[31:0]  ex_jump_addr_o              ;
@@ -156,11 +159,9 @@ module core(
     wire[31:0]  trap_tval                    ;
 
     // from clint, to csr_reg / ctrl
-    wire        clint_trap_w_en_o            ;
-    wire[31:0]  clint_trap_mepc_o            ;
-    wire[31:0]  clint_trap_mcause_o          ;
-    wire[31:0]  clint_trap_mtval_o           ;
-    wire[31:0]  clint_trap_mstatus_o         ;
+    wire        clint_csr_w_en_o             ;
+    wire[11:0]  clint_csr_w_addr_o           ;
+    wire[31:0]  clint_csr_w_data_o           ;
     wire        clint_hold_req_o             ;
     wire        clint_trap_jump_en_o         ;
     wire[31:0]  clint_trap_jump_addr_o       ;
@@ -188,6 +189,10 @@ module core(
     assign trap_en    = ex_trap_en_o || id_ex_trap_en_o                    ;
     assign trap_cause = ex_trap_en_o ? ex_trap_cause_o : id_ex_trap_cause_o;
     assign trap_tval  = ex_trap_en_o ? ex_trap_tval_o  : id_ex_trap_tval_o ;
+
+    assign csr_reg_csr_w_en   = clint_csr_w_en_o ? `WriteEnable       : ex_csr_w_en_o  ;
+    assign csr_reg_csr_w_addr = clint_csr_w_en_o ? clint_csr_w_addr_o : ex_csr_w_addr_o;
+    assign csr_reg_csr_w_data = clint_csr_w_en_o ? clint_csr_w_data_o : ex_csr_w_data_o;
 
 
     // ============================================================
@@ -452,17 +457,10 @@ module core(
         .csr_r_addr_i       (ex_csr_r_addr_o        ),
         .csr_r_data_o       (csr_reg_csr_r_data_o   ),
 
-        // from ex
-        .csr_w_en_i         (ex_csr_w_en_o          ),
-        .csr_w_addr_i       (ex_csr_w_addr_o        ),
-        .csr_w_data_i       (ex_csr_w_data_o        ),
-
-        // from clint
-        .trap_w_en_i        (clint_trap_w_en_o      ),
-        .trap_mepc_i        (clint_trap_mepc_o      ),
-        .trap_mcause_i      (clint_trap_mcause_o    ),
-        .trap_mtval_i       (clint_trap_mtval_o     ),
-        .trap_mstatus_i     (clint_trap_mstatus_o   ),
+        // from ex / clint
+        .csr_w_en_i         (csr_reg_csr_w_en       ),
+        .csr_w_addr_i       (csr_reg_csr_w_addr     ),
+        .csr_w_data_i       (csr_reg_csr_w_data     ),
 
         // from core
         .external_irq_i     (external_irq_i         ),
@@ -484,8 +482,6 @@ module core(
         // from csr_reg
         .csr_mtvec_i        (csr_mtvec_o            ),
         .csr_mepc_i         (csr_mepc_o             ),
-        .csr_mcause_i       (csr_mcause_o           ),
-        .csr_mtval_i        (csr_mtval_o            ),
         .csr_mstatus_i      (csr_mstatus_o          ),
         .csr_mie_i          (csr_mie_o              ),
         .csr_mip_i          (csr_mip_o              ),
@@ -504,11 +500,9 @@ module core(
         .irq_pc_i           (pc_reg_pc_addr_o       ),
 
         // to csr_reg
-        .trap_w_en_o        (clint_trap_w_en_o      ),
-        .trap_mepc_o        (clint_trap_mepc_o      ),
-        .trap_mcause_o      (clint_trap_mcause_o    ),
-        .trap_mtval_o       (clint_trap_mtval_o     ),
-        .trap_mstatus_o     (clint_trap_mstatus_o   ),
+        .csr_w_en_o         (clint_csr_w_en_o       ),
+        .csr_w_addr_o       (clint_csr_w_addr_o     ),
+        .csr_w_data_o       (clint_csr_w_data_o     ),
 
         // to ctrl
         .clint_hold_req_o   (clint_hold_req_o       ),

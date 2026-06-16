@@ -15,17 +15,10 @@ module csr_reg(
     input  wire[11:0]   csr_r_addr_i        ,
     output reg [31:0]   csr_r_data_o        ,
 
-    // from ex
+    // from core
     input  wire         csr_w_en_i          ,
     input  wire[11:0]   csr_w_addr_i        ,
     input  wire[31:0]   csr_w_data_i        ,
-
-    // from clint
-    input  wire         trap_w_en_i         ,
-    input  wire[31:0]   trap_mepc_i         ,
-    input  wire[31:0]   trap_mcause_i       ,
-    input  wire[31:0]   trap_mtval_i        ,
-    input  wire[31:0]   trap_mstatus_i      ,
 
     // from core
     input  wire         external_irq_i      ,
@@ -53,6 +46,7 @@ module csr_reg(
     reg[31:0]   mie                         ;
     reg[31:0]   mip                         ;
 
+
     // ============================================================
     //  CSR Write
     // ============================================================
@@ -70,12 +64,7 @@ module csr_reg(
         end else begin
             cycle <= cycle + 64'd1;
 
-            if (trap_w_en_i == `WriteEnable) begin
-                mepc    <= trap_mepc_i                       ;
-                mcause  <= trap_mcause_i                     ;
-                mtval   <= trap_mtval_i                      ;
-                mstatus <= trap_mstatus_i & `CSR_MSTATUS_MASK;
-            end else if (csr_w_en_i == `WriteEnable) begin
+            if (csr_w_en_i == `WriteEnable) begin
                 case (csr_w_addr_i)
                     `CSR_MTVEC   : mtvec    <= csr_w_data_i                    ;
                     `CSR_MSCRATCH: mscratch <= csr_w_data_i                    ;
@@ -101,6 +90,7 @@ module csr_reg(
             end
         end
     end
+
 
     // ============================================================
     //  CSR Read
