@@ -89,7 +89,7 @@ module ex(
 );
 
     // ============================================================
-    //  Wire Declarations
+    //  Internal Signals
     // ============================================================
     // R-type
     wire[6:0]  opcode   = inst_i[6:0];
@@ -149,6 +149,7 @@ module ex(
     // load/store index
     wire[1:0]   load_index  = base_addr_add_addr_offset[1:0];
     wire[1:0]   store_index = base_addr_add_addr_offset[1:0];
+
 
     // ============================================================
     //  Main logic

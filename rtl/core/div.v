@@ -84,7 +84,7 @@ module div #(
 
 
     // ============================================================
-    // Datapath Register Declarations
+    //  Internal Signals
     // ============================================================
     reg         div_is_signed_r;
     reg         quot_sign;
@@ -115,7 +115,7 @@ module div #(
 
 
     // ============================================================
-    // Main FSM 
+    //  Main FSM
     // ============================================================
     always @(posedge clk) begin
         if (!rst_n) begin

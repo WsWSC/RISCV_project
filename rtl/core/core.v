@@ -33,7 +33,7 @@ module core(
 );
 
     // ============================================================
-    //  Wire Declarations
+    //  Internal Signals
     // ============================================================
     // pc_reg to inst_rom / if_id
     wire[31:0]  pc_reg_pc_addr_o            ;

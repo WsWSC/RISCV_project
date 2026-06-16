@@ -21,9 +21,14 @@ module inst_rom (
     output reg  [`MemDataBus]   r_data_o
 );
 
-    // Use ROM depth define
+    // ============================================================
+    //  Internal Signals
+    // ============================================================
     reg [`MemAddrBus] rom_mem [0:`MemNum - 1];
 
+    // ============================================================
+    //  Main logic
+    // ============================================================
     // write data, #todo
     always @(posedge clk) begin
         if (w_en_i == `WriteEnable) begin

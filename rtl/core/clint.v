@@ -51,7 +51,7 @@ module clint(
     // ============================================================
     reg         jump_pending                ;
     reg[31:0]   jump_addr                   ;
-    wire[31:0]  mtvec_base                  ;
+    wire[31:0]  mtvec_base                  ;   // mtvec 4-byte align
     reg         sync_trap_taken             ;
     reg         external_irq_taken          ;
     reg         mret_taken                  ;

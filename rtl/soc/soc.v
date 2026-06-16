@@ -12,9 +12,8 @@ module soc(
 );
 
     // ============================================================
-    //  Wire Declarations
+    //  Internal Signals
     // ============================================================
-
     // core to inst_rom
     wire[31:0]  core_inst_addr_o ;
 
@@ -36,7 +35,6 @@ module soc(
     // ============================================================
     //  Module Instantiation & Interconnection
     // ============================================================
-
     core core_inst(
         .clk                (clk                        ),
         .rst_n              (rst_n                      ),

@@ -24,6 +24,9 @@ module dff_set #(
     output reg [DW-1:0]     data_o
 );
 
+    // ============================================================
+    //  Main logic
+    // ============================================================
     always @(posedge clk) begin
         if (!rst_n) begin
             data_o <= set_data;
