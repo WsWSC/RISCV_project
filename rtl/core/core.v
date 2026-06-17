@@ -96,9 +96,6 @@ module core(
     wire        ex_csr_w_en_o               ;
     wire[11:0]  ex_csr_w_addr_o             ;
     wire[31:0]  ex_csr_w_data_o             ;
-    wire        csr_reg_csr_w_en            ;
-    wire[11:0]  csr_reg_csr_w_addr          ;
-    wire[31:0]  csr_reg_csr_w_data          ;
 
     // ex to ctrl
     wire[31:0]  ex_jump_addr_o              ;
@@ -153,11 +150,6 @@ module core(
     wire[31:0]  csr_mie_o                    ;
     wire[31:0]  csr_mip_o                    ;
 
-    // from id_ex/ex, to clint
-    wire        trap_en                      ;
-    wire[31:0]  trap_cause                   ;
-    wire[31:0]  trap_tval                    ;
-
     // from clint, to csr_reg / ctrl
     wire        clint_csr_w_en_o             ;
     wire[11:0]  clint_csr_w_addr_o           ;
@@ -185,15 +177,6 @@ module core(
         (id_ex_reg_w_en_o == `WriteEnable) &&
         (id_ex_rd_addr_o != `ZeroReg) &&
         ((id_rs1_addr_o == id_ex_rd_addr_o) || (id_rs2_addr_o == id_ex_rd_addr_o));
-
-    assign trap_en    = ex_trap_en_o || id_ex_trap_en_o                    ;
-    assign trap_cause = ex_trap_en_o ? ex_trap_cause_o : id_ex_trap_cause_o;
-    assign trap_tval  = ex_trap_en_o ? ex_trap_tval_o  : id_ex_trap_tval_o ;
-
-    assign csr_reg_csr_w_en   = clint_csr_w_en_o ? `WriteEnable       : ex_csr_w_en_o  ;
-    assign csr_reg_csr_w_addr = clint_csr_w_en_o ? clint_csr_w_addr_o : ex_csr_w_addr_o;
-    assign csr_reg_csr_w_data = clint_csr_w_en_o ? clint_csr_w_data_o : ex_csr_w_data_o;
-
 
     // ============================================================
     //  Module Instantiation & Interconnection
@@ -457,10 +440,15 @@ module core(
         .csr_r_addr_i       (ex_csr_r_addr_o        ),
         .csr_r_data_o       (csr_reg_csr_r_data_o   ),
 
-        // from ex / clint
-        .csr_w_en_i         (csr_reg_csr_w_en       ),
-        .csr_w_addr_i       (csr_reg_csr_w_addr     ),
-        .csr_w_data_i       (csr_reg_csr_w_data     ),
+        // from ex
+        .csr_w_en_i         (ex_csr_w_en_o          ),
+        .csr_w_addr_i       (ex_csr_w_addr_o        ),
+        .csr_w_data_i       (ex_csr_w_data_o        ),
+
+        // from clint
+        .clint_csr_w_en_i   (clint_csr_w_en_o       ),
+        .clint_csr_w_addr_i (clint_csr_w_addr_o     ),
+        .clint_csr_w_data_i (clint_csr_w_data_o     ),
 
         // from core
         .external_irq_i     (external_irq_i         ),
@@ -486,12 +474,17 @@ module core(
         .csr_mie_i          (csr_mie_o              ),
         .csr_mip_i          (csr_mip_o              ),
 
-        // from core, merged from id_ex/ex
-        .trap_en_i          (trap_en                ),
-        .trap_pc_i          (id_ex_inst_addr_o      ),
-        .trap_cause_i       (trap_cause             ),
-        .trap_tval_i        (trap_tval              ),
+        // from id_ex
+        .id_ex_trap_en_i    (id_ex_trap_en_o        ),
+        .id_ex_trap_pc_i    (id_ex_inst_addr_o      ),
+        .id_ex_trap_cause_i (id_ex_trap_cause_o     ),
+        .id_ex_trap_tval_i  (id_ex_trap_tval_o      ),
         .mret_en_i          (id_ex_mret_en_o        ),
+
+        // from ex
+        .ex_trap_en_i       (ex_trap_en_o           ),
+        .ex_trap_cause_i    (ex_trap_cause_o        ),
+        .ex_trap_tval_i     (ex_trap_tval_o         ),
 
         // from core
         .external_irq_i     (external_irq_i         ),

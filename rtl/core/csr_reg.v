@@ -15,10 +15,15 @@ module csr_reg(
     input  wire[11:0]   csr_r_addr_i        ,
     output reg [31:0]   csr_r_data_o        ,
 
-    // from core
+    // from ex
     input  wire         csr_w_en_i          ,
     input  wire[11:0]   csr_w_addr_i        ,
     input  wire[31:0]   csr_w_data_i        ,
+
+    // from clint
+    input  wire         clint_csr_w_en_i     ,
+    input  wire[11:0]   clint_csr_w_addr_i   ,
+    input  wire[31:0]   clint_csr_w_data_i   ,
 
     // from core
     input  wire         external_irq_i      ,
@@ -64,7 +69,25 @@ module csr_reg(
         end else begin
             cycle <= cycle + 64'd1;
 
-            if (csr_w_en_i == `WriteEnable) begin
+            if (clint_csr_w_en_i == `WriteEnable) begin
+                case (clint_csr_w_addr_i)
+                    `CSR_MTVEC   : mtvec    <= clint_csr_w_data_i                    ;
+                    `CSR_MSCRATCH: mscratch <= clint_csr_w_data_i                    ;
+                    `CSR_MEPC    : mepc     <= clint_csr_w_data_i                    ;
+                    `CSR_MCAUSE  : mcause   <= clint_csr_w_data_i                    ;
+                    `CSR_MTVAL   : mtval    <= clint_csr_w_data_i                    ;
+                    `CSR_MSTATUS : mstatus  <= clint_csr_w_data_i & `CSR_MSTATUS_MASK;
+                    `CSR_MIE     : mie      <= clint_csr_w_data_i & `CSR_MIE_MEIE    ;
+                    `CSR_MIP     : begin
+                        if (external_irq_i == `InterruptAssert)
+                            mip <= (clint_csr_w_data_i & `CSR_MIP_MEIP) | `CSR_MIP_MEIP;
+                        else
+                            mip <= clint_csr_w_data_i & `CSR_MIP_MEIP                  ;
+                    end
+                    default      : begin
+                    end
+                endcase
+            end else if (csr_w_en_i == `WriteEnable) begin
                 case (csr_w_addr_i)
                     `CSR_MTVEC   : mtvec    <= csr_w_data_i                    ;
                     `CSR_MSCRATCH: mscratch <= csr_w_data_i                    ;

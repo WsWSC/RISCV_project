@@ -18,12 +18,17 @@ module clint(
     input  wire[31:0]   csr_mie_i           ,   // interrupt enable bits
     input  wire[31:0]   csr_mip_i           ,   // interrupt pending bits
 
-    // trap request from core, merged from id_ex/ex
-    input  wire         trap_en_i           ,   // trap request
-    input  wire[31:0]   trap_pc_i           ,   // faulting PC
-    input  wire[31:0]   trap_cause_i        ,   // trap cause
-    input  wire[31:0]   trap_tval_i         ,   // trap value
+    // from id_ex
+    input  wire         id_ex_trap_en_i     ,   // trap request
+    input  wire[31:0]   id_ex_trap_pc_i     ,   // faulting PC
+    input  wire[31:0]   id_ex_trap_cause_i  ,   // trap cause
+    input  wire[31:0]   id_ex_trap_tval_i   ,   // trap value
     input  wire         mret_en_i           ,   // mret request
+
+    // from ex
+    input  wire         ex_trap_en_i        ,   // trap request
+    input  wire[31:0]   ex_trap_cause_i     ,   // trap cause
+    input  wire[31:0]   ex_trap_tval_i      ,   // trap value
 
     // from core
     input  wire         external_irq_i      ,   // external IRQ, e.g. UART/GPIO/timer
@@ -70,6 +75,9 @@ module clint(
     reg[31:0]  saved_jump_addr             ;
 
     wire[31:0] mtvec_base                  ;
+    wire       trap_en                     ;
+    wire[31:0] trap_cause                  ;
+    wire[31:0] trap_tval                   ;
     wire       irq_taken                   ;
     wire       sync_trap_taken             ;
     wire       mret_taken                  ;
@@ -80,18 +88,22 @@ module clint(
 
     assign mtvec_base = {csr_mtvec_i[31:2], 2'b00};
 
+    assign trap_en    = ex_trap_en_i || id_ex_trap_en_i                         ;
+    assign trap_cause = ex_trap_en_i ? ex_trap_cause_i : id_ex_trap_cause_i     ;
+    assign trap_tval  = ex_trap_en_i ? ex_trap_tval_i  : id_ex_trap_tval_i      ;
+
     assign irq_taken =
         (((external_irq_i == `InterruptAssert) || csr_mip_i[11]) &&
          csr_mstatus_i[3] && csr_mie_i[11]);
 
-    assign sync_trap_taken = (csr_state == S_CSR_IDLE) && trap_en_i;
-    assign mret_taken      = (csr_state == S_CSR_IDLE) && !trap_en_i &&
+    assign sync_trap_taken = (csr_state == S_CSR_IDLE) && trap_en;
+    assign mret_taken      = (csr_state == S_CSR_IDLE) && !trap_en &&
                              !irq_taken && mret_en_i;
 
     // Priority: synchronous trap > external interrupt > mret
     assign event_detect =
         (csr_state == S_CSR_IDLE) &&
-        (trap_en_i || irq_taken || mret_en_i);
+        (trap_en || irq_taken || mret_en_i);
 
     assign csr_write_state =
         (csr_state == S_CSR_WRITE_MEPC)    ||
@@ -125,9 +137,9 @@ module clint(
                     if (sync_trap_taken) begin
                         event_state     <= S_EVENT_TRAP;
                         csr_state       <= S_CSR_WRITE_MEPC;
-                        saved_mepc      <= trap_pc_i;
-                        saved_mcause    <= trap_cause_i;
-                        saved_mtval     <= trap_tval_i;
+                        saved_mepc      <= id_ex_trap_pc_i;
+                        saved_mcause    <= trap_cause;
+                        saved_mtval     <= trap_tval;
                         saved_mstatus   <= trap_mstatus;
                         saved_jump_addr <= mtvec_base;
                     end else if (irq_taken) begin
