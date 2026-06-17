@@ -69,6 +69,7 @@ module csr_reg(
         end else begin
             cycle <= cycle + 64'd1;
 
+            // CSR write priority: clint > ex
             if (clint_csr_w_en_i == `WriteEnable) begin
                 case (clint_csr_w_addr_i)
                     `CSR_MTVEC   : mtvec    <= clint_csr_w_data_i                    ;

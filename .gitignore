@@ -15,6 +15,7 @@ __pycache__/
 # Simulation test_bin data
 sim/test_bin/*
 !sim/test_bin/*.bin
+sim/compliance_test_bin/*
 sim/__pycache__/
 sim/*.vvp
 sim/inst_data.txt

@@ -178,6 +178,7 @@ module core(
         (id_ex_rd_addr_o != `ZeroReg) &&
         ((id_rs1_addr_o == id_ex_rd_addr_o) || (id_rs2_addr_o == id_ex_rd_addr_o));
 
+
     // ============================================================
     //  Module Instantiation & Interconnection
     // ============================================================

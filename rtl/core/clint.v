@@ -62,8 +62,11 @@ module clint(
     localparam S_CSR_WRITE_MSTATUS = 3'd4;
     localparam S_CSR_JUMP          = 3'd5;
 
+    // event kind
     reg[1:0]   event_state                 ;
+    // CSR sequence
     reg[2:0]   csr_state                   ;
+
 
     // ============================================================
     //  Internal Signals
@@ -88,6 +91,7 @@ module clint(
 
     assign mtvec_base = {csr_mtvec_i[31:2], 2'b00};
 
+    // trap priority: ex > id_ex
     assign trap_en    = ex_trap_en_i || id_ex_trap_en_i                         ;
     assign trap_cause = ex_trap_en_i ? ex_trap_cause_i : id_ex_trap_cause_i     ;
     assign trap_tval  = ex_trap_en_i ? ex_trap_tval_i  : id_ex_trap_tval_i      ;
@@ -100,7 +104,7 @@ module clint(
     assign mret_taken      = (csr_state == S_CSR_IDLE) && !trap_en &&
                              !irq_taken && mret_en_i;
 
-    // Priority: synchronous trap > external interrupt > mret
+    // event priority: trap > irq > mret
     assign event_detect =
         (csr_state == S_CSR_IDLE) &&
         (trap_en || irq_taken || mret_en_i);
@@ -118,6 +122,7 @@ module clint(
     assign mret_mstatus =
         {csr_mstatus_i[31:8], 1'b1,
          csr_mstatus_i[6:4], csr_mstatus_i[7], csr_mstatus_i[2:0]};
+
 
     // ============================================================
     //  Main FSM
@@ -190,6 +195,7 @@ module clint(
         end
     end
 
+
     // ============================================================
     //  CSR Write
     // ============================================================
@@ -227,6 +233,7 @@ module clint(
             end
         endcase
     end
+
 
     // ============================================================
     //  Hold / Jump Output
