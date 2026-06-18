@@ -31,9 +31,9 @@ rtl/
 
 sim/
  ├─ compile_and_sim.py    # Compile and run simulation
- ├─ test_all.py           # RV32I / RV32M regression
- ├─ test_one_inst.py      # Single instruction test
- ├─ test_csr.py           # CSR / trap / interrupt regression
+ ├─ test_isa_all.py       # RV32I / RV32M regression
+ ├─ test_isa_one.py       # Single instruction test
+ ├─ test_csr_all.py       # CSR / trap / interrupt regression
  ├─ test_bin/             # RV32I / RV32M test binaries
  └─ csr_test_bin/         # CSR / trap / interrupt test binaries
 
@@ -122,22 +122,22 @@ The design is validated through Python-driven Icarus Verilog regression tests.
 
 ```powershell
 # Run all RV32I / RV32M instruction tests
-python sim\test_all.py
+python sim\test_isa_all.py
 
 # Run one instruction test
-python sim\test_one_inst.py addi
+python sim\test_isa_one.py addi
 
 # Run all CSR / trap / interrupt tests
-python sim\test_csr.py
+python sim\test_csr_all.py
 ```
 
 Debug options:
 
 ```powershell
-python sim\test_one_inst.py addi --trace
-python sim\test_one_inst.py addi --dump
-python sim\test_csr.py --verbose
-python sim\test_csr.py --trace
+python sim\test_isa_one.py addi --trace
+python sim\test_isa_one.py addi --dump
+python sim\test_csr_all.py --verbose
+python sim\test_csr_all.py --trace
 ```
 
 

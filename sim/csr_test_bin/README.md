@@ -8,7 +8,7 @@ It is intentionally separate from `sim/test_bin/` so normal RV32I/RV32M regressi
 
 ```text
 sim/
-  test_csr.py
+  test_csr_all.py
   csr_test_bin/
     rv32csr-p-*.bin
 ```
@@ -80,12 +80,12 @@ x3      : fail case id
 
 ## Regression Policy
 
-This folder is not scanned by `sim/test_all.py`.
+This folder is not scanned by `sim/test_isa_all.py`.
 
 CSR tests are run by:
 
 ```text
-python sim/test_csr.py
+python sim/test_csr_all.py
 ```
 
 That runner scans only this folder and should not affect normal RV32I/RV32M regression.

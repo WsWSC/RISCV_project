@@ -31,13 +31,13 @@ rv32um: RV32 multiply/divide extension tests
 Run every normal ISA test:
 
 ```powershell
-python sim\test_all.py
+python sim\test_isa_all.py
 ```
 
 Run one normal ISA test:
 
 ```powershell
-python sim\test_one_inst.py addi
+python sim\test_isa_one.py addi
 ```
 
 ## Generated Files
