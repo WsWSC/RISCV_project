@@ -12,13 +12,30 @@ sim_modelsim/
 __pycache__/
 *.pyc
 
-# Simulation test_bin data
-sim/test_bin/*
-!sim/test_bin/*.bin
-sim/compliance_test_bin/*
+# Simulation runtime artifacts
 sim/__pycache__/
 sim/*.vvp
 sim/inst_data.txt
+
+# ISA regression generated artifacts
+sim/test_bin/*
+!sim/test_bin/*.bin
+!sim/test_bin/README.md
+
+# Compliance local/generated artifacts
+sim/compliance_test/bin/
+sim/compliance_test/asm/
+sim/compliance_test/ref/
+sim/compliance_test/golden/
+sim/compliance_test/.runtime/
+sim/compliance_test/__pycache__/
+
+# WSL-owned compliance golden generator
+sim/compliance_test/act4_config/
+sim/compliance_test/env/
+sim/compliance_test/import_act4_outputs.py
+sim/compliance_test/generate_golden.ps1
+sim/generate_compliance_golden.ps1
 
 # Local custom CPU tests
 custom_cpu_tests/
@@ -34,6 +51,7 @@ reference/
 # Local notes
 *.md
 AGENTS.md
+!sim/compliance_test/README.md
 
 # Tracked CSR regression input
 !sim/csr_test_bin/
