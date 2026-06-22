@@ -193,7 +193,7 @@ def run_one(file_bin, args):
     cmd = [
         sys.executable,
         "-c",
-        "import sys, compile_and_sim; sys.exit(compile_and_sim.sim(sys.argv[1:], iverilog_defines=['COMPLIANCE_MEM'], vvp_timeout=300))",
+        "import sys, compile_and_sim; sys.exit(compile_and_sim.sim(sys.argv[1:], iverilog_defines=['COMPLIANCE_MEM'], vvp_timeout=300, compile_timeout=120))",
     ]
     cmd.extend(vvp_args)
 

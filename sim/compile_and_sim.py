@@ -59,7 +59,7 @@ def bin_to_mem(infile, outfile):
     datafile.close()
  
 
-def compile(iverilog_defines=None):
+def compile(iverilog_defines=None, compile_timeout=60):
     # project root = RISCV_PROJECT
     root_dir = project_root()
 
@@ -110,13 +110,13 @@ def compile(iverilog_defines=None):
 
     # compile
     process = subprocess.Popen(iverilog_cmd, cwd=sim_dir())
-    process.wait(timeout=60)
+    process.wait(timeout=compile_timeout)
     return process.returncode
 
 
-def sim(vvp_args=None, iverilog_defines=None, vvp_timeout=10):
+def sim(vvp_args=None, iverilog_defines=None, vvp_timeout=10, compile_timeout=60):
     # 1. compile RTL files
-    compile_rc = compile(iverilog_defines)
+    compile_rc = compile(iverilog_defines, compile_timeout)
     if compile_rc != 0:
         return compile_rc
     
