@@ -76,21 +76,21 @@ The **SoC layer** integrates the Core, Instruction ROM, Data RAM, and external i
 
 ## Implementation Status
 
-| Item | Status | Completed Date / Note |
-|------|--------|-----------------------|
-| 3-stage RV32IM pipeline core | Done | - |
-| IF/ID and ID/EX pipeline registers | Done | - |
-| Load / store, branch / jump, and write-back logic | Done | - |
-| EX-to-ID forwarding and load-use bubble | Done | - |
-| Machine-mode CSR, trap, `mret`, and external interrupt support | Done | - |
-| RV32I / RV32M and CSR / trap / interrupt regression tests | Done | - |
-| Imported ACT4/Sail compliance runner for local golden signature checks | Done | Local golden signature checks |
-| Full privileged architecture | | - |
-| Timer / software interrupt | | - |
+| Item | Status | Note |
+|------|--------|------|
+| RV32IM 3-stage pipeline | ✅ | - |
+| IF/ID, ID/EX registers | ✅ | - |
+| Load/store, branch/jump, write-back | ✅ | - |
+| Forwarding, load-use bubble | ✅ | - |
+| Machine CSR, trap, `mret`, MEI | ✅ | - |
+| RV32I/RV32M, CSR regression | ✅ | - |
+| ACT4/Sail compliance | ✅ | Local golden checks |
+| Privileged architecture | | - |
+| Timer/software interrupt | | - |
 | Vectored `mtvec` | | - |
-| RIB (RISC-V Internal Bus) | | - |
-| MMIO peripherals / standard bus | | - |
-| Cache / branch prediction | | - |
+| RIB | | RISC-V Internal Bus |
+| MMIO/standard bus | | - |
+| Cache/branch prediction | | - |
 
 <br>
 
@@ -101,13 +101,13 @@ flows.
 
 
 ### Test Result Summary
-| Category           | Coverage                            | Status |
-|--------------------|-------------------------------------|--------|
-| RV32I / RV32M      | Integer, load/store, branch, M-ext  | PASS   |
-| Pipeline Hazards   | Forwarding and load-use bubble      | PASS   |
-| CSR / Trap         | CSR ops, exceptions, `mret`         | PASS   |
-| External Interrupt | Enable, mask, pending behavior      | PASS   |
-| ACT4 / Sail Import | Local golden signature comparison   | Local  |
+| Category | Coverage | Status | Note |
+|----------|----------|--------|------|
+| ISA regression | RV32I/RV32M, load/store, branch/jump | ✅ | - |
+| Hazard handling | Forwarding, load-use bubble | ✅ | - |
+| CSR/trap regression | CSR ops, exceptions, `mret` | ✅ | - |
+| Interrupt handling | External interrupt enable/mask/pending | ✅ | - |
+| ACT4/Sail compliance | Golden signature comparison | ✅ | Local golden files |
 
 Generated files such as `sim/inst_data.txt`, `sim/out.vvp`, waveform files,
 Python cache files, and compliance runtime/golden folders are not part of the
