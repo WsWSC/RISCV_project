@@ -13,11 +13,7 @@ with automated verification for ISA, CSR, trap, interrupt, and imported complian
     - [Core Architecture](#core-architecture)
     - [SoC Structure](#soc-structure)
 - [Implementation Status](#implementation-status)
-  - [Implemented](#implemented)
-  - [Not Implemented](#not-implemented)
-- [Prerequisites](#prerequisites)
 - [Simulation & Verification](#simulation--verification)
-  - [Compliance / ACT4 Flow](#compliance--act4-flow)
   - [Test Result Summary](#test-result-summary)
 - [Reference](#reference)
 
@@ -32,14 +28,9 @@ rtl/
 
 sim/
   compile_and_sim.py    # Compile and run simulation
-  test_isa_all.py       # RV32I / RV32M regression
-  test_isa_one.py       # Single instruction test
-  test_csr_all.py       # CSR / trap / interrupt regression
-  test_compliance_all.py # Imported ACT4/Sail compliance regression
-  test_compliance_one.py # Single imported compliance test
+  isa_test/             # RV32I / RV32M regression runners and binaries
+  csr_test/             # CSR / trap / interrupt regression runner and binaries
   compliance_test/      # Compliance runner and local generated data
-  test_bin/             # RV32I / RV32M test binaries
-  csr_test_bin/         # CSR / trap / interrupt test binaries
 
 tb/
   tb.v                  # Top-level testbench
@@ -85,121 +76,28 @@ The **SoC layer** integrates the Core, Instruction ROM, Data RAM, and external i
 
 ## Implementation Status
 
+| Item | Status | Completed Date / Note |
+|------|--------|-----------------------|
+| 3-stage RV32IM pipeline core | Done | - |
+| IF/ID and ID/EX pipeline registers | Done | - |
+| Load / store, branch / jump, and write-back logic | Done | - |
+| EX-to-ID forwarding and load-use bubble | Done | - |
+| Machine-mode CSR, trap, `mret`, and external interrupt support | Done | - |
+| RV32I / RV32M and CSR / trap / interrupt regression tests | Done | - |
+| Imported ACT4/Sail compliance runner for local golden signature checks | Done | Local golden signature checks |
+| Full privileged architecture | | - |
+| Timer / software interrupt | | - |
+| Vectored `mtvec` | | - |
+| RIB (RISC-V Internal Bus) | | - |
+| MMIO peripherals / standard bus | | - |
+| Cache / branch prediction | | - |
 
-### Implemented
-- 3-stage RV32IM pipeline core
-- IF/ID and ID/EX pipeline registers
-- Load / store, branch / jump, and write-back logic
-- EX-to-ID forwarding and load-use bubble
-- Machine-mode CSR, trap, `mret`, and external interrupt support
-- RV32I / RV32M and CSR / trap / interrupt regression tests
-- Imported ACT4/Sail compliance runner for local golden signature checks
-
-
-## Not Implemented
-- Full privileged architecture
-- Timer / software interrupt
-- Vectored `mtvec`
-- RIB (RISC-V Internal Bus)
-- MMIO peripherals / standard bus
-- Cache / branch prediction
-
-## Prerequisites
-Before running the simulation, make sure the following tools are installed:
-
-- **Python 3**
-- **Icarus Verilog** (`iverilog` / `vvp`)
-
-Optional:
-
-- **GTKWave** for waveform viewing
-
-You can verify the installation using:
-
-```powershell
-python --version
-iverilog -V
-vvp -V
-```
+<br>
 
 ## Simulation & Verification
 The design is validated through Python-driven Icarus Verilog regression tests.
-
-```powershell
-# Run all RV32I / RV32M instruction tests
-python sim\test_isa_all.py
-
-# Run one instruction test
-python sim\test_isa_one.py addi
-
-# Run all CSR / trap / interrupt tests
-python sim\test_csr_all.py
-```
-
-Debug options:
-
-```powershell
-python sim\test_isa_one.py addi --trace
-python sim\test_isa_one.py addi --dump
-python sim\test_csr_all.py --verbose
-python sim\test_csr_all.py --trace
-```
-
-### Compliance / ACT4 Flow
-The ACT4/Sail compliance flow is split between this Windows repository and a WSL
-generator environment. This is intentional: ACT4, Sail, and the RISC-V toolchain
-are Linux-oriented, while this repo stays focused on RTL simulation and checked-in
-source files.
-
-Responsibility split:
-
-```text
-This Git repository:
-  RTL, testbench, Python runners, and documentation
-  sim/compliance_test/runner.py
-  sim/test_compliance_one.py
-  sim/test_compliance_all.py
-
-Windows local generated data, ignored by Git:
-  sim/compliance_test/golden/
-  sim/compliance_test/.runtime/
-  sim/compliance_test/bin/
-  sim/compliance_test/asm/
-  sim/compliance_test/ref/
-
-WSL generator environment, outside this repo:
-  ACT4 config
-  Sail simulator
-  RISC-V toolchain
-  golden/runtime generation scripts
-```
-
-Generate or refresh compliance golden/runtime files from WSL:
-
-```bash
-cd ~/risc-v/test-golden-generator
-./generate_golden.sh
-```
-
-Then run the imported compliance tests from the Windows repo root:
-
-```powershell
-python sim\test_compliance_one.py add
-python sim\test_compliance_all.py
-```
-
-The Windows runner consumes local generated files from:
-
-```text
-sim/compliance_test/golden/meta/
-sim/compliance_test/golden/ref/
-sim/compliance_test/.runtime/bin/
-sim/compliance_test/.runtime/data/
-```
-
-Do not commit these generated folders. If compliance tests fail because runtime
-files are missing or stale, refresh them from WSL first, then rerun the Windows
-test command.
+See [sim/README.md](sim/README.md) for the ISA, CSR, and ACT4/Sail compliance
+flows.
 
 
 ### Test Result Summary

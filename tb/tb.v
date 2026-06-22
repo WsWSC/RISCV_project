@@ -246,7 +246,7 @@ module tb;
             if (signature_end > signature_start) begin
                 signature_start_word = signature_start >> 2;
                 signature_end_word   = signature_end >> 2;
-                sig_file = $fopen("../sim/compliance_test/.runtime/out/current.sig", "w");
+                sig_file = $fopen("../sim/compliance_test/DUT_runtime/out/current.sig", "w");
 
                 if (sig_file == 0) begin
                     $display("compliance signature dump open failed");

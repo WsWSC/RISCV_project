@@ -22,7 +22,7 @@ def compliance_dir():
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run compliance tests under sim/compliance_test/.runtime/bin.")
+    parser = argparse.ArgumentParser(description="Run compliance tests under sim/compliance_test/DUT_runtime/bin.")
     parser.add_argument("name", nargs="?", help="Compliance test name, for example rv32i-I-add-00.")
     parser.add_argument("--one", action="store_true", help="Require the name to resolve to exactly one test.")
     parser.add_argument("--trace", action="store_true", help="Print per-cycle CPU trace for every test.")
@@ -82,9 +82,9 @@ def signature_mode(args):
 
 
 def metadata_path(name):
-    golden_path = os.path.join(compliance_dir(), "golden", "meta", name + ".json")
-    if os.path.exists(golden_path):
-        return golden_path
+    dut_metadata_path = os.path.join(compliance_dir(), "DUT_metadata", name + ".json")
+    if os.path.exists(dut_metadata_path):
+        return dut_metadata_path
 
     return os.path.join(compliance_dir(), ".runtime", "meta", name + ".json")
 
@@ -99,7 +99,7 @@ def load_metadata(name):
 
 
 def default_reference_path(name):
-    return os.path.join(compliance_dir(), "golden", "ref", name + ".sig")
+    return os.path.join(compliance_dir(), "golden_sig", name + ".sig")
 
 
 def resolve_test_args(file_bin, args):
@@ -166,7 +166,7 @@ def run_one(file_bin, args):
     out_mem = os.path.join(project_root(), "sim", "inst_data.txt")
     bin_to_mem(file_bin, out_mem)
 
-    out_dir = os.path.join(compliance_dir(), ".runtime", "out")
+    out_dir = os.path.join(compliance_dir(), "DUT_runtime", "out")
     os.makedirs(out_dir, exist_ok=True)
     current_sig = os.path.join(out_dir, "current.sig")
     if os.path.exists(current_sig):
@@ -231,7 +231,7 @@ def classify_result(result, output, args):
     if args.tohost_addr and output.lower().find("compliance tohost done") == -1:
         return "FAIL", "missing tohost done"
 
-    actual_sig = os.path.join(compliance_dir(), ".runtime", "out", "current.sig")
+    actual_sig = os.path.join(compliance_dir(), "DUT_runtime", "out", "current.sig")
     if not os.path.exists(actual_sig):
         return "FAIL", "missing signature dump"
 
@@ -251,15 +251,15 @@ def classify_result(result, output, args):
 
 def main():
     args = parse_args()
-    bin_dir = os.path.join(compliance_dir(), ".runtime", "bin")
+    bin_dir = os.path.join(compliance_dir(), "DUT_runtime", "bin")
     all_bin_files = select_binfiles(bin_dir, args.name)
 
     if not all_bin_files:
         if args.name is None:
-            print("missing compliance runtime binaries under sim/compliance_test/.runtime/bin")
+            print("missing compliance DUT runtime binaries under sim/compliance_test/DUT_runtime/bin")
         else:
-            print("missing compliance runtime binary for: " + args.name)
-        print("run WSL golden/runtime generation first")
+            print("missing compliance DUT runtime binary for: " + args.name)
+        print("run WSL golden/DUT runtime generation first")
         return 1
 
     if args.one and len(all_bin_files) != 1:

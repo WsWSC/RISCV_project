@@ -18,9 +18,9 @@ sim/*.vvp
 sim/inst_data.txt
 
 # ISA regression generated artifacts
-sim/test_bin/*
-!sim/test_bin/*.bin
-!sim/test_bin/README.md
+sim/isa_test/test_bin/*
+!sim/isa_test/test_bin/*.bin
+!sim/isa_test/test_bin/README.md
 
 # Compliance local/generated artifacts
 sim/compliance_test/bin/
@@ -28,14 +28,10 @@ sim/compliance_test/asm/
 sim/compliance_test/ref/
 sim/compliance_test/golden/
 sim/compliance_test/.runtime/
+sim/compliance_test/golden_sig/
+sim/compliance_test/DUT_metadata/
+sim/compliance_test/DUT_runtime/
 sim/compliance_test/__pycache__/
-
-# WSL-owned compliance golden generator
-sim/compliance_test/act4_config/
-sim/compliance_test/env/
-sim/compliance_test/import_act4_outputs.py
-sim/compliance_test/generate_golden.ps1
-sim/generate_compliance_golden.ps1
 
 # Local custom CPU tests
 custom_cpu_tests/
@@ -51,9 +47,14 @@ reference/
 # Local notes
 *.md
 AGENTS.md
+!sim/isa_test/README.md
+!sim/isa_test/test_bin/README.md
+!sim/csr_test/README.md
+!sim/csr_test/test_bin/README.md
 !sim/compliance_test/README.md
 
 # Tracked CSR regression input
-!sim/csr_test_bin/
-!sim/csr_test_bin/README.md
-!sim/csr_test_bin/*.bin
+!sim/csr_test/
+!sim/csr_test/test_bin/
+!sim/csr_test/test_bin/README.md
+!sim/csr_test/test_bin/*.bin

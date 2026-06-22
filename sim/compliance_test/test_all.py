@@ -11,7 +11,7 @@ def main():
     cmd = [sys.executable, "runner.py"]
     cmd.extend(sys.argv[1:])
 
-    result = subprocess.run(cmd, cwd=os.path.join(sim_dir(), "compliance_test"))
+    result = subprocess.run(cmd, cwd=sim_dir())
     return result.returncode
 
 

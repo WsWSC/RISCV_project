@@ -2,14 +2,17 @@ import os
 import subprocess
 import argparse
 
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from compile_and_sim import list_binfiles
 from compile_and_sim import bin_to_mem
 from compile_and_sim import sim
-import sys
 
 
 def project_root():
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 def parse_args():
@@ -25,7 +28,7 @@ def main(name='addi', trace=False, dump=False, timeout_cycles=None):
     # get project root directory
     rtl_dir = project_root()
 
-    all_bin_files = list_binfiles(rtl_dir + r'/sim/test_bin/')
+    all_bin_files = list_binfiles(rtl_dir + r'/sim/isa_test/test_bin/')
     test_binfile = None
 
     for file in all_bin_files:

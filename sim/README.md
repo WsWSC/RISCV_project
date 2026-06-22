@@ -1,58 +1,40 @@
-# Simulation Layout
+# Simulation
 
-This directory keeps simulation runners, generated simulation input, and binary test inputs.
+This directory keeps the shared simulation helper and three grouped test flows:
 
-## Files
+## Prerequisites
 
-```text
-compile_and_sim.py
-```
+Before running the simulation, make sure the following tools are installed:
 
-Compiles the RTL with Icarus Verilog, converts one `.bin` file into `sim/inst_data.txt`, and runs `tb/tb.v`.
+- **Python 3**
+- **Icarus Verilog** (`iverilog` / `vvp`)
 
-```text
-test_isa_all.py
-```
+Optional:
 
-Runs all normal RV32I/RV32M `.bin` tests under `sim/test_bin/`.
+- **GTKWave** for waveform viewing
 
-```text
-test_isa_one.py
-```
-
-Runs one normal RV32I/RV32M test from `sim/test_bin/`.
-
-```text
-test_csr_all.py
-```
-
-Runs all CSR / exception / interrupt `.bin` tests under `sim/csr_test_bin/`.
-
-```text
-inst_data.txt
-```
-
-Generated memory image consumed by `tb/tb.v`. This file is produced from the selected `.bin` before each simulation and should not be committed.
-
-## Test Input Folders
-
-```text
-test_bin/
-```
-
-Normal RV32I/RV32M regression binaries. These are run by `test_isa_all.py` and `test_isa_one.py`.
-
-```text
-csr_test_bin/
-```
-
-CSR, trap, and interrupt regression binaries. These are run only by `test_csr_all.py`.
-
-## Regression Commands
+You can verify the installation using:
 
 ```powershell
-python sim\test_isa_all.py
-python sim\test_isa_one.py addi
-python sim\test_csr_all.py
+python --version
+iverilog -V
+vvp -V
 ```
+
+## Shared Files
+
+`compile_and_sim.py` compiles RTL with Icarus Verilog, converts one `.bin` into `sim/inst_data.txt`, and runs `tb/tb.v`.
+
+`inst_data.txt` and `out.vvp` are generated runtime files and should not be committed.
+
+## Test Flows
+
+| Folder | Purpose | Details |
+|--------|---------|---------|
+| `isa_test/` | Normal RV32I/RV32M instruction regression. | [isa_test/README.md](isa_test/README.md) |
+| `csr_test/` | CSR, exception, trap, `mret`, and external interrupt regression. | [csr_test/README.md](csr_test/README.md) |
+| `compliance_test/` | Imported ACT4/Sail golden signature comparison. | [compliance_test/README.md](compliance_test/README.md) |
+
+Run simulation commands sequentially. The runners share `sim/inst_data.txt` and
+`sim/out.vvp`, so parallel runs can overwrite each other's generated files.
 
