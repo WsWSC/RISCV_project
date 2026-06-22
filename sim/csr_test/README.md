@@ -1,16 +1,16 @@
 # CSR / Trap Regression Tests
 
-This folder contains CSR, exception, trap, `mret`, and external interrupt regression tests.
+This folder contains the CSR/trap/interrupt regression flow.
 
 ## Layout
 
 ```text
 sim/csr_test/
-  test_all.py
-  test_bin/
+  test_all.py           # run all tests
+  test_bin/             # committed test binaries
 ```
 
-`test_bin/` contains raw CSR/trap test binaries:
+Test binaries:
 
 ```text
 rv32csr-p-*.bin
@@ -18,7 +18,7 @@ rv32csr-p-*.bin
 
 ## Required Files
 
-The CSR runner expects:
+Required inputs:
 
 ```text
 sim/csr_test/test_bin/*.bin
@@ -27,21 +27,32 @@ tb/tb.v
 rtl/
 ```
 
-The `.bin` files are committed test inputs. Generated files stay under `sim/` and are ignored.
+The `.bin` files are repo files. Runtime outputs stay under `sim/` and are ignored.
 
 ## Commands
 
-Run all CSR/trap tests:
+Run commands from the repo root:
+
+Run all tests:
 
 ```powershell
 python sim\csr_test\test_all.py
 ```
 
-Debug all tests with verbose simulator output:
+## Debug Options
+
+| Option | Effect |
+| --- | --- |
+| `--trace` | Print per-cycle CPU trace from `tb.v`. |
+| `--dump` | Generate `tb.vcd` waveform. |
+| `--verbose` | Print simulator output for passing tests. |
+| `--timeout-cycles N` | Override the testbench timeout cycle count. |
 
 ```powershell
 python sim\csr_test\test_all.py --verbose
 python sim\csr_test\test_all.py --trace
+python sim\csr_test\test_all.py --dump
+python sim\csr_test\test_all.py --timeout-cycles 2000
 ```
 
 ## Testbench Convention
@@ -49,9 +60,9 @@ python sim\csr_test\test_all.py --trace
 CSR binaries use the existing testbench pass/fail convention:
 
 ```text
-x26 = 1: test finished
-x27 = 1: pass
-x27 = 0: fail
+x26 = 1 : test finished
+x27 = 1 : pass
+x27 = 0 : fail
 x3      : fail case id
 ```
 
