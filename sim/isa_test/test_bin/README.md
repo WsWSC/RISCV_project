@@ -5,7 +5,7 @@ This folder contains normal RV32I and RV32M regression binaries.
 These tests are intentionally separate from CSR / trap / interrupt tests, which live under:
 
 ```text
-sim/csr_test_bin/
+sim/csr_test/test_bin/
 ```
 
 ## File Naming
@@ -31,13 +31,13 @@ rv32um: RV32 multiply/divide extension tests
 Run every normal ISA test:
 
 ```powershell
-python sim\test_all.py
+python sim\isa_test\test_all.py
 ```
 
 Run one normal ISA test:
 
 ```powershell
-python sim\test_one_inst.py addi
+python sim\isa_test\test_one.py addi
 ```
 
 ## Generated Files

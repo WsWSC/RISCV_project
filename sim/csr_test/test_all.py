@@ -3,6 +3,8 @@ import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from compile_and_sim import bin_to_mem, list_binfiles, sim
 
 
@@ -16,11 +18,11 @@ EXPECTED_FAIL = set()
 
 
 def project_root():
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run every .bin test under sim/csr_test_bin.")
+    parser = argparse.ArgumentParser(description="Run every .bin test under sim/csr_test/test_bin.")
     parser.add_argument("--trace", action="store_true", help="Print per-cycle CPU trace for every test.")
     parser.add_argument("--dump", action="store_true", help="Dump tb.vcd. Usually useful only with one selected test.")
     parser.add_argument("--timeout-cycles", type=int, default=1000, help="Override tb.v simulation timeout in cycles.")
@@ -76,7 +78,7 @@ def passed_result(result, output):
 
 def main():
     args = parse_args()
-    bin_dir = os.path.join(project_root(), "sim", "csr_test_bin")
+    bin_dir = os.path.join(project_root(), "sim", "csr_test", "test_bin")
     all_bin_files = sorted(list_binfiles(bin_dir))
 
     failures = []

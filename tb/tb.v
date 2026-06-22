@@ -45,8 +45,21 @@ module tb;
     integer timeout_cycles;
     integer trace_en;
     integer dump_en;
+    integer compliance_en;
+    integer compliance_data_en;
+    integer signature_start;
+    integer signature_end;
+    integer signature_start_word;
+    integer signature_end_word;
+    integer sig_file;
+    integer sig_i;
+    integer tohost_en;
+    integer tohost_addr;
+    integer tohost_word;
+    reg[31:0] tohost_value;
     integer external_irq_cycle;
     integer external_irq_cycle_en;
+    reg[1023:0] compliance_data_file;
 
     initial begin
         cycle_count   = 0;
@@ -59,12 +72,36 @@ module tb;
         reg_write_count = 0;
 
         timeout_cycles = 100000;
-        trace_en = $test$plusargs("trace");
-        dump_en  = $test$plusargs("dump");
+        trace_en           = $test$plusargs("trace");
+        dump_en            = $test$plusargs("dump");
+        compliance_en      = $test$plusargs("compliance");
+        compliance_data_en = $test$plusargs("compliance_data");
+        signature_start    = 0;
+        signature_end      = 0;
+        tohost_addr        = 0;
+        tohost_value       = `ZeroWord;
+        compliance_data_file = 0;
         external_irq_cycle_en = $value$plusargs("external_irq_cycle=%d", external_irq_cycle);
+        tohost_en = $value$plusargs("tohost_addr=%h", tohost_addr);
 
         if (!$value$plusargs("timeout_cycles=%d", timeout_cycles))
             timeout_cycles = 100000;
+
+        if (!$value$plusargs("signature_start=%h", signature_start))
+            signature_start = 0;
+
+        if (!$value$plusargs("signature_end=%h", signature_end))
+            signature_end = 0;
+
+        if (compliance_en && compliance_data_en) begin
+            if ($value$plusargs("compliance_data_file=%s", compliance_data_file))
+                $readmemh(compliance_data_file, tb.soc_inst.data_ram_inst.ram);
+        end
+
+        if (compliance_en && tohost_en) begin
+            tohost_word = tohost_addr >> 2;
+            tb.soc_inst.data_ram_inst.ram[tohost_word] = `ZeroWord;
+        end
 
         if (dump_en) begin
             $dumpfile("tb.vcd");
@@ -204,28 +241,70 @@ module tb;
         end
     endtask
 
+    task dump_signature;
+        begin
+            if (signature_end > signature_start) begin
+                signature_start_word = signature_start >> 2;
+                signature_end_word   = signature_end >> 2;
+                sig_file = $fopen("../sim/compliance_test/DUT_runtime/out/current.sig", "w");
+
+                if (sig_file == 0) begin
+                    $display("compliance signature dump open failed");
+                end else begin
+                    for (sig_i = signature_start_word; sig_i < signature_end_word; sig_i = sig_i + 1) begin
+                        $fdisplay(sig_file, "%08x", tb.soc_inst.data_ram_inst.ram[sig_i]);
+                    end
+                    $fclose(sig_file);
+                    $display("compliance signature dumped");
+                end
+            end else begin
+                $display("compliance signature range is empty");
+            end
+        end
+    endtask
+
     initial begin
         #1;
         fork
             begin
-                wait(x26 == 32'b1);
-                repeat(2) @(posedge clk);
+                if (!compliance_en) begin
+                    wait(x26 == 32'b1);
+                    repeat(2) @(posedge clk);
 
-                if(x27 == 32'b1) begin
-                    $display("##################################\n");
-                    $display("##########     pass     ##########\n");
-                    $display("##################################\n");
+                    if(x27 == 32'b1) begin
+                        $display("##################################\n");
+                        $display("##########     pass     ##########\n");
+                        $display("##################################\n");
+                    end else begin
+                        $display("##################################\n");
+                        $display("##########     fail     ##########\n");
+                        $display("##################################\n");
+
+                        $display("fail at test case %2d\n", x3);
+                        print_regs();
+                    end
+
+                    print_summary();
+                    $finish();
                 end else begin
-                    $display("##################################\n");
-                    $display("##########     fail     ##########\n");
-                    $display("##################################\n");
-
-                    $display("fail at test case %2d\n", x3);
-                    print_regs();
+                    if (tohost_en) begin
+                        while ((tb.soc_inst.data_ram_inst.ram[tohost_word] != 32'h1) &&
+                               (tb.soc_inst.data_ram_inst.ram[tohost_word] != 32'h3)) begin
+                            @(posedge clk);
+                        end
+                        tohost_value = tb.soc_inst.data_ram_inst.ram[tohost_word];
+                        if (tohost_value == 32'h1)
+                            $display("compliance tohost done");
+                        else
+                            $display("compliance tohost fail: %08x", tohost_value);
+                    end else begin
+                        wait(x26 == 32'b1);
+                    end
+                    repeat(2) @(posedge clk);
+                    dump_signature();
+                    print_summary();
+                    $finish();
                 end
-
-                print_summary();
-                $finish();
             end
 
             begin
@@ -233,6 +312,8 @@ module tb;
                 $display("##################################\n");
                 $display("##########    timeout    #########\n");
                 $display("##################################\n");
+                if (compliance_en)
+                    dump_signature();
                 print_summary();
                 print_regs();
                 $finish();

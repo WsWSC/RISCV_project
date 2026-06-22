@@ -59,11 +59,15 @@ def bin_to_mem(infile, outfile):
     datafile.close()
  
 
-def compile():
+def compile(iverilog_defines=None):
     # project root = RISCV_PROJECT
     root_dir = project_root()
 
     iverilog_cmd = ['iverilog', '-g2012']
+
+    if iverilog_defines:
+        for define in iverilog_defines:
+            iverilog_cmd.append('-D' + define)
 
     # output
     iverilog_cmd += ['-o', 'out.vvp']
@@ -106,13 +110,13 @@ def compile():
 
     # compile
     process = subprocess.Popen(iverilog_cmd, cwd=sim_dir())
-    process.wait(timeout=10)
+    process.wait(timeout=60)
     return process.returncode
 
 
-def sim(vvp_args=None):
+def sim(vvp_args=None, iverilog_defines=None, vvp_timeout=10):
     # 1. compile RTL files
-    compile_rc = compile()
+    compile_rc = compile(iverilog_defines)
     if compile_rc != 0:
         return compile_rc
     
@@ -124,7 +128,7 @@ def sim(vvp_args=None):
 
     process = subprocess.Popen(vvp_cmd, cwd=sim_dir())
     try:
-        process.wait(timeout=10)
+        process.wait(timeout=vvp_timeout)
     except subprocess.TimeoutExpired:
         print('!!!Fail, vvp exec timeout!!!')
         process.kill()

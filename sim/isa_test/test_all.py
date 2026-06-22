@@ -3,15 +3,17 @@ import subprocess
 import sys
 import argparse
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from compile_and_sim import list_binfiles
 
 
 def project_root():
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Run every .bin test under sim/test_bin.')
+    parser = argparse.ArgumentParser(description='Run every .bin test under sim/isa_test/test_bin.')
     parser.add_argument('--trace', action='store_true', help='Print per-cycle CPU trace for every test.')
     parser.add_argument('--dump', action='store_true', help='Dump tb.vcd. Usually useful only with one selected test.')
     parser.add_argument('--timeout-cycles', type=int, help='Override tb.v simulation timeout in cycles.')
@@ -44,8 +46,8 @@ def main():
     # get project root directory
     rtl_dir = project_root()
 
-    # get all .bin instruction files under sim/test_bin
-    all_bin_files = sorted(list_binfiles(rtl_dir + r'/sim/test_bin/'))
+    # get all .bin instruction files under sim/isa_test/test_bin
+    all_bin_files = sorted(list_binfiles(rtl_dir + r'/sim/isa_test/test_bin/'))
     
     # run simulation one by one
     failures = []

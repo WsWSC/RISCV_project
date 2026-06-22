@@ -37,7 +37,11 @@
 // Mem related
 `define MemAddrBus      31:0
 `define MemDataBus      31:0
+`ifdef  COMPLIANCE_MEM
+`define MemNum          65536
+`else
 `define MemNum          4096
+`endif
 
 // Inst related
 `define InstAddrBus     31:0

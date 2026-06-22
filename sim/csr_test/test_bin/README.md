@@ -2,14 +2,15 @@
 
 This folder contains CSR and exception regression binaries.
 
-It is intentionally separate from `sim/test_bin/` so normal RV32I/RV32M regression can stay stable while CSR and trap behavior is tested by its own runner.
+It is intentionally separate from `sim/isa_test/test_bin/` so normal RV32I/RV32M regression can stay stable while CSR and trap behavior is tested by its own runner.
 
 ## Layout
 
 ```text
 sim/
-  test_csr.py
-  csr_test_bin/
+  csr_test/
+    test_all.py
+    test_bin/
     rv32csr-p-*.bin
 ```
 
@@ -80,12 +81,12 @@ x3      : fail case id
 
 ## Regression Policy
 
-This folder is not scanned by `sim/test_all.py`.
+This folder is not scanned by `sim/isa_test/test_all.py`.
 
 CSR tests are run by:
 
 ```text
-python sim/test_csr.py
+python sim/csr_test/test_all.py
 ```
 
 That runner scans only this folder and should not affect normal RV32I/RV32M regression.

@@ -1,41 +1,42 @@
-# VS Code
+# Editor / local workspace
 .vscode/
 
-# drawio
-*.drawio
-*.drawio.bkp
-
-# ModelSim runtime artifacts
-sim_modelsim/
+# Local notes
+AGENTS.md
+COMPLIANCE_ACT4_REQUIREMENTS.md
+CSR_CLINT_FSM_RIB_DISCUSSION.md
 
 # Python cache
 __pycache__/
 *.pyc
 
-# Simulation test_bin data
-sim/test_bin/*
-!sim/test_bin/*.bin
-sim/compliance_test_bin/*
-sim/__pycache__/
+# Simulation runtime artifacts
 sim/*.vvp
 sim/inst_data.txt
+*.vcd
+
+# Waveform / simulator logs
+*.log
+*.wlf
+transcript
+sim_modelsim/
+
+# ISA local generated files
+sim/isa_test/test_bin/*
+!sim/isa_test/test_bin/*.bin
+!sim/isa_test/test_bin/README.md
+
+# Compliance generated files
+sim/compliance_test/golden_sig/
+sim/compliance_test/DUT_metadata/
+sim/compliance_test/DUT_runtime/
 
 # Local custom CPU tests
 custom_cpu_tests/
 
-# Temporary / log files
-*.log
-*.wlf
-transcript
-
-# Reference
+# Local reference material
 reference/
 
-# Local notes
-*.md
-AGENTS.md
-
-# Tracked CSR regression input
-!sim/csr_test_bin/
-!sim/csr_test_bin/README.md
-!sim/csr_test_bin/*.bin
+# Draw.io source files
+*.drawio
+*.drawio.bkp
