@@ -1,19 +1,10 @@
-# Compliance Test
-
-## What This Flow Does
+# Compliance Tests
 
 This folder runs ACT4/Sail golden signature checks for the DUT.
 
 Golden files are generated in WSL, then copied back into this Windows repo.
 
-This flow uses two external repos in WSL:
-
-- [riscv/riscv-arch-test](https://github.com/riscv/riscv-arch-test)
-- [WsWSC/3-stage-riscv-golden-generator](https://github.com/WsWSC/3-stage-riscv-golden-generator)
-
-## Files And Roles
-
-Windows repo:
+## Layout
 
 ```text
 sim/compliance_test/
@@ -25,13 +16,25 @@ sim/compliance_test/
   DUT_runtime/          # generated, binaries/data/output
 ```
 
-WSL:
+External WSL repos:
+
+- [riscv/riscv-arch-test](https://github.com/riscv/riscv-arch-test)
+- [WsWSC/3-stage-riscv-golden-generator](https://github.com/WsWSC/3-stage-riscv-golden-generator)
+
+## Required Files
+
+Required inputs:
 
 ```text
-~/risc-v/
-  riscv-arch-test/                  # official ACT4
-  3-stage-riscv-golden-generator/   # golden generator
+sim/compliance_test/golden_sig/*.sig
+sim/compliance_test/DUT_metadata/*.json
+sim/compliance_test/DUT_runtime/bin/*.bin
+sim/compile_and_sim.py
+tb/tb.v
+rtl/
 ```
+
+The generated compliance files come from the WSL golden generator.
 
 ## Setup
 
@@ -100,7 +103,7 @@ Main settings in `config.env`:
 | `ACT4_WORK` | Build/cache folder |
 | `EXTENSIONS` | ACT4 extensions to build, usually `I M` |
 
-## Run Compliance Tests
+## Commands
 
 Step 1. Generate golden files from WSL:
 
@@ -108,17 +111,6 @@ Step 1. Generate golden files from WSL:
 cd ~/risc-v/3-stage-riscv-golden-generator
 ./generate_golden.sh
 ```
-
-Generated output in this Windows repo:
-
-| Output | Purpose |
-| --- | --- |
-| `golden_sig/*.sig` | Sail golden signatures |
-| `DUT_metadata/*.json` | Per-test metadata |
-| `DUT_runtime/bin/*.bin` | DUT binaries |
-| `DUT_runtime/data/*.data` | DUT data images |
-
-Expected count: `47` files in each output group.
 
 Step 2. Run compliance tests from Windows PowerShell at the repo root.
 
@@ -140,6 +132,19 @@ python sim\compliance_test\test_all.py
 ```
 
 Do not run multiple compliance commands in parallel. These scripts share `sim/inst_data.txt` and `sim/out.vvp`.
+
+## Generated Files
+
+Generated output in this Windows repo:
+
+| Output | Purpose |
+| --- | --- |
+| `golden_sig/*.sig` | Sail golden signatures |
+| `DUT_metadata/*.json` | Per-test metadata |
+| `DUT_runtime/bin/*.bin` | DUT binaries |
+| `DUT_runtime/data/*.data` | DUT data images |
+
+Expected count: `47` files in each output group.
 
 ## Common Failures
 
