@@ -1,17 +1,17 @@
 # ISA Regression Tests
 
-This folder contains the normal RV32I/RV32M regression flow.
+This folder contains the RV32I/RV32M instruction regression flow.
 
 ## Layout
 
 ```text
 sim/isa_test/
-  test_all.py
-  test_one.py
-  test_bin/
+  test_all.py           # run all tests
+  test_one.py           # run one test
+  test_bin/             # committed test binaries
 ```
 
-`test_bin/` contains raw instruction binaries:
+Test binaries:
 
 ```text
 rv32ui-p-*.bin
@@ -20,7 +20,7 @@ rv32um-p-*.bin
 
 ## Required Files
 
-The ISA runner expects:
+Required inputs:
 
 ```text
 sim/isa_test/test_bin/*.bin
@@ -29,32 +29,54 @@ tb/tb.v
 rtl/
 ```
 
-The `.bin` files are committed test inputs. Generated files stay under `sim/` and are ignored.
+The `.bin` files are repo files. Runtime outputs stay under `sim/` and are ignored.
 
 ## Commands
 
-Run all ISA tests:
+Run commands from the repo root:
+
+Run all tests:
 
 ```powershell
 python sim\isa_test\test_all.py
 ```
 
-Run one ISA test:
+Run one test:
 
 ```powershell
 python sim\isa_test\test_one.py addi
 ```
 
-Debug one test:
+## Debug Options
+
+| Option | Effect |
+| --- | --- |
+| `--trace` | Print per-cycle CPU trace from `tb.v`. |
+| `--dump` | Generate `tb.vcd` waveform. |
+| `--verbose` | Print simulator output for passing tests. |
+| `--timeout-cycles N` | Override the testbench timeout cycle count. |
 
 ```powershell
 python sim\isa_test\test_one.py addi --trace
 python sim\isa_test\test_one.py addi --dump
+python sim\isa_test\test_all.py --verbose
+python sim\isa_test\test_one.py addi --timeout-cycles 2000
+```
+
+## Testbench Convention
+
+ISA binaries use the existing testbench pass/fail convention:
+
+```text
+x26 = 1 : test finished
+x27 = 1 : pass
+x27 = 0 : fail
+x3      : fail case id
 ```
 
 ## Generated Files
 
-The runner converts the selected `.bin` into:
+The runner converts each selected `.bin` into:
 
 ```text
 sim/inst_data.txt
