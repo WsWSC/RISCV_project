@@ -10,9 +10,8 @@ with automated verification for ISA, CSR, trap, interrupt, and imported complian
 - [Architecture](#architecture)
   - [3-Stage Pipeline](#3-stage-pipeline)
   - [System Organization](#system-organization)
-    - [Core Architecture](#core-architecture)
-    - [SoC Structure](#soc-structure)
 - [Implementation Status](#implementation-status)
+  - [Future Work](#future-work)
 - [Simulation & Verification](#simulation--verification)
   - [Test Result Summary](#test-result-summary)
 - [Reference](#reference)
@@ -76,21 +75,27 @@ The **SoC layer** integrates the Core, Instruction ROM, Data RAM, and external i
 
 ## Implementation Status
 
+| Item | Status | Completed On | Note |
+|------|--------|--------------|------|
+| 3-stage pipeline structure | ✅ Done | 2026-01-21 | IF / ID / EX architecture organization |
+| RV32I base instructions | ✅ Done | 2026-02-04 | Integer, branch/jump, load/store, write-back |
+| RV32M extension | ✅ Done | 2026-02-10 | Single-cycle M extension baseline |
+| RV32M multi-cycle MUL | ✅ Done | 2026-03-03 | `MUL`, `MULH`, `MULHSU`, `MULHU` |
+| RV32M multi-cycle DIV | ✅ Done | 2026-05-19 | `DIV`, `DIVU`, `REM`, `REMU` |
+| Forwarding, load-use bubble | ✅ Done | 2026-05-19 | - |
+| Machine CSR, trap, `mret`, MEI | ✅ Done | 2026-06-18 | - |
+| CSR regression | ✅ Done | 2026-06-22 | - |
+| Architecture compliance tests | ✅ Done | 2026-06-22 | ACT4 tests compared against Sail golden signatures |
+| Privileged architecture | ⚠️ Partial | - | Machine-mode subset only |
+| RIB | 🔄 Ongoing | - | RISC-V Internal Bus |
+
+### Future Work
+
 | Item | Status | Note |
 |------|--------|------|
-| RV32IM 3-stage pipeline | ✅ | - |
-| IF/ID, ID/EX registers | ✅ | - |
-| Load/store, branch/jump, write-back | ✅ | - |
-| Forwarding, load-use bubble | ✅ | - |
-| Machine CSR, trap, `mret`, MEI | ✅ | - |
-| RV32I/RV32M, CSR regression | ✅ | - |
-| ACT4/Sail compliance | ✅ | Local golden checks |
-| Privileged architecture | | - |
-| Timer/software interrupt | | - |
-| Vectored `mtvec` | | - |
-| RIB | | RISC-V Internal Bus |
-| MMIO/standard bus | | - |
-| Cache/branch prediction | | - |
+| Timer/software interrupt | ⛔ Not Implemented | Future CLINT extension |
+| Vectored `mtvec` | ⛔ Not Implemented | Optional trap mode |
+| MMIO/standard bus | ⛔ Not Implemented | After RIB |
 
 <br>
 
