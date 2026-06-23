@@ -78,6 +78,7 @@ def compile(iverilog_defines=None, compile_timeout=60):
     iverilog_cmd += ['-I', root_dir + '/rtl/core']
     iverilog_cmd += ['-I', root_dir + '/rtl/mem']
     iverilog_cmd += ['-I', root_dir + '/rtl/soc']
+    iverilog_cmd += ['-I', root_dir + '/rtl/bus']
 
     # testbench
     iverilog_cmd.append(root_dir + '/tb/tb.v')
@@ -104,6 +105,9 @@ def compile(iverilog_defines=None, compile_timeout=60):
     # memory
     iverilog_cmd.append(root_dir + '/rtl/mem/inst_rom.v')
     iverilog_cmd.append(root_dir + '/rtl/mem/data_ram.v')
+
+    # bus
+    iverilog_cmd.append(root_dir + '/rtl/bus/rib.v')
 
     # SoC top
     iverilog_cmd.append(root_dir + '/rtl/soc/soc.v')
