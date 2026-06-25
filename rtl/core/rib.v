@@ -35,24 +35,13 @@ module rib(
     //  Main logic
     // ============================================================
     always @(*) begin
-        ram_w_en_o   = `WriteDisable;
-        ram_w_sel_o  = 4'b0;
-        ram_w_addr_o = `ZeroAddr;
-        ram_w_data_o = `ZeroWord;
-        ram_r_addr_o = `ZeroAddr;
-        rib_r_data_o = `ZeroWord;
+        ram_w_en_o   = rib_w_en_i;
+        ram_w_sel_o  = rib_w_sel_i;
+        ram_w_addr_o = rib_w_addr_i;
+        ram_w_data_o = rib_w_data_i;
 
-        if (rst_n) begin
-            ram_w_en_o   = rib_w_en_i;
-            ram_w_sel_o  = rib_w_sel_i;
-            ram_w_addr_o = rib_w_addr_i;
-            ram_w_data_o = rib_w_data_i;
-
-            if (rib_r_en_i == `ReadEnable) begin
-                ram_r_addr_o = rib_r_addr_i;
-                rib_r_data_o = ram_r_data_i;
-            end
-        end
+        ram_r_addr_o = rib_r_addr_i;
+        rib_r_data_o = ram_r_data_i;
     end
 
 endmodule
