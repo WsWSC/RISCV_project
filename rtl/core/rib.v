@@ -32,16 +32,39 @@ module rib(
 );
 
     // ============================================================
+    //  Internal Signals
+    // ============================================================
+    localparam [31:0]  RAM_BASE       = 32'h0000_0000;
+    localparam [31:0]  RAM_SIZE       = (`MemNum << 2);
+    localparam [31:0]  RAM_END        = RAM_BASE + RAM_SIZE;
+
+    wire               rib_r_ram_sel  ;
+    wire               rib_w_ram_sel  ;
+
+    // select data_ram for in-range load
+    assign rib_r_ram_sel = (rib_r_en_i == `ReadEnable) &&
+                           (rib_r_addr_i >= RAM_BASE) &&
+                           (rib_r_addr_i <  RAM_END);
+
+    // select data_ram for in-range store
+    assign rib_w_ram_sel = (rib_w_en_i == `WriteEnable) &&
+                           (rib_w_addr_i >= RAM_BASE) &&
+                           (rib_w_addr_i <  RAM_END);
+
+
+    // ============================================================
     //  Main logic
     // ============================================================
     always @(*) begin
-        ram_w_en_o   = rib_w_en_i;
-        ram_w_sel_o  = rib_w_sel_i;
-        ram_w_addr_o = rib_w_addr_i;
-        ram_w_data_o = rib_w_data_i;
+        // out-of-range access: read zero, ignore write
+        ram_w_en_o   = rib_w_ram_sel ? rib_w_en_i   : `WriteDisable;
+        ram_w_sel_o  = rib_w_ram_sel ? rib_w_sel_i  : 4'b0;
+        ram_w_addr_o = rib_w_ram_sel ? rib_w_addr_i : `ZeroAddr;
+        ram_w_data_o = rib_w_ram_sel ? rib_w_data_i : `ZeroWord;
 
-        ram_r_addr_o = rib_r_addr_i;
-        rib_r_data_o = ram_r_data_i;
+        // in-range access: pass through to data_ram
+        ram_r_addr_o = rib_r_ram_sel ? rib_r_addr_i : `ZeroAddr;
+        rib_r_data_o = rib_r_ram_sel ? ram_r_data_i : `ZeroWord;
     end
 
 endmodule
