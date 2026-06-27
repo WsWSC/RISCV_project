@@ -26,6 +26,7 @@ sim_modelsim/
 sim/isa_test/test_bin/*
 !sim/isa_test/test_bin/*.bin
 !sim/isa_test/test_bin/README.md
+sim/isa_test/test_bin/rv32ui-p-rib_oob.bin
 
 # Compliance generated files
 sim/compliance_test/golden_sig/
