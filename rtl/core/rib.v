@@ -34,6 +34,9 @@ module rib(
     // ============================================================
     //  Internal Signals
     // ============================================================
+    // Address map:
+    // 0x0000_0000 ~ RAM_END-1 : data_ram
+    // others                  : read zero, ignore write
     localparam [31:0]  RAM_BASE       = 32'h0000_0000;
     localparam [31:0]  RAM_SIZE       = (`MemNum << 2);
     localparam [31:0]  RAM_END        = RAM_BASE + RAM_SIZE;
