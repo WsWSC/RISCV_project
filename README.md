@@ -55,7 +55,7 @@ IF -> ID -> EX
 
 
 ### System Organization
-![SoC Architecture](img/Architecture_soc.png)
+![Core Architecture](img/Arichtecture-core.drawio.png)
 
 The SoC view shows the full 3-stage pipeline system in one diagram. The Core
 contains PC generation, IF/ID and ID/EX pipeline registers, decode, register
