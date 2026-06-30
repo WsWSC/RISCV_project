@@ -64,23 +64,23 @@ module ctrl(
         jump_addr_o        = jump_addr_i   ;
         jump_en_o          = jump_en_i     ;
 
-        if (trap_jump_en_i) begin               // trap
+        if (trap_jump_en_i) begin                       // trap
             if_id_flush_flag_o = `FlushEnable;
             id_ex_flush_flag_o = `FlushEnable;
             jump_addr_o        = trap_jump_addr_i;
             jump_en_o          = `JumpEnable;
-        end else if (clint_hold_req_i) begin    // CLINT CSR update
+        end else if (clint_hold_req_i) begin            // CLINT CSR update
             pc_stall_flag_o    = `StallEnable;
             if_id_stall_flag_o = `StallEnable;
             id_ex_stall_flag_o = `StallEnable;
-        end else if (jump_en_i || flush_req_i) begin     // jump
+        end else if (jump_en_i || flush_req_i) begin    // jump
             if_id_flush_flag_o = `FlushEnable;
             id_ex_flush_flag_o = `FlushEnable;
-        end else if (stall_req_i) begin         // stall
+        end else if (stall_req_i) begin                 // stall
             pc_stall_flag_o    = `StallEnable;
             if_id_stall_flag_o = `StallEnable;
             id_ex_stall_flag_o = `StallEnable;
-        end else if (hazard_stall_req_i) begin  // load-use bubble
+        end else if (hazard_stall_req_i) begin          // load-use bubble
             pc_stall_flag_o    = `StallEnable;
             if_id_stall_flag_o = `StallEnable;
             id_ex_flush_flag_o = `FlushEnable;
