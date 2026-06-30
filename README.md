@@ -55,23 +55,18 @@ IF -> ID -> EX
 
 
 ### System Organization
-The processor is organized into two major layers:
+![SoC Architecture](img/Architecture_soc.png)
 
-- **Core**
-- **SoC**
+The SoC view shows the full 3-stage pipeline system in one diagram. The Core
+contains PC generation, IF/ID and ID/EX pipeline registers, decode, register
+file, execute / memory / CSR / write-back logic, multi-cycle MUL / DIV units,
+trap handling, and pipeline control.
 
-
-#### Core Architecture
-![Core](img/Architecture_core.png)
-
-The **Core** contains the pipeline datapath, register file, ALU, load/store logic,
-multi-cycle RV32M units, forwarding / hazard control, CSR registers, and trap control.
-
-
-#### SoC Structure
-![SoC](img/Architecture_soc.png)
-
-The **SoC layer** integrates the Core, Instruction ROM, Data RAM, and external interrupt input.
+At the SoC level, the Core is integrated with Instruction ROM, Data RAM, and
+the RIB (RISC-V Internal Bus). The current RTL uses direct instruction fetch
+from `inst_rom` and routes data memory access through `rib` to `data_ram`;
+the dotted peripheral blocks in the diagram represent planned RIB expansion
+targets.
 
 ## Implementation Status
 
