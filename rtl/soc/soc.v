@@ -16,8 +16,13 @@ module soc(
     // ============================================================
     // core to inst_rom
     wire[31:0]  core_inst_addr_o ;
+    wire        rib_inst_stall_o  ;
 
-    // inst_rom to core
+    // rib to core instruction fetch
+    wire[31:0]  rib_inst_o       ;
+
+    // rib to inst_rom
+    wire[31:0]  rib_inst_addr_o  ;
     wire[31:0]  inst_rom_inst_o  ;
 
     // core to rib read
@@ -48,9 +53,10 @@ module soc(
     core core_inst(
         .clk                (clk                        ),
         .rst_n              (rst_n                      ),
-        .inst_i             (inst_rom_inst_o            ),
+        .inst_i             (rib_inst_o                 ),
 
         .inst_addr_o        (core_inst_addr_o           ),
+        .inst_stall_i       (rib_inst_stall_o           ),
 
         .data_ram_r_en_o    (core_data_ram_r_en_o       ),
         .data_ram_r_addr_o  (core_data_ram_r_addr_o     ),
@@ -74,7 +80,7 @@ module soc(
         .w_data_i           (32'b0              ),
 
         // read data
-        .r_addr_i           (core_inst_addr_o   ),
+        .r_addr_i           (rib_inst_addr_o    ),
 
         .r_data_o           (inst_rom_inst_o    )
     );
@@ -82,6 +88,11 @@ module soc(
     rib rib_inst(
         .clk                (clk                    ),
         .rst_n              (rst_n                  ),
+
+        // from core instruction fetch
+        .rib_inst_addr_i    (core_inst_addr_o       ),
+        .rib_inst_data_o    (rib_inst_o             ),
+        .rib_inst_stall_o   (rib_inst_stall_o       ),
 
         // from core data access
         .rib_r_en_i         (core_data_ram_r_en_o   ),
@@ -100,7 +111,11 @@ module soc(
         .ram_w_data_o       (rib_data_ram_w_data_o  ),
 
         .ram_r_addr_o       (rib_data_ram_r_addr_o  ),
-        .ram_r_data_i       (data_ram_r_data_o      )
+        .ram_r_data_i       (data_ram_r_data_o      ),
+
+        // to inst_rom
+        .rom_r_addr_o       (rib_inst_addr_o        ),
+        .rom_r_data_i       (inst_rom_inst_o        )
     );
 
     data_ram data_ram_inst(

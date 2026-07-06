@@ -22,6 +22,9 @@ module ctrl(
     // load-use hazard request
     input  wire         hazard_stall_req_i  ,
 
+    // RIB instruction fetch is blocked by data access
+    input  wire         rib_inst_stall_req_i,
+
     // aggregate debug / trace flags
     output reg          flush_flag_o        ,       // flush or bubble
     output reg          stall_flag_o        ,       // any pipeline hold
@@ -51,7 +54,8 @@ module ctrl(
     //   3. jump/flush request: discard younger instructions
     //   4. multi-cycle stall: hold PC, IF/ID, and ID/EX
     //   5. load-use hazard: hold PC and IF/ID, inject NOP into ID/EX
-    //   6. normal: pipeline advances
+    //   6. RIB fetch blocked: hold PC, inject NOP into IF/ID
+    //   7. normal: pipeline advances
     always @(*) begin
         // default
         flush_flag_o       = `FlushDisable ;
@@ -84,6 +88,9 @@ module ctrl(
             pc_stall_flag_o    = `StallEnable;
             if_id_stall_flag_o = `StallEnable;
             id_ex_flush_flag_o = `FlushEnable;
+        end else if (rib_inst_stall_req_i) begin        // RIB fetch bubble
+            pc_stall_flag_o    = `StallEnable;
+            if_id_flush_flag_o = `FlushEnable;
         end
 
         flush_flag_o = if_id_flush_flag_o || id_ex_flush_flag_o;

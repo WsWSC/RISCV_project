@@ -14,6 +14,7 @@ module core(
     // inst_rom
     input  wire[31:0]   inst_i              ,
     output wire[31:0]   inst_addr_o         ,
+    input  wire         inst_stall_i        ,
 
     // data_ram
     // read (from ex)
@@ -518,6 +519,9 @@ module core(
 
         // load-use hazard request
         .hazard_stall_req_i (load_use_hazard_req    ),
+
+        // RIB instruction fetch blocked by data access
+        .rib_inst_stall_req_i(inst_stall_i           ),
 
         // to pc_reg & if_id & id_ex
         .flush_flag_o       (ctrl_flush_flag_o      ),
