@@ -11,6 +11,11 @@ module rib(
     input  wire                 clk,
     input  wire                 rst_n,
 
+    // from core instruction fetch
+    input  wire [`MemAddrBus]   rib_inst_addr_i,
+    output reg  [`MemDataBus]   rib_inst_data_o,
+    output reg                  rib_inst_stall_o,
+
     // from core data access
     input  wire                 rib_r_en_i,
     input  wire [`MemAddrBus]   rib_r_addr_i,
@@ -28,7 +33,11 @@ module rib(
     output reg  [`MemDataBus]   ram_w_data_o,
 
     output reg  [`MemAddrBus]   ram_r_addr_o,
-    input  wire [`MemDataBus]   ram_r_data_i
+    input  wire [`MemDataBus]   ram_r_data_i,
+
+    // to inst_rom
+    output reg  [`MemAddrBus]   rom_r_addr_o,
+    input  wire [`MemDataBus]   rom_r_data_i
 );
 
     // ============================================================
@@ -43,6 +52,10 @@ module rib(
 
     wire               rib_r_ram_sel  ;
     wire               rib_w_ram_sel  ;
+    wire               rib_data_req   ;
+
+    assign rib_data_req = (rib_r_en_i == `ReadEnable) ||
+                          (rib_w_en_i == `WriteEnable);
 
     // select data_ram for in-range load
     assign rib_r_ram_sel = (rib_r_en_i == `ReadEnable) &&
@@ -59,6 +72,11 @@ module rib(
     //  Main logic
     // ============================================================
     always @(*) begin
+        // priority: data access > instruction fetch
+        rib_inst_stall_o = rib_data_req;
+        rom_r_addr_o     = rib_data_req ? `ZeroAddr : rib_inst_addr_i;
+        rib_inst_data_o  = rib_data_req ? `INST_NOP : rom_r_data_i;
+
         // out-of-range access: read zero, ignore write
         ram_w_en_o   = rib_w_ram_sel ? rib_w_en_i   : `WriteDisable;
         ram_w_sel_o  = rib_w_ram_sel ? rib_w_sel_i  : 4'b0;

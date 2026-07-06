@@ -1,5 +1,6 @@
 # Editor / local workspace
 .vscode/
+.slang/
 
 # Local notes
 AGENTS.md
