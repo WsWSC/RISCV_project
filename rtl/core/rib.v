@@ -11,33 +11,33 @@ module rib(
     input  wire                 clk,
     input  wire                 rst_n,
 
-    // from core instruction fetch
-    input  wire [`MemAddrBus]   rib_inst_addr_i,
-    output reg  [`MemDataBus]   rib_inst_data_o,
-    output reg                  rib_inst_stall_o,
+    // master 0: instruction fetch
+    input  wire [`MemAddrBus]   m0_if_addr_i,
+    output reg  [`MemDataBus]   m0_if_data_o,
+    output reg                  m0_if_stall_o,
 
-    // from core data access
-    input  wire                 rib_r_en_i,
-    input  wire [`MemAddrBus]   rib_r_addr_i,
-    output reg  [`MemDataBus]   rib_r_data_o,
+    // master 1: load/store memory access
+    input  wire                 m1_mem_r_en_i,
+    input  wire [`MemAddrBus]   m1_mem_r_addr_i,
+    output reg  [`MemDataBus]   m1_mem_r_data_o,
 
-    input  wire                 rib_w_en_i,
-    input  wire [3:0]           rib_w_sel_i,
-    input  wire [`MemAddrBus]   rib_w_addr_i,
-    input  wire [`MemDataBus]   rib_w_data_i,
+    input  wire                 m1_mem_w_en_i,
+    input  wire [3:0]           m1_mem_w_sel_i,
+    input  wire [`MemAddrBus]   m1_mem_w_addr_i,
+    input  wire [`MemDataBus]   m1_mem_w_data_i,
 
-    // to data_ram
-    output reg                  ram_w_en_o,
-    output reg  [3:0]           ram_w_sel_o,
-    output reg  [`MemAddrBus]   ram_w_addr_o,
-    output reg  [`MemDataBus]   ram_w_data_o,
+    // slave 1: data_ram
+    output reg                  s1_ram_w_en_o,
+    output reg  [3:0]           s1_ram_w_sel_o,
+    output reg  [`MemAddrBus]   s1_ram_w_addr_o,
+    output reg  [`MemDataBus]   s1_ram_w_data_o,
 
-    output reg  [`MemAddrBus]   ram_r_addr_o,
-    input  wire [`MemDataBus]   ram_r_data_i,
+    output reg  [`MemAddrBus]   s1_ram_r_addr_o,
+    input  wire [`MemDataBus]   s1_ram_r_data_i,
 
-    // to inst_rom
-    output reg  [`MemAddrBus]   rom_r_addr_o,
-    input  wire [`MemDataBus]   rom_r_data_i
+    // slave 0: inst_rom
+    output reg  [`MemAddrBus]   s0_rom_r_addr_o,
+    input  wire [`MemDataBus]   s0_rom_r_data_i
 );
 
     // ============================================================
@@ -50,42 +50,42 @@ module rib(
     localparam [31:0]  RAM_SIZE       = (`MemNum << 2);
     localparam [31:0]  RAM_END        = RAM_BASE + RAM_SIZE;
 
-    wire               rib_r_ram_sel  ;
-    wire               rib_w_ram_sel  ;
-    wire               rib_data_req   ;
+    wire               m1_mem_ram_r_sel  ;
+    wire               m1_mem_ram_w_sel  ;
+    wire               m1_mem_req        ;
 
-    assign rib_data_req = (rib_r_en_i == `ReadEnable) ||
-                          (rib_w_en_i == `WriteEnable);
+    assign m1_mem_req = (m1_mem_r_en_i == `ReadEnable) ||
+                        (m1_mem_w_en_i == `WriteEnable);
 
     // select data_ram for in-range load
-    assign rib_r_ram_sel = (rib_r_en_i == `ReadEnable) &&
-                           (rib_r_addr_i >= RAM_BASE) &&
-                           (rib_r_addr_i <  RAM_END);
+    assign m1_mem_ram_r_sel = (m1_mem_r_en_i == `ReadEnable) &&
+                              (m1_mem_r_addr_i >= RAM_BASE) &&
+                              (m1_mem_r_addr_i <  RAM_END);
 
     // select data_ram for in-range store
-    assign rib_w_ram_sel = (rib_w_en_i == `WriteEnable) &&
-                           (rib_w_addr_i >= RAM_BASE) &&
-                           (rib_w_addr_i <  RAM_END);
+    assign m1_mem_ram_w_sel = (m1_mem_w_en_i == `WriteEnable) &&
+                              (m1_mem_w_addr_i >= RAM_BASE) &&
+                              (m1_mem_w_addr_i <  RAM_END);
 
 
     // ============================================================
     //  Main logic
     // ============================================================
     always @(*) begin
-        // priority: data access > instruction fetch
-        rib_inst_stall_o = rib_data_req;
-        rom_r_addr_o     = rib_data_req ? `ZeroAddr : rib_inst_addr_i;
-        rib_inst_data_o  = rib_data_req ? `INST_NOP : rom_r_data_i;
+        // priority: master 1 MEM > master 0 IF
+        m0_if_stall_o   = m1_mem_req;
+        s0_rom_r_addr_o = m1_mem_req ? `ZeroAddr : m0_if_addr_i;
+        m0_if_data_o    = m1_mem_req ? `INST_NOP : s0_rom_r_data_i;
 
         // out-of-range access: read zero, ignore write
-        ram_w_en_o   = rib_w_ram_sel ? rib_w_en_i   : `WriteDisable;
-        ram_w_sel_o  = rib_w_ram_sel ? rib_w_sel_i  : 4'b0;
-        ram_w_addr_o = rib_w_ram_sel ? rib_w_addr_i : `ZeroAddr;
-        ram_w_data_o = rib_w_ram_sel ? rib_w_data_i : `ZeroWord;
+        s1_ram_w_en_o   = m1_mem_ram_w_sel ? m1_mem_w_en_i   : `WriteDisable;
+        s1_ram_w_sel_o  = m1_mem_ram_w_sel ? m1_mem_w_sel_i  : 4'b0;
+        s1_ram_w_addr_o = m1_mem_ram_w_sel ? m1_mem_w_addr_i : `ZeroAddr;
+        s1_ram_w_data_o = m1_mem_ram_w_sel ? m1_mem_w_data_i : `ZeroWord;
 
         // in-range access: pass through to data_ram
-        ram_r_addr_o = rib_r_ram_sel ? rib_r_addr_i : `ZeroAddr;
-        rib_r_data_o = rib_r_ram_sel ? ram_r_data_i : `ZeroWord;
+        s1_ram_r_addr_o = m1_mem_ram_r_sel ? m1_mem_r_addr_i  : `ZeroAddr;
+        m1_mem_r_data_o = m1_mem_ram_r_sel ? s1_ram_r_data_i  : `ZeroWord;
     end
 
 endmodule
