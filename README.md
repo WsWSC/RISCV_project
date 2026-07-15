@@ -63,10 +63,11 @@ file, execute / memory / CSR / write-back logic, multi-cycle MUL / DIV units,
 trap handling, and pipeline control.
 
 At the SoC level, the Core is integrated with Instruction ROM, Data RAM, and
-the RIB (RISC-V Internal Bus). The current RTL uses direct instruction fetch
-from `inst_rom` and routes data memory access through `rib` to `data_ram`;
-the dotted peripheral blocks in the diagram represent planned RIB expansion
-targets.
+the RIB (RISC-V Internal Bus). The current RTL routes instruction fetch and
+data memory access through `rib` to `inst_rom` and `data_ram`. Data memory
+access has priority over instruction fetch, so the RIB can block IF and inject
+a fetch bubble while load/store traffic is using the bus. The dotted peripheral
+blocks in the diagram represent planned RIB expansion targets.
 
 ## Implementation Status
 
@@ -74,7 +75,7 @@ targets.
 |------|--------|--------------|------|
 | 3-stage pipeline structure | ✅ Done | 2026-01-21 | IF / ID / EX architecture organization |
 | RV32I base instructions | ✅ Done | 2026-02-04 | Integer, branch/jump, load/store, write-back |
-| RV32M extension | ✅ Done | 2026-02-10 | Single-cycle M extension baseline |
+| RV32M extension | ✅ Done | 2026-02-10 | RV32M instruction decode / execute support |
 | RV32M multi-cycle MUL | ✅ Done | 2026-03-03 | `MUL`, `MULH`, `MULHSU`, `MULHU` |
 | RV32M multi-cycle DIV | ✅ Done | 2026-05-19 | `DIV`, `DIVU`, `REM`, `REMU` |
 | Forwarding, load-use bubble | ✅ Done | 2026-05-19 | - |
@@ -103,7 +104,7 @@ flows.
 ### Test Result Summary
 | Category | Coverage | Status | Note |
 |----------|----------|--------|------|
-| ISA regression | RV32I/RV32M, load/store, branch/jump | ✅ | - |
+| ISA regression | RV32I/RV32M, load/store, branch/jump | ⚠️ | `fence_i` is a known gap |
 | Hazard handling | Forwarding, load-use bubble | ✅ | - |
 | CSR/trap regression | CSR ops, exceptions, `mret` | ✅ | - |
 | Interrupt handling | External interrupt enable/mask/pending | ✅ | - |
