@@ -52,6 +52,7 @@ CSR access validation tests:
 ```text
 rv32csr-p-invalid_csr.bin
 rv32csr-p-readonly_csr_write.bin
+rv32csr-p-no_write_zero.bin
 rv32csr-p-mstatus_mask.bin
 rv32csr-p-mie_mask.bin
 rv32csr-p-mip_mask.bin
