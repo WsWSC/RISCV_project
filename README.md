@@ -21,7 +21,7 @@ with automated verification for ISA, CSR, trap, interrupt, and imported complian
 ```text
 rtl/
   core/                 # Pipeline core, CSR, and trap modules
-  mem/                  # Instruction ROM / Data RAM
+  perips/               # Peripheral modules, including Instruction ROM / Data RAM
   soc/                  # SoC wrapper
   utils/                # Shared definitions & utilities
 

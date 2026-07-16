@@ -76,7 +76,7 @@ def compile(iverilog_defines=None, compile_timeout=60):
     iverilog_cmd += ['-I', root_dir + '/rtl']
     iverilog_cmd += ['-I', root_dir + '/rtl/utils']
     iverilog_cmd += ['-I', root_dir + '/rtl/core']
-    iverilog_cmd += ['-I', root_dir + '/rtl/mem']
+    iverilog_cmd += ['-I', root_dir + '/rtl/perips']
     iverilog_cmd += ['-I', root_dir + '/rtl/soc']
 
     # testbench
@@ -101,9 +101,9 @@ def compile(iverilog_defines=None, compile_timeout=60):
     iverilog_cmd.append(root_dir + '/rtl/core/clint.v')
     iverilog_cmd.append(root_dir + '/rtl/core/ctrl.v')
 
-    # memory
-    iverilog_cmd.append(root_dir + '/rtl/mem/inst_rom.v')
-    iverilog_cmd.append(root_dir + '/rtl/mem/data_ram.v')
+    # peripherals
+    iverilog_cmd.append(root_dir + '/rtl/perips/inst_rom.v')
+    iverilog_cmd.append(root_dir + '/rtl/perips/data_ram.v')
 
     iverilog_cmd.append(root_dir + '/rtl/core/rib.v')
 
