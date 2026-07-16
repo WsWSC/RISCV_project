@@ -19,11 +19,11 @@ module soc(
     wire        rib_if_stall_o    ;
 
     // rib to core instruction fetch
-    wire[31:0]  rib_if_data_o    ;
+    wire[31:0]  rib_if_r_data_o  ;
 
     // rib to inst_rom
-    wire[31:0]  rib_rom_addr_o   ;
-    wire[31:0]  inst_rom_inst_o  ;
+    wire[31:0]  rib_rom_r_addr_o ;
+    wire[31:0]  inst_rom_r_data_o;
 
     // core to rib read
     wire        core_data_ram_r_en_o        ;
@@ -53,7 +53,7 @@ module soc(
     core core_inst(
         .clk                (clk                        ),
         .rst_n              (rst_n                      ),
-        .inst_i             (rib_if_data_o              ),
+        .inst_i             (rib_if_r_data_o            ),
 
         .inst_addr_o        (core_inst_addr_o           ),
         .inst_stall_i       (rib_if_stall_o             ),
@@ -80,9 +80,9 @@ module soc(
         .w_data_i           (32'b0              ),
 
         // read data
-        .r_addr_i           (rib_rom_addr_o     ),
+        .r_addr_i           (rib_rom_r_addr_o   ),
 
-        .r_data_o           (inst_rom_inst_o    )
+        .r_data_o           (inst_rom_r_data_o  )
     );
 
     rib rib_inst(
@@ -90,8 +90,8 @@ module soc(
         .rst_n              (rst_n                  ),
 
         // master 0: instruction fetch
-        .m0_if_addr_i       (core_inst_addr_o       ),
-        .m0_if_data_o       (rib_if_data_o          ),
+        .m0_if_r_addr_i     (core_inst_addr_o       ),
+        .m0_if_r_data_o     (rib_if_r_data_o        ),
         .m0_if_stall_o      (rib_if_stall_o         ),
 
         // master 1: load/store memory access
@@ -114,8 +114,8 @@ module soc(
         .s1_ram_r_data_i    (data_ram_r_data_o      ),
 
         // slave 0: inst_rom
-        .s0_rom_r_addr_o    (rib_rom_addr_o         ),
-        .s0_rom_r_data_i    (inst_rom_inst_o        )
+        .s0_rom_r_addr_o    (rib_rom_r_addr_o       ),
+        .s0_rom_r_data_i    (inst_rom_r_data_o      )
     );
 
     data_ram data_ram_inst(

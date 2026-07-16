@@ -12,8 +12,8 @@ module rib(
     input  wire                 rst_n,
 
     // master 0: instruction fetch
-    input  wire [`MemAddrBus]   m0_if_addr_i,
-    output reg  [`MemDataBus]   m0_if_data_o,
+    input  wire [`MemAddrBus]   m0_if_r_addr_i,
+    output reg  [`MemDataBus]   m0_if_r_data_o,
     output reg                  m0_if_stall_o,
 
     // master 1: load/store memory access
@@ -140,12 +140,12 @@ module rib(
         // priority: master 1 MEM > master 0 IF
         if (master_grant == RIB_GRANT_IF) begin
             m0_if_stall_o   = `StallDisable;
-            s0_rom_r_addr_o = m0_if_addr_i;
-            m0_if_data_o    = s0_rom_r_data_i;
+            s0_rom_r_addr_o = m0_if_r_addr_i;
+            m0_if_r_data_o  = s0_rom_r_data_i;
         end else begin
             m0_if_stall_o   = `StallEnable;
             s0_rom_r_addr_o = `ZeroAddr;
-            m0_if_data_o    = `INST_NOP;
+            m0_if_r_data_o  = `INST_NOP;
         end
 
         s1_ram_w_en_o   = `WriteDisable;
