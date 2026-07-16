@@ -5,12 +5,12 @@
 //  License : Personal / Educational Use
 ////////////////////////////////////////////////////////////
 
-`ifndef __DFF_SET_V__
-`define __DFF_SET_V__
+`ifndef __GEN_DFF_V__
+`define __GEN_DFF_V__
 
 `include "defines.v"
 
-module dff_set #(
+module gen_dff #(
     parameter DW = 32
 )
 (

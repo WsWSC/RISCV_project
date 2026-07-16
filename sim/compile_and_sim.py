@@ -84,7 +84,7 @@ def compile(iverilog_defines=None, compile_timeout=60):
 
     # utils
     iverilog_cmd.append(root_dir + '/rtl/utils/defines.v')
-    iverilog_cmd.append(root_dir + '/rtl/utils/dff_set.v')
+    iverilog_cmd.append(root_dir + '/rtl/utils/gen_dff.v')
 
     # core
     iverilog_cmd.append(root_dir + '/rtl/core/core.v')
