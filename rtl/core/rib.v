@@ -50,12 +50,25 @@ module rib(
     localparam [31:0]  RAM_SIZE       = (`MemNum << 2);
     localparam [31:0]  RAM_END        = RAM_BASE + RAM_SIZE;
 
-    wire               m1_mem_ram_r_sel  ;
-    wire               m1_mem_ram_w_sel  ;
-    wire               m1_mem_req        ;
+    localparam [1:0]   GRANT_IF       = 2'b00;
+    localparam [1:0]   GRANT_MEM      = 2'b01;
+
+    wire [1:0]         req             ;
+    wire               m0_if_req       ;
+    wire               m1_mem_ram_r_sel;
+    wire               m1_mem_ram_w_sel;
+    wire               m1_mem_req      ;
+    wire               m1_mem_grant    ;
+    wire [1:0]         grant           ;
+
+    assign m0_if_req = 1'b1;
 
     assign m1_mem_req = (m1_mem_r_en_i == `ReadEnable) ||
                         (m1_mem_w_en_i == `WriteEnable);
+
+    assign req   = {m1_mem_req, m0_if_req};
+    assign grant = req[1] ? GRANT_MEM : GRANT_IF;
+    assign m1_mem_grant = (grant == GRANT_MEM);
 
     // select data_ram for in-range load
     assign m1_mem_ram_r_sel = (m1_mem_r_en_i == `ReadEnable) &&
@@ -67,25 +80,24 @@ module rib(
                               (m1_mem_w_addr_i >= RAM_BASE) &&
                               (m1_mem_w_addr_i <  RAM_END);
 
-
     // ============================================================
     //  Main logic
     // ============================================================
     always @(*) begin
         // priority: master 1 MEM > master 0 IF
-        m0_if_stall_o   = m1_mem_req;
-        s0_rom_r_addr_o = m1_mem_req ? `ZeroAddr : m0_if_addr_i;
-        m0_if_data_o    = m1_mem_req ? `INST_NOP : s0_rom_r_data_i;
+        m0_if_stall_o   = (grant != GRANT_IF);
+        s0_rom_r_addr_o = (grant == GRANT_IF) ? m0_if_addr_i    : `ZeroAddr;
+        m0_if_data_o    = (grant == GRANT_IF) ? s0_rom_r_data_i : `INST_NOP;
 
         // out-of-range access: read zero, ignore write
-        s1_ram_w_en_o   = m1_mem_ram_w_sel ? m1_mem_w_en_i   : `WriteDisable;
-        s1_ram_w_sel_o  = m1_mem_ram_w_sel ? m1_mem_w_sel_i  : 4'b0;
-        s1_ram_w_addr_o = m1_mem_ram_w_sel ? m1_mem_w_addr_i : `ZeroAddr;
-        s1_ram_w_data_o = m1_mem_ram_w_sel ? m1_mem_w_data_i : `ZeroWord;
+        s1_ram_w_en_o   = (m1_mem_grant && m1_mem_ram_w_sel) ? m1_mem_w_en_i   : `WriteDisable;
+        s1_ram_w_sel_o  = (m1_mem_grant && m1_mem_ram_w_sel) ? m1_mem_w_sel_i  : 4'b0;
+        s1_ram_w_addr_o = (m1_mem_grant && m1_mem_ram_w_sel) ? m1_mem_w_addr_i : `ZeroAddr;
+        s1_ram_w_data_o = (m1_mem_grant && m1_mem_ram_w_sel) ? m1_mem_w_data_i : `ZeroWord;
 
         // in-range access: pass through to data_ram
-        s1_ram_r_addr_o = m1_mem_ram_r_sel ? m1_mem_r_addr_i  : `ZeroAddr;
-        m1_mem_r_data_o = m1_mem_ram_r_sel ? s1_ram_r_data_i  : `ZeroWord;
+        s1_ram_r_addr_o = (m1_mem_grant && m1_mem_ram_r_sel) ? m1_mem_r_addr_i : `ZeroAddr;
+        m1_mem_r_data_o = (m1_mem_grant && m1_mem_ram_r_sel) ? s1_ram_r_data_i : `ZeroWord;
     end
 
 endmodule
