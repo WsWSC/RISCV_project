@@ -52,82 +52,82 @@ module rib(
     // 4'h4: GPIO
     // 4'h5: SPI
     // others: read zero, ignore write
-    localparam [31:0]  RAM_SIZE        = (`MemNum << 2);
+    localparam [31:0]  RAM_ADDR_LIMIT  = (`MemNum << 2);
 
-    localparam [1:0]   GRANT_IF        = 2'b00;
-    localparam [1:0]   GRANT_MEM       = 2'b01;
+    localparam [1:0]   RIB_GRANT_IF    = 2'b00;
+    localparam [1:0]   RIB_GRANT_MEM   = 2'b01;
 
-    localparam [3:0]   SLAVE_RAM       = 4'h0;
-    // localparam [3:0]   SLAVE_TIMER     = 4'h2;
-    // localparam [3:0]   SLAVE_UART      = 4'h3;
-    // localparam [3:0]   SLAVE_GPIO      = 4'h4;
-    // localparam [3:0]   SLAVE_SPI       = 4'h5;
-    localparam [3:0]   SLAVE_NONE      = 4'hf;
+    localparam [3:0]   RIB_SLAVE_RAM   = 4'h0;
+    // localparam [3:0]   RIB_SLAVE_TIMER = 4'h2;
+    // localparam [3:0]   RIB_SLAVE_UART  = 4'h3;
+    // localparam [3:0]   RIB_SLAVE_GPIO  = 4'h4;
+    // localparam [3:0]   RIB_SLAVE_SPI   = 4'h5;
+    localparam [3:0]   RIB_SLAVE_NONE  = 4'hf;
 
-    wire [1:0]         req              ;
-    wire               m0_if_req        ;
-    wire               m1_mem_req       ;
-    wire               m1_mem_grant     ;
-    wire [1:0]         grant            ;
+    wire [1:0]         master_req       ;
+    wire               if_req           ;
+    wire               mem_req          ;
+    wire               mem_grant        ;
+    wire [1:0]         master_grant     ;
 
-    reg  [3:0]         m1_mem_r_slave   ;
-    reg  [3:0]         m1_mem_w_slave   ;
+    reg  [3:0]         mem_r_slave_sel  ;
+    reg  [3:0]         mem_w_slave_sel  ;
 
-    assign m0_if_req = 1'b1;
+    assign if_req = 1'b1;
 
-    assign m1_mem_req = (m1_mem_r_en_i == `ReadEnable) ||
-                        (m1_mem_w_en_i == `WriteEnable);
+    assign mem_req = (m1_mem_r_en_i == `ReadEnable) ||
+                     (m1_mem_w_en_i == `WriteEnable);
 
-    assign req   = {m1_mem_req, m0_if_req};
-    assign grant = req[1] ? GRANT_MEM : GRANT_IF;
-    assign m1_mem_grant = (grant == GRANT_MEM);
+    assign master_req   = {mem_req, if_req};
+    assign master_grant = master_req[1] ? RIB_GRANT_MEM : RIB_GRANT_IF;
+    assign mem_grant    = (master_grant == RIB_GRANT_MEM);
 
     // ============================================================
     //  Address Decode
     // ============================================================
     always @(*) begin
-        m1_mem_r_slave = SLAVE_NONE;
+        mem_r_slave_sel = RIB_SLAVE_NONE;
 
         if (m1_mem_r_en_i == `ReadEnable) begin
             case (m1_mem_r_addr_i[31:28])
-                SLAVE_RAM: begin
-                    m1_mem_r_slave = m1_mem_r_addr_i[31:28];
+                RIB_SLAVE_RAM: begin
+                    mem_r_slave_sel = m1_mem_r_addr_i[31:28];
                 end
 
                 // Future slaves are reserved but not implemented yet.
-                // SLAVE_TIMER,
-                // SLAVE_UART,
-                // SLAVE_GPIO,
-                // SLAVE_SPI: begin
-                //     m1_mem_r_slave = m1_mem_r_addr_i[31:28];
+                // RIB_SLAVE_TIMER,
+                // RIB_SLAVE_UART,
+                // RIB_SLAVE_GPIO,
+                // RIB_SLAVE_SPI: begin
+                //     mem_r_slave_sel = m1_mem_r_addr_i[31:28];
                 // end
 
                 default: begin
-                    m1_mem_r_slave = SLAVE_NONE;
+                    mem_r_slave_sel = RIB_SLAVE_NONE;
                 end
             endcase
         end
     end
 
     always @(*) begin
-        m1_mem_w_slave = SLAVE_NONE;
+        mem_w_slave_sel = RIB_SLAVE_NONE;
 
         if (m1_mem_w_en_i == `WriteEnable) begin
             case (m1_mem_w_addr_i[31:28])
-                SLAVE_RAM: begin
-                    m1_mem_w_slave = m1_mem_w_addr_i[31:28];
+                RIB_SLAVE_RAM: begin
+                    mem_w_slave_sel = m1_mem_w_addr_i[31:28];
                 end
 
                 // Future slaves are reserved but not implemented yet.
-                // SLAVE_TIMER,
-                // SLAVE_UART,
-                // SLAVE_GPIO,
-                // SLAVE_SPI: begin
-                //     m1_mem_w_slave = m1_mem_w_addr_i[31:28];
+                // RIB_SLAVE_TIMER,
+                // RIB_SLAVE_UART,
+                // RIB_SLAVE_GPIO,
+                // RIB_SLAVE_SPI: begin
+                //     mem_w_slave_sel = m1_mem_w_addr_i[31:28];
                 // end
 
                 default: begin
-                    m1_mem_w_slave = SLAVE_NONE;
+                    mem_w_slave_sel = RIB_SLAVE_NONE;
                 end
             endcase
         end
@@ -138,7 +138,7 @@ module rib(
     // ============================================================
     always @(*) begin
         // priority: master 1 MEM > master 0 IF
-        if (grant == GRANT_IF) begin
+        if (master_grant == RIB_GRANT_IF) begin
             m0_if_stall_o   = `StallDisable;
             s0_rom_r_addr_o = m0_if_addr_i;
             m0_if_data_o    = s0_rom_r_data_i;
@@ -154,16 +154,16 @@ module rib(
         s1_ram_w_data_o = `ZeroWord;
 
         // in-range read: keep direct path for zero-wait load
-        s1_ram_r_addr_o = (m1_mem_grant &&
-                           (m1_mem_r_slave == SLAVE_RAM) &&
-                           (m1_mem_r_addr_i < RAM_SIZE)) ? m1_mem_r_addr_i : `ZeroAddr;
-        m1_mem_r_data_o = (m1_mem_grant &&
-                           (m1_mem_r_slave == SLAVE_RAM) &&
-                           (m1_mem_r_addr_i < RAM_SIZE)) ? s1_ram_r_data_i : `ZeroWord;
+        s1_ram_r_addr_o = (mem_grant &&
+                           (mem_r_slave_sel == RIB_SLAVE_RAM) &&
+                           (m1_mem_r_addr_i < RAM_ADDR_LIMIT)) ? m1_mem_r_addr_i : `ZeroAddr;
+        m1_mem_r_data_o = (mem_grant &&
+                           (mem_r_slave_sel == RIB_SLAVE_RAM) &&
+                           (m1_mem_r_addr_i < RAM_ADDR_LIMIT)) ? s1_ram_r_data_i : `ZeroWord;
 
-        if (m1_mem_grant) begin
+        if (mem_grant) begin
             // in-range write: pass through to data_ram
-            if (m1_mem_w_slave == SLAVE_RAM && m1_mem_w_addr_i < RAM_SIZE) begin
+            if (mem_w_slave_sel == RIB_SLAVE_RAM && m1_mem_w_addr_i < RAM_ADDR_LIMIT) begin
                 s1_ram_w_en_o   = m1_mem_w_en_i;
                 s1_ram_w_sel_o  = m1_mem_w_sel_i;
                 s1_ram_w_addr_o = m1_mem_w_addr_i;
