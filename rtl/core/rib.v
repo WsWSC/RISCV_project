@@ -44,22 +44,33 @@ module rib(
     //  Internal Signals
     // ============================================================
     // Address map:
-    // 0x0000_0000 ~ RAM_END-1 : data_ram
-    // others                  : read zero, ignore write
-    localparam [31:0]  RAM_BASE       = 32'h0000_0000;
-    localparam [31:0]  RAM_SIZE       = (`MemNum << 2);
-    localparam [31:0]  RAM_END        = RAM_BASE + RAM_SIZE;
+    // m1_mem addr[31:28] selects the slave.
+    // 4'h0: data_ram
+    // 4'h2: reserved timer
+    // 4'h3: reserved UART
+    // 4'h4: reserved GPIO
+    // 4'h5: reserved SPI
+    // others: read zero, ignore write
+    localparam [31:0]  RAM_SIZE        = (`MemNum << 2);
 
-    localparam [1:0]   GRANT_IF       = 2'b00;
-    localparam [1:0]   GRANT_MEM      = 2'b01;
+    localparam [1:0]   GRANT_IF        = 2'b00;
+    localparam [1:0]   GRANT_MEM       = 2'b01;
 
-    wire [1:0]         req             ;
-    wire               m0_if_req       ;
-    wire               m1_mem_ram_r_sel;
-    wire               m1_mem_ram_w_sel;
-    wire               m1_mem_req      ;
-    wire               m1_mem_grant    ;
-    wire [1:0]         grant           ;
+    localparam [3:0]   SLAVE_RAM       = 4'h0;
+    localparam [3:0]   SLAVE_TIMER     = 4'h2;
+    localparam [3:0]   SLAVE_UART      = 4'h3;
+    localparam [3:0]   SLAVE_GPIO      = 4'h4;
+    localparam [3:0]   SLAVE_SPI       = 4'h5;
+    localparam [3:0]   SLAVE_NONE      = 4'hf;
+
+    wire [1:0]         req              ;
+    wire               m0_if_req        ;
+    wire               m1_mem_req       ;
+    wire               m1_mem_grant     ;
+    wire [1:0]         grant            ;
+
+    reg  [3:0]         m1_mem_r_slave   ;
+    reg  [3:0]         m1_mem_w_slave   ;
 
     assign m0_if_req = 1'b1;
 
@@ -70,15 +81,48 @@ module rib(
     assign grant = req[1] ? GRANT_MEM : GRANT_IF;
     assign m1_mem_grant = (grant == GRANT_MEM);
 
-    // select data_ram for in-range load
-    assign m1_mem_ram_r_sel = (m1_mem_r_en_i == `ReadEnable) &&
-                              (m1_mem_r_addr_i >= RAM_BASE) &&
-                              (m1_mem_r_addr_i <  RAM_END);
+    // ============================================================
+    //  Address Decode
+    // ============================================================
+    always @(*) begin
+        m1_mem_r_slave = SLAVE_NONE;
 
-    // select data_ram for in-range store
-    assign m1_mem_ram_w_sel = (m1_mem_w_en_i == `WriteEnable) &&
-                              (m1_mem_w_addr_i >= RAM_BASE) &&
-                              (m1_mem_w_addr_i <  RAM_END);
+        if (m1_mem_r_en_i == `ReadEnable) begin
+            case (m1_mem_r_addr_i[31:28])
+                SLAVE_RAM,
+                SLAVE_TIMER,
+                SLAVE_UART,
+                SLAVE_GPIO,
+                SLAVE_SPI: begin
+                    m1_mem_r_slave = m1_mem_r_addr_i[31:28];
+                end
+
+                default: begin
+                    m1_mem_r_slave = SLAVE_NONE;
+                end
+            endcase
+        end
+    end
+
+    always @(*) begin
+        m1_mem_w_slave = SLAVE_NONE;
+
+        if (m1_mem_w_en_i == `WriteEnable) begin
+            case (m1_mem_w_addr_i[31:28])
+                SLAVE_RAM,
+                SLAVE_TIMER,
+                SLAVE_UART,
+                SLAVE_GPIO,
+                SLAVE_SPI: begin
+                    m1_mem_w_slave = m1_mem_w_addr_i[31:28];
+                end
+
+                default: begin
+                    m1_mem_w_slave = SLAVE_NONE;
+                end
+            endcase
+        end
+    end
 
     // ============================================================
     //  Main logic
@@ -101,12 +145,16 @@ module rib(
         s1_ram_w_data_o = `ZeroWord;
 
         // in-range read: keep direct path for zero-wait load
-        s1_ram_r_addr_o = (m1_mem_grant && m1_mem_ram_r_sel) ? m1_mem_r_addr_i : `ZeroAddr;
-        m1_mem_r_data_o = (m1_mem_grant && m1_mem_ram_r_sel) ? s1_ram_r_data_i : `ZeroWord;
+        s1_ram_r_addr_o = (m1_mem_grant &&
+                           (m1_mem_r_slave == SLAVE_RAM) &&
+                           (m1_mem_r_addr_i < RAM_SIZE)) ? m1_mem_r_addr_i : `ZeroAddr;
+        m1_mem_r_data_o = (m1_mem_grant &&
+                           (m1_mem_r_slave == SLAVE_RAM) &&
+                           (m1_mem_r_addr_i < RAM_SIZE)) ? s1_ram_r_data_i : `ZeroWord;
 
         if (m1_mem_grant) begin
             // in-range write: pass through to data_ram
-            if (m1_mem_ram_w_sel) begin
+            if (m1_mem_w_slave == SLAVE_RAM && m1_mem_w_addr_i < RAM_SIZE) begin
                 s1_ram_w_en_o   = m1_mem_w_en_i;
                 s1_ram_w_sel_o  = m1_mem_w_sel_i;
                 s1_ram_w_addr_o = m1_mem_w_addr_i;
