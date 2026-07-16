@@ -54,21 +54,21 @@ module id_ex(
     //  Main logic
     // ============================================================
     // pass to ex
-    dff_set #(.DW(32)) dff1 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroAddr)    , .data_i(inst_addr_i)  , .data_o(inst_addr_o)    );
-    dff_set #(.DW(32)) dff2 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`INST_NOP)    , .data_i(inst_i)       , .data_o(inst_o)         );
-    dff_set #(.DW(32)) dff3 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(op1_i)        , .data_o(op1_o)          );
-    dff_set #(.DW(32)) dff4 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(op2_i)        , .data_o(op2_o)          );
-    dff_set #(.DW(5) ) dff5 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroReg)     , .data_i(rd_addr_i)    , .data_o(rd_addr_o)      );
-    dff_set #(.DW(1) ) dff6 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`WriteDisable), .data_i(reg_w_en_i)   , .data_o(reg_w_en_o)     );
-    dff_set #(.DW(32)) dff7 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroAddr)    , .data_i(base_addr_i)  , .data_o(base_addr_o)    );
-    dff_set #(.DW(32)) dff8 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(addr_offset_i), .data_o(addr_offset_o)  );
-    dff_set #(.DW(12)) dff9 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(12'b0)        , .data_i(csr_addr_i)   , .data_o(csr_addr_o)     );
-    dff_set #(.DW(1) ) dff10(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`WriteDisable), .data_i(csr_w_en_i)   , .data_o(csr_w_en_o)     );
-    dff_set #(.DW(3) ) dff11(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(3'b0)         , .data_i(csr_op_i)     , .data_o(csr_op_o)       );
-    dff_set #(.DW(1) ) dff12(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`WriteDisable), .data_i(trap_en_i)    , .data_o(trap_en_o)      );
-    dff_set #(.DW(32)) dff13(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(trap_cause_i) , .data_o(trap_cause_o)   );
-    dff_set #(.DW(32)) dff14(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(trap_tval_i)  , .data_o(trap_tval_o)    );
-    dff_set #(.DW(1) ) dff15(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`WriteDisable), .data_i(mret_en_i)    , .data_o(mret_en_o)      );
+    gen_dff #(.DW(32)) dff1 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroAddr)    , .data_i(inst_addr_i)  , .data_o(inst_addr_o)    );
+    gen_dff #(.DW(32)) dff2 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`INST_NOP)    , .data_i(inst_i)       , .data_o(inst_o)         );
+    gen_dff #(.DW(32)) dff3 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(op1_i)        , .data_o(op1_o)          );
+    gen_dff #(.DW(32)) dff4 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(op2_i)        , .data_o(op2_o)          );
+    gen_dff #(.DW(5) ) dff5 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroReg)     , .data_i(rd_addr_i)    , .data_o(rd_addr_o)      );
+    gen_dff #(.DW(1) ) dff6 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`WriteDisable), .data_i(reg_w_en_i)   , .data_o(reg_w_en_o)     );
+    gen_dff #(.DW(32)) dff7 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroAddr)    , .data_i(base_addr_i)  , .data_o(base_addr_o)    );
+    gen_dff #(.DW(32)) dff8 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(addr_offset_i), .data_o(addr_offset_o)  );
+    gen_dff #(.DW(12)) dff9 (.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(12'b0)        , .data_i(csr_addr_i)   , .data_o(csr_addr_o)     );
+    gen_dff #(.DW(1) ) dff10(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`WriteDisable), .data_i(csr_w_en_i)   , .data_o(csr_w_en_o)     );
+    gen_dff #(.DW(3) ) dff11(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(3'b0)         , .data_i(csr_op_i)     , .data_o(csr_op_o)       );
+    gen_dff #(.DW(1) ) dff12(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`WriteDisable), .data_i(trap_en_i)    , .data_o(trap_en_o)      );
+    gen_dff #(.DW(32)) dff13(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(trap_cause_i) , .data_o(trap_cause_o)   );
+    gen_dff #(.DW(32)) dff14(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`ZeroWord)    , .data_i(trap_tval_i)  , .data_o(trap_tval_o)    );
+    gen_dff #(.DW(1) ) dff15(.clk(clk), .rst_n(rst_n), .flush_flag_i(flush_flag_i), .stall_flag_i(stall_flag_i), .set_data(`WriteDisable), .data_i(mret_en_i)    , .data_o(mret_en_o)      );
 
 
 endmodule
