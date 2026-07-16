@@ -95,15 +95,24 @@ module rib(
             m0_if_data_o    = `INST_NOP;
         end
 
-        // out-of-range access: read zero, ignore write
-        s1_ram_w_en_o   = (m1_mem_grant && m1_mem_ram_w_sel) ? m1_mem_w_en_i   : `WriteDisable;
-        s1_ram_w_sel_o  = (m1_mem_grant && m1_mem_ram_w_sel) ? m1_mem_w_sel_i  : 4'b0;
-        s1_ram_w_addr_o = (m1_mem_grant && m1_mem_ram_w_sel) ? m1_mem_w_addr_i : `ZeroAddr;
-        s1_ram_w_data_o = (m1_mem_grant && m1_mem_ram_w_sel) ? m1_mem_w_data_i : `ZeroWord;
+        s1_ram_w_en_o   = `WriteDisable;
+        s1_ram_w_sel_o  = 4'b0;
+        s1_ram_w_addr_o = `ZeroAddr;
+        s1_ram_w_data_o = `ZeroWord;
 
-        // in-range access: pass through to data_ram
+        // in-range read: keep direct path for zero-wait load
         s1_ram_r_addr_o = (m1_mem_grant && m1_mem_ram_r_sel) ? m1_mem_r_addr_i : `ZeroAddr;
         m1_mem_r_data_o = (m1_mem_grant && m1_mem_ram_r_sel) ? s1_ram_r_data_i : `ZeroWord;
+
+        if (m1_mem_grant) begin
+            // in-range write: pass through to data_ram
+            if (m1_mem_ram_w_sel) begin
+                s1_ram_w_en_o   = m1_mem_w_en_i;
+                s1_ram_w_sel_o  = m1_mem_w_sel_i;
+                s1_ram_w_addr_o = m1_mem_w_addr_i;
+                s1_ram_w_data_o = m1_mem_w_data_i;
+            end
+        end
     end
 
 endmodule
