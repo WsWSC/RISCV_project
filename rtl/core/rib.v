@@ -46,10 +46,11 @@ module rib(
     // Address map:
     // m1_mem addr[31:28] selects the slave.
     // 4'h0: data_ram
-    // 4'h2: reserved timer
-    // 4'h3: reserved UART
-    // 4'h4: reserved GPIO
-    // 4'h5: reserved SPI
+    // Future reserved slaves (not implemented yet):
+    // 4'h2: timer
+    // 4'h3: UART
+    // 4'h4: GPIO
+    // 4'h5: SPI
     // others: read zero, ignore write
     localparam [31:0]  RAM_SIZE        = (`MemNum << 2);
 
@@ -57,10 +58,10 @@ module rib(
     localparam [1:0]   GRANT_MEM       = 2'b01;
 
     localparam [3:0]   SLAVE_RAM       = 4'h0;
-    localparam [3:0]   SLAVE_TIMER     = 4'h2;
-    localparam [3:0]   SLAVE_UART      = 4'h3;
-    localparam [3:0]   SLAVE_GPIO      = 4'h4;
-    localparam [3:0]   SLAVE_SPI       = 4'h5;
+    // localparam [3:0]   SLAVE_TIMER     = 4'h2;
+    // localparam [3:0]   SLAVE_UART      = 4'h3;
+    // localparam [3:0]   SLAVE_GPIO      = 4'h4;
+    // localparam [3:0]   SLAVE_SPI       = 4'h5;
     localparam [3:0]   SLAVE_NONE      = 4'hf;
 
     wire [1:0]         req              ;
@@ -89,13 +90,17 @@ module rib(
 
         if (m1_mem_r_en_i == `ReadEnable) begin
             case (m1_mem_r_addr_i[31:28])
-                SLAVE_RAM,
-                SLAVE_TIMER,
-                SLAVE_UART,
-                SLAVE_GPIO,
-                SLAVE_SPI: begin
+                SLAVE_RAM: begin
                     m1_mem_r_slave = m1_mem_r_addr_i[31:28];
                 end
+
+                // Future slaves are reserved but not implemented yet.
+                // SLAVE_TIMER,
+                // SLAVE_UART,
+                // SLAVE_GPIO,
+                // SLAVE_SPI: begin
+                //     m1_mem_r_slave = m1_mem_r_addr_i[31:28];
+                // end
 
                 default: begin
                     m1_mem_r_slave = SLAVE_NONE;
@@ -109,13 +114,17 @@ module rib(
 
         if (m1_mem_w_en_i == `WriteEnable) begin
             case (m1_mem_w_addr_i[31:28])
-                SLAVE_RAM,
-                SLAVE_TIMER,
-                SLAVE_UART,
-                SLAVE_GPIO,
-                SLAVE_SPI: begin
+                SLAVE_RAM: begin
                     m1_mem_w_slave = m1_mem_w_addr_i[31:28];
                 end
+
+                // Future slaves are reserved but not implemented yet.
+                // SLAVE_TIMER,
+                // SLAVE_UART,
+                // SLAVE_GPIO,
+                // SLAVE_SPI: begin
+                //     m1_mem_w_slave = m1_mem_w_addr_i[31:28];
+                // end
 
                 default: begin
                     m1_mem_w_slave = SLAVE_NONE;
