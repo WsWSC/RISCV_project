@@ -46,6 +46,16 @@ module soc(
     wire[31:0]  rib_data_ram_w_addr_o    ;
     wire[31:0]  rib_data_ram_w_data_o    ;
 
+    // rib to timer read
+    wire[31:0]  rib_timer_r_addr_o       ;
+    wire[31:0]  timer_r_data_o           ;
+
+    // rib to timer write
+    wire        rib_timer_w_en_o         ;
+    wire[3:0]   rib_timer_w_sel_o        ;
+    wire[31:0]  rib_timer_w_addr_o       ;
+    wire[31:0]  rib_timer_w_data_o       ;
+
 
     // ============================================================
     //  Module Instantiation & Interconnection
@@ -113,6 +123,15 @@ module soc(
         .s1_ram_r_addr_o    (rib_data_ram_r_addr_o  ),
         .s1_ram_r_data_i    (data_ram_r_data_o      ),
 
+        // slave 2: timer
+        .s2_timer_w_en_o    (rib_timer_w_en_o       ),
+        .s2_timer_w_sel_o   (rib_timer_w_sel_o      ),
+        .s2_timer_w_addr_o  (rib_timer_w_addr_o     ),
+        .s2_timer_w_data_o  (rib_timer_w_data_o     ),
+
+        .s2_timer_r_addr_o  (rib_timer_r_addr_o     ),
+        .s2_timer_r_data_i  (timer_r_data_o         ),
+
         // slave 0: inst_rom
         .s0_rom_r_addr_o    (rib_rom_r_addr_o       ),
         .s0_rom_r_data_i    (inst_rom_r_data_o      )
@@ -132,6 +151,22 @@ module soc(
         .r_addr_i           (rib_data_ram_r_addr_o      ),
 
         .r_data_o           (data_ram_r_data_o          )
+    );
+
+    timer timer_inst(
+        .clk                (clk                        ),
+        .rst_n              (rst_n                      ),
+
+        // write data
+        .w_en_i             (rib_timer_w_en_o           ),
+        .w_sel_i            (rib_timer_w_sel_o          ),
+        .w_addr_i           (rib_timer_w_addr_o         ),
+        .w_data_i           (rib_timer_w_data_o         ),
+
+        // read data
+        .r_addr_i           (rib_timer_r_addr_o         ),
+
+        .r_data_o           (timer_r_data_o             )
     );
 
 endmodule
