@@ -104,6 +104,7 @@ def compile(iverilog_defines=None, compile_timeout=60):
     # peripherals
     iverilog_cmd.append(root_dir + '/rtl/perips/inst_rom.v')
     iverilog_cmd.append(root_dir + '/rtl/perips/data_ram.v')
+    iverilog_cmd.append(root_dir + '/rtl/perips/timer.v')
 
     iverilog_cmd.append(root_dir + '/rtl/core/rib.v')
 
