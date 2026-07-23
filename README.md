@@ -64,10 +64,19 @@ trap handling, and pipeline control.
 
 At the SoC level, the Core is integrated with Instruction ROM, Data RAM, and
 the RIB (RISC-V Internal Bus). The current RTL routes instruction fetch and
-data memory access through `rib` to `inst_rom` and `data_ram`. Data memory
-access has priority over instruction fetch, so the RIB can block IF and inject
-a fetch bubble while load/store traffic is using the bus. The dotted peripheral
-blocks in the diagram represent planned RIB expansion targets.
+data memory access through `rib` to `inst_rom`, `data_ram`, and MMIO
+peripherals. Data memory access has priority over instruction fetch, so the RIB
+can block IF and inject a fetch bubble while load/store traffic is using the
+bus.
+
+Current RIB MMIO map:
+
+| Address | Register | Access | Description |
+|---------|----------|--------|-------------|
+| `0x2000_0000` | `TIMER_CTRL` | RW | `[0] enable`, `[1] clear count` |
+| `0x2000_0004` | `TIMER_COUNT` | RW | Current timer counter |
+| `0x2000_0008` | `TIMER_COMPARE` | RW | Compare threshold |
+| `0x2000_000c` | `TIMER_STATUS` | RO | `[0] count >= compare` |
 
 ## Implementation Status
 
@@ -82,6 +91,7 @@ blocks in the diagram represent planned RIB expansion targets.
 | Machine CSR, trap, `mret`, MEI | ✅ Done | 2026-06-18 | - |
 | CSR regression | ✅ Done | 2026-06-22 | - |
 | Architecture compliance tests | ✅ Done | 2026-06-22 | ACT4 tests compared against Sail golden signatures |
+| Timer MMIO | ✅ Done | 2026-07-23 | Zero-wait RIB slave at `0x2000_0000` |
 | Privileged architecture | ⚠️ Partial | - | Machine-mode subset only |
 | RIB | 🔄 Ongoing | - | RISC-V Internal Bus |
 
@@ -89,9 +99,9 @@ blocks in the diagram represent planned RIB expansion targets.
 
 | Item | Status | Note |
 |------|--------|------|
-| Timer/software interrupt | ⛔ Not Implemented | Future CLINT extension |
+| Timer interrupt | ⛔ Not Implemented | Future CLINT / CSR extension |
 | Vectored `mtvec` | ⛔ Not Implemented | Optional trap mode |
-| MMIO/standard bus | ⛔ Not Implemented | After RIB |
+| UART/GPIO/SPI MMIO | ⛔ Not Implemented | Future RIB peripherals |
 
 <br>
 
