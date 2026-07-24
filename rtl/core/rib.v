@@ -85,9 +85,7 @@ module rib(
 
     assign mem_req = (m1_mem_r_en_i == `ReadEnable) ||
                      (m1_mem_w_en_i == `WriteEnable);
-
     assign mem_grant = (master_grant == RIB_GRANT_MEM);
-
 
     // ============================================================
     //  Master Grant
@@ -158,28 +156,22 @@ module rib(
     //  Main logic
     // ============================================================
     always @(*) begin
-        // priority: master 1 MEM > master 0 IF
-        if (master_grant == RIB_GRANT_IF) begin
-            m0_if_stall_o   = `StallDisable;
-            s0_rom_r_addr_o = m0_if_r_addr_i;
-            m0_if_r_data_o  = s0_rom_r_data_i;
-        end else begin
-            m0_if_stall_o   = `StallEnable;
-            s0_rom_r_addr_o = `ZeroAddr;
-            m0_if_r_data_o  = `INST_NOP;
-        end
+        m0_if_stall_o    = `StallEnable;
+        m0_if_r_data_o   = `INST_NOP;
 
-        s1_ram_w_en_o   = `WriteDisable;
-        s1_ram_w_sel_o  = 4'b0;
-        s1_ram_w_addr_o = `ZeroAddr;
-        s1_ram_w_data_o = `ZeroWord;
+        s0_rom_r_addr_o  = `ZeroAddr;
+
+        s1_ram_w_en_o    = `WriteDisable;
+        s1_ram_w_sel_o   = 4'b0;
+        s1_ram_w_addr_o  = `ZeroAddr;
+        s1_ram_w_data_o  = `ZeroWord;
 
         s2_timer_w_en_o   = `WriteDisable;
         s2_timer_w_sel_o  = 4'b0;
         s2_timer_w_addr_o = `ZeroAddr;
         s2_timer_w_data_o = `ZeroWord;
 
-        // in-range read: keep direct path for zero-wait load
+        // keep direct read path for zero-wait load timing
         s1_ram_r_addr_o = (mem_grant &&
                            (mem_r_slave_sel == RIB_SLAVE_RAM) &&
                            (m1_mem_r_addr_i < RAM_ADDR_LIMIT)) ? m1_mem_r_addr_i : `ZeroAddr;
@@ -191,22 +183,39 @@ module rib(
                           (mem_grant &&
                            (mem_r_slave_sel == RIB_SLAVE_TIMER)) ? s2_timer_r_data_i : `ZeroWord;
 
-        if (mem_grant) begin
-            // in-range write: pass through to data_ram
-            if (mem_w_slave_sel == RIB_SLAVE_RAM && m1_mem_w_addr_i < RAM_ADDR_LIMIT) begin
-                s1_ram_w_en_o   = m1_mem_w_en_i;
-                s1_ram_w_sel_o  = m1_mem_w_sel_i;
-                s1_ram_w_addr_o = m1_mem_w_addr_i;
-                s1_ram_w_data_o = m1_mem_w_data_i;
+        case (master_grant)
+            RIB_GRANT_IF: begin
+                m0_if_stall_o   = `StallDisable;
+                s0_rom_r_addr_o = m0_if_r_addr_i;
+                m0_if_r_data_o  = s0_rom_r_data_i;
             end
 
-            if (mem_w_slave_sel == RIB_SLAVE_TIMER) begin
-                s2_timer_w_en_o   = m1_mem_w_en_i;
-                s2_timer_w_sel_o  = m1_mem_w_sel_i;
-                s2_timer_w_addr_o = m1_mem_w_addr_i;
-                s2_timer_w_data_o = m1_mem_w_data_i;
+            RIB_GRANT_MEM: begin
+                case (mem_w_slave_sel)
+                    RIB_SLAVE_RAM: begin
+                        if (m1_mem_w_addr_i < RAM_ADDR_LIMIT) begin
+                            s1_ram_w_en_o   = m1_mem_w_en_i;
+                            s1_ram_w_sel_o  = m1_mem_w_sel_i;
+                            s1_ram_w_addr_o = m1_mem_w_addr_i;
+                            s1_ram_w_data_o = m1_mem_w_data_i;
+                        end
+                    end
+
+                    RIB_SLAVE_TIMER: begin
+                        s2_timer_w_en_o   = m1_mem_w_en_i;
+                        s2_timer_w_sel_o  = m1_mem_w_sel_i;
+                        s2_timer_w_addr_o = m1_mem_w_addr_i;
+                        s2_timer_w_data_o = m1_mem_w_data_i;
+                    end
+
+                    default: begin
+                    end
+                endcase
             end
-        end
+
+            default: begin
+            end
+        endcase
     end
 
 endmodule
