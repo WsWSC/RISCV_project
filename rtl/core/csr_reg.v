@@ -52,6 +52,10 @@ module csr_reg(
     reg[31:0]   mie                         ;
     reg[31:0]   mip                         ;
 
+    wire[31:0]  mip_timer_bit               ;
+
+    assign mip_timer_bit = (timer_irq_i == `InterruptAssert) ? `CSR_MIP_MTIP : `ZeroWord;
+
 
     // ============================================================
     //  CSR Write
@@ -79,12 +83,12 @@ module csr_reg(
                     `CSR_MCAUSE  : mcause   <= clint_csr_w_data_i                    ;
                     `CSR_MTVAL   : mtval    <= clint_csr_w_data_i                    ;
                     `CSR_MSTATUS : mstatus  <= clint_csr_w_data_i & `CSR_MSTATUS_MASK;
-                    `CSR_MIE     : mie      <= clint_csr_w_data_i & `CSR_MIE_MEIE    ;
+                    `CSR_MIE     : mie      <= clint_csr_w_data_i & (`CSR_MIE_MEIE | `CSR_MIE_MTIE);
                     `CSR_MIP     : begin
                         if (external_irq_i == `InterruptAssert)
-                            mip <= (clint_csr_w_data_i & `CSR_MIP_MEIP) | `CSR_MIP_MEIP;
+                            mip <= (clint_csr_w_data_i & `CSR_MIP_MEIP) | `CSR_MIP_MEIP | mip_timer_bit;
                         else
-                            mip <= clint_csr_w_data_i & `CSR_MIP_MEIP                  ;
+                            mip <= (clint_csr_w_data_i & `CSR_MIP_MEIP) | mip_timer_bit                  ;
                     end
                     default      : begin
                     end
@@ -97,21 +101,24 @@ module csr_reg(
                     `CSR_MCAUSE  : mcause   <= csr_w_data_i                    ;
                     `CSR_MTVAL   : mtval    <= csr_w_data_i                    ;
                     `CSR_MSTATUS : mstatus  <= csr_w_data_i & `CSR_MSTATUS_MASK;
-                    `CSR_MIE     : mie      <= csr_w_data_i & `CSR_MIE_MEIE    ;
+                    `CSR_MIE     : mie      <= csr_w_data_i & (`CSR_MIE_MEIE | `CSR_MIE_MTIE);
                     `CSR_MIP     : begin
                         if (external_irq_i == `InterruptAssert)
-                            mip <= (csr_w_data_i & `CSR_MIP_MEIP) | `CSR_MIP_MEIP;
+                            mip <= (csr_w_data_i & `CSR_MIP_MEIP) | `CSR_MIP_MEIP | mip_timer_bit;
                         else
-                            mip <= csr_w_data_i & `CSR_MIP_MEIP                  ;
+                            mip <= (csr_w_data_i & `CSR_MIP_MEIP) | mip_timer_bit                  ;
                     end
                     default      : begin
                     end
                 endcase
             end
 
-            if ((external_irq_i == `InterruptAssert) &&
+            if (!((clint_csr_w_en_i == `WriteEnable) && (clint_csr_w_addr_i == `CSR_MIP)) &&
                 !((csr_w_en_i == `WriteEnable) && (csr_w_addr_i == `CSR_MIP))) begin
-                mip <= mip | `CSR_MIP_MEIP;
+                if (external_irq_i == `InterruptAssert)
+                    mip <= (mip & `CSR_MIP_MEIP) | `CSR_MIP_MEIP | mip_timer_bit;
+                else
+                    mip <= (mip & `CSR_MIP_MEIP) | mip_timer_bit                  ;
             end
         end
     end
