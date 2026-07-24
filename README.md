@@ -92,6 +92,7 @@ Current RIB MMIO map:
 | CSR regression | ✅ Done | 2026-06-22 | - |
 | Architecture compliance tests | ✅ Done | 2026-06-22 | ACT4 tests compared against Sail golden signatures |
 | Timer MMIO | ✅ Done | 2026-07-23 | Zero-wait RIB slave at `0x2000_0000` |
+| Timer interrupt | ✅ Done | 2026-07-24 | Timer MTIP / MTIE through CSR and CLINT |
 | Privileged architecture | ⚠️ Partial | - | Machine-mode subset only |
 | RIB | 🔄 Ongoing | - | RISC-V Internal Bus |
 
@@ -99,7 +100,6 @@ Current RIB MMIO map:
 
 | Item | Status | Note |
 |------|--------|------|
-| Timer interrupt | ⛔ Not Implemented | Future CLINT / CSR extension |
 | Vectored `mtvec` | ⛔ Not Implemented | Optional trap mode |
 | UART/GPIO/SPI MMIO | ⛔ Not Implemented | Future RIB peripherals |
 
@@ -117,7 +117,7 @@ flows.
 | ISA regression | RV32I/RV32M, load/store, branch/jump | ⚠️ | `fence_i` is a known gap |
 | Hazard handling | Forwarding, load-use bubble | ✅ | - |
 | CSR/trap regression | CSR ops, exceptions, `mret` | ✅ | - |
-| Interrupt handling | External interrupt enable/mask/pending | ✅ | - |
+| Interrupt handling | External interrupt and timer interrupt | ✅ | MEI + MTI machine-mode subset |
 | ACT4/Sail compliance | Golden signature comparison | ✅ | Local golden files |
 
 Generated files such as `sim/inst_data.txt`, `sim/out.vvp`, waveform files,
