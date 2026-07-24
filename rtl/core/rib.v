@@ -73,11 +73,10 @@ module rib(
     // localparam [3:0]   RIB_SLAVE_SPI   = 4'h5;
     localparam [3:0]   RIB_SLAVE_NONE  = 4'hf;
 
-    wire [1:0]         master_req       ;
     wire               if_req           ;
     wire               mem_req          ;
     wire               mem_grant        ;
-    wire [1:0]         master_grant     ;
+    reg  [1:0]         master_grant     ;
 
     reg  [3:0]         mem_r_slave_sel  ;
     reg  [3:0]         mem_w_slave_sel  ;
@@ -87,9 +86,22 @@ module rib(
     assign mem_req = (m1_mem_r_en_i == `ReadEnable) ||
                      (m1_mem_w_en_i == `WriteEnable);
 
-    assign master_req   = {mem_req, if_req};
-    assign master_grant = master_req[1] ? RIB_GRANT_MEM : RIB_GRANT_IF;
-    assign mem_grant    = (master_grant == RIB_GRANT_MEM);
+    assign mem_grant = (master_grant == RIB_GRANT_MEM);
+
+
+    // ============================================================
+    //  Master Grant
+    // ============================================================
+    always @(*) begin
+        // priority: master 1 MEM > master 0 IF
+        if (mem_req) begin
+            master_grant = RIB_GRANT_MEM;
+        end else if (if_req) begin
+            master_grant = RIB_GRANT_IF;
+        end else begin
+            master_grant = RIB_GRANT_IF;
+        end
+    end
 
     // ============================================================
     //  Address Decode
