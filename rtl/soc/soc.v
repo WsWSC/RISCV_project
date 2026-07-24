@@ -49,6 +49,7 @@ module soc(
     // rib to timer read
     wire[31:0]  rib_timer_r_addr_o       ;
     wire[31:0]  timer_r_data_o           ;
+    wire        timer_irq_o              ;
 
     // rib to timer write
     wire        rib_timer_w_en_o         ;
@@ -77,7 +78,8 @@ module soc(
         .data_ram_w_addr_o  (core_data_ram_w_addr_o     ),
         .data_ram_w_data_o  (core_data_ram_w_data_o     ),
 
-        .external_irq_i     (external_irq_i             )
+        .external_irq_i     (external_irq_i             ),
+        .timer_irq_i        (timer_irq_o                )
     );
 
     inst_rom inst_rom_inst(
@@ -166,7 +168,8 @@ module soc(
         // read data
         .r_addr_i           (rib_timer_r_addr_o         ),
 
-        .r_data_o           (timer_r_data_o             )
+        .r_data_o           (timer_r_data_o             ),
+        .timer_irq_o        (timer_irq_o                )
     );
 
 endmodule
