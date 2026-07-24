@@ -27,6 +27,7 @@ module csr_reg(
 
     // from core
     input  wire         external_irq_i      ,
+    input  wire         timer_irq_i         ,
 
     // to clint
     output wire[31:0]   mtvec_o             ,

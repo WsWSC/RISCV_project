@@ -29,7 +29,8 @@ module core(
     output wire [31:0]  data_ram_w_data_o   ,
 
     // interrupt
-    input  wire         external_irq_i
+    input  wire         external_irq_i     ,
+    input  wire         timer_irq_i
 
 );
 
@@ -454,6 +455,7 @@ module core(
 
         // from core
         .external_irq_i     (external_irq_i         ),
+        .timer_irq_i        (timer_irq_i            ),
 
         // to clint
         .mtvec_o            (csr_mtvec_o            ),
