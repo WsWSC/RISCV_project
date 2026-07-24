@@ -18,7 +18,8 @@ module timer (
 
     input  wire [`MemAddrBus]   r_addr_i,
 
-    output reg  [`MemDataBus]   r_data_o
+    output reg  [`MemDataBus]   r_data_o,
+    output wire                 timer_irq_o
 );
 
     // ============================================================
@@ -42,6 +43,7 @@ module timer (
                           (w_addr_i[3:2] == TIMER_REG_CTRL) &&
                           w_sel_i[0] && w_data_i[1];
     assign compare_hit  = (timer_count >= timer_compare);
+    assign timer_irq_o  = (timer_enable && compare_hit) ? `InterruptAssert : `InterruptDeassert;
 
 
     // ============================================================
