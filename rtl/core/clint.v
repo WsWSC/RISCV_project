@@ -82,6 +82,10 @@ module clint(
     wire[31:0] trap_cause                  ;
     wire[31:0] trap_tval                   ;
     wire       irq_taken                   ;
+    wire       external_irq_pending        ;
+    wire       timer_irq_pending           ;
+    wire       external_irq_taken          ;
+    wire       timer_irq_taken             ;
     wire       sync_trap_taken             ;
     wire       mret_taken                  ;
     wire       event_detect                ;
@@ -96,9 +100,11 @@ module clint(
     assign trap_cause = ex_trap_en_i ? ex_trap_cause_i : id_ex_trap_cause_i     ;
     assign trap_tval  = ex_trap_en_i ? ex_trap_tval_i  : id_ex_trap_tval_i      ;
 
-    assign irq_taken =
-        (((external_irq_i == `InterruptAssert) || csr_mip_i[11]) &&
-         csr_mstatus_i[3] && csr_mie_i[11]);
+    assign external_irq_pending = (external_irq_i == `InterruptAssert) || csr_mip_i[11];
+    assign timer_irq_pending    = csr_mip_i[7];
+    assign external_irq_taken   = external_irq_pending && csr_mstatus_i[3] && csr_mie_i[11];
+    assign timer_irq_taken      = timer_irq_pending && csr_mstatus_i[3] && csr_mie_i[7];
+    assign irq_taken            = external_irq_taken || timer_irq_taken;
 
     assign sync_trap_taken = (csr_state == S_CSR_IDLE) && trap_en;
     assign mret_taken      = (csr_state == S_CSR_IDLE) && !trap_en &&
@@ -151,7 +157,8 @@ module clint(
                         event_state     <= S_EVENT_IRQ;
                         csr_state       <= S_CSR_WRITE_MEPC;
                         saved_mepc      <= irq_pc_i;
-                        saved_mcause    <= `TRAP_CAUSE_M_EXTERNAL;
+                        saved_mcause    <= external_irq_taken ? `TRAP_CAUSE_M_EXTERNAL :
+                                                               `TRAP_CAUSE_M_TIMER;
                         saved_mtval     <= `ZeroWord;
                         saved_mstatus   <= trap_mstatus;
                         saved_jump_addr <= mtvec_base;
