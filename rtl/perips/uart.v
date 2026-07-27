@@ -26,36 +26,26 @@ module uart (
     // ============================================================
     //  Internal Signals
     // ============================================================
-    localparam [7:0]   UART_REG_CTRL    = 8'h00;
-    localparam [7:0]   UART_REG_STATUS  = 8'h04;
-    localparam [7:0]   UART_REG_BAUD    = 8'h08;
-    localparam [7:0]   UART_REG_TXDATA  = 8'h0c;
-    localparam [7:0]   UART_REG_RXDATA  = 8'h10;
+    localparam [7:0]   UART_REG_CTRL    = 8'h00;        // control
+    localparam [7:0]   UART_REG_STATUS  = 8'h04;        // status
+    localparam [7:0]   UART_REG_BAUD    = 8'h08;        // baud divider
+    localparam [7:0]   UART_REG_TXDATA  = 8'h0c;        // tx data
+    localparam [7:0]   UART_REG_RXDATA  = 8'h10;        // rx data
 
-    localparam [31:0]  UART_BAUD_115200 = 32'h0000_01b8;
+    localparam [31:0]  UART_BAUD_115200 = 32'h0000_01b8;// 115200 baud
 
-    localparam [3:0]   TX_STATE_IDLE    = 4'b0001;
-    localparam [3:0]   TX_STATE_START   = 4'b0010;
-    localparam [3:0]   TX_STATE_DATA    = 4'b0100;
-    localparam [3:0]   TX_STATE_STOP    = 4'b1000;
+    localparam [3:0]   TX_STATE_IDLE    = 4'b0001;      // idle
+    localparam [3:0]   TX_STATE_START   = 4'b0010;      // start bit
+    localparam [3:0]   TX_STATE_DATA    = 4'b0100;      // data bits
+    localparam [3:0]   TX_STATE_STOP    = 4'b1000;      // stop bit
 
-    // addr: 0x00
-    // rw. bit[0]: tx enable, 1 = enable, 0 = disable
-    // rw. bit[1]: rx enable, 1 = enable, 0 = disable
-    reg [`MemDataBus]  uart_ctrl         ;
+    reg [`MemDataBus]  uart_ctrl         ;              // [0] tx en, [1] rx en
 
-    // addr: 0x04
-    // ro. bit[0]: tx busy, 1 = busy, 0 = idle
-    // rw. bit[1]: rx done, reserved for later RX support
-    // must check this bit before writing tx data
-    reg [`MemDataBus]  uart_status       ;
+    reg [`MemDataBus]  uart_status       ;              // [0] tx busy, [1] rx done
 
-    // addr: 0x08
-    // rw. baud divider
-    reg [`MemDataBus]  uart_baud         ;
+    reg [`MemDataBus]  uart_baud         ;              // baud divider
 
-    // addr: 0x10, reserved for later RX support
-    // reg [`MemDataBus]  uart_rx_data      ;
+    // reg [`MemDataBus]  uart_rx_data      ;           // rx data
 
     reg                tx_start          ;
     reg                tx_done           ;
