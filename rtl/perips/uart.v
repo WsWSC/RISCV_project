@@ -148,7 +148,7 @@ module uart (
                     end
 
                     UART_REG_TXDATA: begin
-                        if (tx_enable && !tx_busy) begin
+                        if (tx_enable && !tx_busy && w_sel_i[0]) begin
                             tx_data        <= w_data_i[7:0];
                             uart_status[0] <= 1'b1;
                             tx_start       <= 1'b1;
