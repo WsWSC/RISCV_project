@@ -128,8 +128,7 @@ module uart (
                         uart_ctrl <= apply_wstrb(uart_ctrl, w_data_i, w_sel_i);
                     end
 
-                    UART_REG_STATUS: begin
-                        // RX status is reserved in this TX-only version.
+                    UART_REG_STATUS: begin     // RX reserved
                         uart_status[1] <= 1'b0;
                     end
 
