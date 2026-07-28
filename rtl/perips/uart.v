@@ -43,13 +43,24 @@ module uart (
     localparam [2:0]   RX_STATE_START   = 3'b010;       // rx start
     localparam [2:0]   RX_STATE_DATA    = 3'b100;       // rx data
 
-    reg [`MemDataBus]  uart_ctrl         ;              // [0] tx en, [1] rx en
+    // addr: 0x00
+    // rw. bit[0]: tx enable, 1 = enable, 0 = disable
+    // rw. bit[1]: rx enable, 1 = enable, 0 = disable
+    reg [`MemDataBus]  uart_ctrl         ;
 
-    reg [`MemDataBus]  uart_status       ;              // [0] tx busy, [1] rx over
+    // addr: 0x04
+    // ro. bit[0]: tx busy, 1 = busy, 0 = idle
+    // rw. bit[1]: rx over, 1 = over, 0 = receiving
+    // must check this bit before tx data
+    reg [`MemDataBus]  uart_status       ;
 
-    reg [`MemDataBus]  uart_baud         ;              // clk div
+    // addr: 0x08
+    // rw. clk div
+    reg [`MemDataBus]  uart_baud         ;
 
-    reg [`MemDataBus]  uart_rx_data      ;              // rx data
+    // addr: 0x10
+    // ro. rx data
+    reg [`MemDataBus]  uart_rx_data      ;
 
     reg                tx_start          ;
     reg                tx_done           ;
