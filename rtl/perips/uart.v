@@ -39,13 +39,17 @@ module uart (
     localparam [3:0]   TX_STATE_DATA    = 4'b0100;      // data bits
     localparam [3:0]   TX_STATE_STOP    = 4'b1000;      // stop bit
 
+    localparam [2:0]   RX_STATE_IDLE    = 3'b001;       // idle
+    localparam [2:0]   RX_STATE_START   = 3'b010;       // start bit
+    localparam [2:0]   RX_STATE_DATA    = 3'b100;       // data bits
+
     reg [`MemDataBus]  uart_ctrl         ;              // [0] tx en, [1] rx en
 
     reg [`MemDataBus]  uart_status       ;              // [0] tx busy, [1] rx done
 
     reg [`MemDataBus]  uart_baud         ;              // baud divider
 
-    // reg [`MemDataBus]  uart_rx_data      ;           // rx data
+    reg [`MemDataBus]  uart_rx_data      ;              // rx data
 
     reg                tx_start          ;
     reg                tx_done           ;
@@ -55,29 +59,26 @@ module uart (
     reg [7:0]          tx_data           ;
     reg                tx_pin_reg        ;
 
-    // RX path is reserved for a later version.
-    // reg                rx_pin_d0         ;
-    // reg                rx_pin_d1         ;
-    // wire               rx_start_edge     ;
-    // reg                rx_start          ;
-    // reg [3:0]          rx_sample_count   ;
-    // reg                rx_sample_tick    ;
-    // reg [15:0]         rx_cycle_count    ;
-    // reg [15:0]         rx_baud_count     ;
-    // reg [7:0]          rx_data           ;
-    // reg                rx_done           ;
+    reg                rx_pin_d0         ;
+    reg                rx_pin_d1         ;
+    wire               rx_start_edge     ;
+    reg [2:0]          rx_state          ;
+    reg [15:0]         rx_baud_count     ;
+    reg [3:0]          rx_bit_count      ;
+    reg [7:0]          rx_data           ;
+    reg                rx_done           ;
 
     wire               tx_enable         ;
     wire               tx_busy           ;
-    // wire               rx_enable         ;
-    // wire               rx_done_flag      ;
+    wire               rx_enable         ;
+    wire               rx_done_flag      ;
 
     assign tx_pin_o      = tx_pin_reg;
     assign tx_enable     = uart_ctrl[0];
     assign tx_busy       = uart_status[0];
-    // assign rx_enable     = uart_ctrl[1];
-    // assign rx_done_flag  = uart_status[1];
-    // assign rx_start_edge = rx_pin_d1 && !rx_pin_d0;
+    assign rx_enable     = uart_ctrl[1];
+    assign rx_done_flag  = uart_status[1];
+    assign rx_start_edge = rx_pin_d1 && !rx_pin_d0;
 
 
     // ============================================================
@@ -113,6 +114,7 @@ module uart (
             uart_ctrl   <= `ZeroWord;
             uart_status <= `ZeroWord;
             uart_baud   <= UART_BAUD_115200;
+            uart_rx_data<= `ZeroWord;
             tx_data     <= 8'b0;
             tx_start    <= 1'b0;
         end else begin
@@ -128,8 +130,8 @@ module uart (
                         uart_ctrl <= apply_wstrb(uart_ctrl, w_data_i, w_sel_i);
                     end
 
-                    UART_REG_STATUS: begin     // RX reserved
-                        uart_status[1] <= 1'b0;
+                    UART_REG_STATUS: begin     // clear RX done
+                        uart_status[1] <= uart_status[1] & ~w_data_i[1];
                     end
 
                     UART_REG_BAUD: begin
@@ -147,6 +149,11 @@ module uart (
                     default: begin
                     end
                 endcase
+            end
+
+            if (rx_done) begin
+                uart_status[1] <= 1'b1;
+                uart_rx_data   <= {24'b0, rx_data};
             end
         end
     end
@@ -227,6 +234,74 @@ module uart (
 
 
     // ============================================================
+    //  RX FSM
+    // ============================================================
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            rx_pin_d0      <= 1'b1;
+            rx_pin_d1      <= 1'b1;
+            rx_state       <= RX_STATE_IDLE;
+            rx_baud_count  <= 16'b0;
+            rx_bit_count   <= 4'b0;
+            rx_data        <= 8'b0;
+            rx_done        <= 1'b0;
+        end else begin
+            rx_pin_d0 <= rx_pin_i;
+            rx_pin_d1 <= rx_pin_d0;
+            rx_done   <= 1'b0;
+
+            case (rx_state)
+                RX_STATE_IDLE: begin
+                    rx_baud_count <= 16'b0;
+                    rx_bit_count  <= 4'b0;
+
+                    if (rx_enable && !rx_done_flag && rx_start_edge) begin
+                        rx_state <= RX_STATE_START;
+                    end
+                end
+
+                RX_STATE_START: begin
+                    if (rx_baud_count >= {1'b0, uart_baud[15:1]}) begin
+                        rx_baud_count <= 16'b0;
+
+                        if (rx_pin_d1 == 1'b0) begin
+                            rx_state <= RX_STATE_DATA;
+                        end else begin
+                            rx_state <= RX_STATE_IDLE;
+                        end
+                    end else begin
+                        rx_baud_count <= rx_baud_count + 1'b1;
+                    end
+                end
+
+                RX_STATE_DATA: begin
+                    if (rx_baud_count >= uart_baud[15:0]) begin
+                        rx_baud_count <= 16'b0;
+                        rx_data[rx_bit_count] <= rx_pin_d1;
+
+                        if (rx_bit_count == 4'd7) begin
+                            rx_bit_count <= 4'b0;
+                            rx_done      <= 1'b1;
+                            rx_state     <= RX_STATE_IDLE;
+                        end else begin
+                            rx_bit_count <= rx_bit_count + 1'b1;
+                        end
+                    end else begin
+                        rx_baud_count <= rx_baud_count + 1'b1;
+                    end
+                end
+
+                default: begin
+                    rx_state      <= RX_STATE_IDLE;
+                    rx_baud_count <= 16'b0;
+                    rx_bit_count  <= 4'b0;
+                end
+            endcase
+        end
+    end
+
+
+    // ============================================================
     //  Register Read
     // ============================================================
     always @(*) begin
@@ -247,7 +322,7 @@ module uart (
                 end
 
                 UART_REG_RXDATA: begin
-                    r_data_o = `ZeroWord;
+                    r_data_o = uart_rx_data;
                 end
 
                 default: begin
