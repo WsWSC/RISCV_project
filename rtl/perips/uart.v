@@ -64,14 +64,17 @@ module uart (
 
     // TX FSM
     reg                tx_start          ;
-    reg                tx_done           ;
     reg [3:0]          tx_state          ;
+    reg                tx_done           ;
+    wire               tx_enable     = uart_ctrl[0];
+    wire               tx_busy       = uart_status[0];
 
     // TX shift
     reg [15:0]         tx_baud_count     ;
     reg [3:0]          tx_bit_count      ;
     reg [7:0]          tx_data           ;
     reg                tx_pin_reg        ;
+    assign              tx_pin_o = tx_pin_reg         ;
 
     // RX sync
     reg                rx_pin_d0         ;
@@ -79,20 +82,15 @@ module uart (
 
     // RX FSM
     reg [2:0]          rx_state          ;
+    wire               rx_enable     = uart_ctrl[1];
+    wire               rx_done_flag  = uart_status[1];
 
     // RX sample
     reg [15:0]         rx_baud_count     ;
     reg [3:0]          rx_bit_count      ;
     reg [7:0]          rx_data           ;
     reg                rx_done           ;
-
-    wire               tx_enable     = uart_ctrl[0];
-    wire               tx_busy       = uart_status[0];
-    wire               rx_enable     = uart_ctrl[1];
-    wire               rx_done_flag  = uart_status[1];
     wire               rx_start_edge = rx_pin_d1 && !rx_pin_d0;
-
-    assign tx_pin_o = tx_pin_reg;
 
 
     // ============================================================
