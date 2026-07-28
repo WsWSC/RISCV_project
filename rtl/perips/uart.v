@@ -26,71 +26,71 @@ module uart (
     // ============================================================
     //  Internal Signals
     // ============================================================
-    localparam [7:0]   UART_REG_CTRL    = 8'h00;        // control
-    localparam [7:0]   UART_REG_STATUS  = 8'h04;        // status
-    localparam [7:0]   UART_REG_BAUD    = 8'h08;        // clk div
-    localparam [7:0]   UART_REG_TXDATA  = 8'h0c;        // tx data
-    localparam [7:0]   UART_REG_RXDATA  = 8'h10;        // rx data
+    localparam [7:0]    UART_REG_CTRL    = 8'h00;        // control
+    localparam [7:0]    UART_REG_STATUS  = 8'h04;        // status
+    localparam [7:0]    UART_REG_BAUD    = 8'h08;        // clk div
+    localparam [7:0]    UART_REG_TXDATA  = 8'h0c;        // tx data
+    localparam [7:0]    UART_REG_RXDATA  = 8'h10;        // rx data
 
-    localparam [31:0]  UART_BAUD_115200 = 32'h0000_01b8;// 115200 clk div
+    localparam [31:0]   UART_BAUD_115200 = 32'h0000_01b8;// 115200 clk div
 
-    localparam [3:0]   TX_STATE_IDLE    = 4'b0001;      // tx idle
-    localparam [3:0]   TX_STATE_START   = 4'b0010;      // tx start
-    localparam [3:0]   TX_STATE_DATA    = 4'b0100;      // tx data
-    localparam [3:0]   TX_STATE_STOP    = 4'b1000;      // tx stop
+    localparam [3:0]    TX_STATE_IDLE    = 4'b0001;      // tx idle
+    localparam [3:0]    TX_STATE_START   = 4'b0010;      // tx start
+    localparam [3:0]    TX_STATE_DATA    = 4'b0100;      // tx data
+    localparam [3:0]    TX_STATE_STOP    = 4'b1000;      // tx stop
 
-    localparam [2:0]   RX_STATE_IDLE    = 3'b001;       // rx idle
-    localparam [2:0]   RX_STATE_START   = 3'b010;       // rx start
-    localparam [2:0]   RX_STATE_DATA    = 3'b100;       // rx data
+    localparam [2:0]    RX_STATE_IDLE    = 3'b001;       // rx idle
+    localparam [2:0]    RX_STATE_START   = 3'b010;       // rx start
+    localparam [2:0]    RX_STATE_DATA    = 3'b100;       // rx data
 
     // addr: 0x00
     // rw. bit[0]: tx enable, 1 = enable, 0 = disable
     // rw. bit[1]: rx enable, 1 = enable, 0 = disable
-    reg [`MemDataBus]  uart_ctrl         ;
+    reg [`MemDataBus]   uart_ctrl         ;
 
     // addr: 0x04
     // ro. bit[0]: tx busy, 1 = busy, 0 = idle
     // rw. bit[1]: rx over, 1 = over, 0 = receiving
     // must check this bit before tx data
-    reg [`MemDataBus]  uart_status       ;
+    reg [`MemDataBus]   uart_status       ;
 
     // addr: 0x08
     // rw. clk div
-    reg [`MemDataBus]  uart_baud         ;
+    reg [`MemDataBus]   uart_baud         ;
 
     // addr: 0x10
     // ro. rx data
-    reg [`MemDataBus]  uart_rx_data      ;
+    reg [`MemDataBus]   uart_rx_data      ;
 
-    // TX FSM
-    reg                tx_start          ;
-    reg [3:0]          tx_state          ;
-    reg                tx_done           ;
-    wire               tx_enable     = uart_ctrl[0];
-    wire               tx_busy       = uart_status[0];
+    // TX control
+    reg                 tx_start          ;
+    reg                 tx_done           ;
+    reg [3:0]           tx_state          ;
+    wire                tx_enable = uart_ctrl[0];
+    wire                tx_busy   = uart_status[0];
 
-    // TX shift
-    reg [15:0]         tx_baud_count     ;
-    reg [3:0]          tx_bit_count      ;
-    reg [7:0]          tx_data           ;
-    reg                tx_pin_reg        ;
+    // TX datapath
+    reg [15:0]          tx_baud_count     ;
+    reg [3:0]           tx_bit_count      ;
+    reg [7:0]           tx_data           ;
+    reg                 tx_pin_reg        ;
     assign              tx_pin_o = tx_pin_reg         ;
 
-    // RX sync
-    reg                rx_pin_d0         ;
-    reg                rx_pin_d1         ;
+    // RX synchronizer
+    reg                 rx_pin_d0         ;
+    reg                 rx_pin_d1         ;
+    wire                rx_start_edge = rx_pin_d1 && !rx_pin_d0;
 
-    // RX FSM
-    reg [2:0]          rx_state          ;
-    wire               rx_enable     = uart_ctrl[1];
-    wire               rx_done_flag  = uart_status[1];
+    // RX control
+    reg [2:0]           rx_state          ;
+    reg                 rx_done           ;
+    wire                rx_enable     = uart_ctrl[1];
+    wire                rx_done_flag  = uart_status[1];
 
-    // RX sample
-    reg [15:0]         rx_baud_count     ;
-    reg [3:0]          rx_bit_count      ;
-    reg [7:0]          rx_data           ;
-    reg                rx_done           ;
-    wire               rx_start_edge = rx_pin_d1 && !rx_pin_d0;
+    // RX datapath
+    reg [15:0]          rx_baud_count     ;
+    reg [3:0]           rx_bit_count      ;
+    reg [7:0]           rx_data           ;
 
 
     // ============================================================
