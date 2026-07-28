@@ -62,7 +62,7 @@ module uart (
     // ro. rx data
     reg [`MemDataBus]   uart_rx_data      ;
 
-    // TX control
+    // TX state control
     reg                 tx_start          ;
     reg                 tx_done           ;
     reg [3:0]           tx_state          ;
@@ -81,7 +81,7 @@ module uart (
     reg                 rx_pin_d1         ;
     wire                rx_start_edge = rx_pin_d1 && !rx_pin_d0;
 
-    // RX control
+    // RX state control
     reg [2:0]           rx_state          ;
     reg                 rx_done           ;
     wire                rx_enable     = uart_ctrl[1];
