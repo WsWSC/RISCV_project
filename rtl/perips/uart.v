@@ -62,19 +62,25 @@ module uart (
     // ro. rx data
     reg [`MemDataBus]  uart_rx_data      ;
 
-    // TX
+    // TX FSM
     reg                tx_start          ;
     reg                tx_done           ;
     reg [3:0]          tx_state          ;
+
+    // TX shift
     reg [15:0]         tx_baud_count     ;
     reg [3:0]          tx_bit_count      ;
     reg [7:0]          tx_data           ;
     reg                tx_pin_reg        ;
 
-    // RX
+    // RX sync
     reg                rx_pin_d0         ;
     reg                rx_pin_d1         ;
+
+    // RX FSM
     reg [2:0]          rx_state          ;
+
+    // RX sample
     reg [15:0]         rx_baud_count     ;
     reg [3:0]          rx_bit_count      ;
     reg [7:0]          rx_data           ;
