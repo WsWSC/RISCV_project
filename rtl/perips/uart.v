@@ -80,14 +80,13 @@ module uart (
     reg [7:0]          rx_data           ;
     reg                rx_done           ;
 
-    wire               tx_enable, tx_busy, rx_enable, rx_done_flag, rx_start_edge;
+    wire               tx_enable     = uart_ctrl[0];
+    wire               tx_busy       = uart_status[0];
+    wire               rx_enable     = uart_ctrl[1];
+    wire               rx_done_flag  = uart_status[1];
+    wire               rx_start_edge = rx_pin_d1 && !rx_pin_d0;
 
-    assign tx_pin_o      = tx_pin_reg;
-    assign tx_enable     = uart_ctrl[0];
-    assign tx_busy       = uart_status[0];
-    assign rx_enable     = uart_ctrl[1];
-    assign rx_done_flag  = uart_status[1];
-    assign rx_start_edge = rx_pin_d1 && !rx_pin_d0;
+    assign tx_pin_o = tx_pin_reg;
 
 
     // ============================================================
