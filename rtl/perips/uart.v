@@ -28,26 +28,26 @@ module uart (
     // ============================================================
     localparam [7:0]   UART_REG_CTRL    = 8'h00;        // control
     localparam [7:0]   UART_REG_STATUS  = 8'h04;        // status
-    localparam [7:0]   UART_REG_BAUD    = 8'h08;        // baud divider
+    localparam [7:0]   UART_REG_BAUD    = 8'h08;        // clk div
     localparam [7:0]   UART_REG_TXDATA  = 8'h0c;        // tx data
     localparam [7:0]   UART_REG_RXDATA  = 8'h10;        // rx data
 
-    localparam [31:0]  UART_BAUD_115200 = 32'h0000_01b8;// 115200 baud
+    localparam [31:0]  UART_BAUD_115200 = 32'h0000_01b8;// 115200 clk div
 
-    localparam [3:0]   TX_STATE_IDLE    = 4'b0001;      // idle
-    localparam [3:0]   TX_STATE_START   = 4'b0010;      // start bit
-    localparam [3:0]   TX_STATE_DATA    = 4'b0100;      // data bits
-    localparam [3:0]   TX_STATE_STOP    = 4'b1000;      // stop bit
+    localparam [3:0]   TX_STATE_IDLE    = 4'b0001;      // tx idle
+    localparam [3:0]   TX_STATE_START   = 4'b0010;      // tx start
+    localparam [3:0]   TX_STATE_DATA    = 4'b0100;      // tx data
+    localparam [3:0]   TX_STATE_STOP    = 4'b1000;      // tx stop
 
-    localparam [2:0]   RX_STATE_IDLE    = 3'b001;       // idle
-    localparam [2:0]   RX_STATE_START   = 3'b010;       // start bit
-    localparam [2:0]   RX_STATE_DATA    = 3'b100;       // data bits
+    localparam [2:0]   RX_STATE_IDLE    = 3'b001;       // rx idle
+    localparam [2:0]   RX_STATE_START   = 3'b010;       // rx start
+    localparam [2:0]   RX_STATE_DATA    = 3'b100;       // rx data
 
     reg [`MemDataBus]  uart_ctrl         ;              // [0] tx en, [1] rx en
 
-    reg [`MemDataBus]  uart_status       ;              // [0] tx busy, [1] rx done
+    reg [`MemDataBus]  uart_status       ;              // [0] tx busy, [1] rx over
 
-    reg [`MemDataBus]  uart_baud         ;              // baud divider
+    reg [`MemDataBus]  uart_baud         ;              // clk div
 
     reg [`MemDataBus]  uart_rx_data      ;              // rx data
 
@@ -130,7 +130,7 @@ module uart (
                         uart_ctrl <= apply_wstrb(uart_ctrl, w_data_i, w_sel_i);
                     end
 
-                    UART_REG_STATUS: begin     // clear RX done
+                    UART_REG_STATUS: begin     // clear RX over
                         uart_status[1] <= uart_status[1] & ~w_data_i[1];
                     end
 
