@@ -44,6 +44,15 @@ module rib(
     output reg  [`MemAddrBus]   s2_timer_r_addr_o,
     input  wire [`MemDataBus]   s2_timer_r_data_i,
 
+    // slave 3: uart
+    output reg                  s3_uart_w_en_o,
+    output reg  [3:0]           s3_uart_w_sel_o,
+    output reg  [`MemAddrBus]   s3_uart_w_addr_o,
+    output reg  [`MemDataBus]   s3_uart_w_data_o,
+
+    output reg  [`MemAddrBus]   s3_uart_r_addr_o,
+    input  wire [`MemDataBus]   s3_uart_r_data_i,
+
     // slave 0: inst_rom
     output reg  [`MemAddrBus]   s0_rom_r_addr_o,
     input  wire [`MemDataBus]   s0_rom_r_data_i
@@ -56,8 +65,8 @@ module rib(
     // m1_mem addr[31:28] selects the slave.
     // 4'h0: data_ram
     // 4'h2: timer
-    // Future reserved slaves (not implemented yet):
     // 4'h3: UART
+    // Future reserved slaves (not implemented yet):
     // 4'h4: GPIO
     // 4'h5: SPI
     // others: read zero, ignore write
@@ -68,7 +77,7 @@ module rib(
 
     localparam [3:0]   RIB_SLAVE_RAM   = 4'h0;
     localparam [3:0]   RIB_SLAVE_TIMER = 4'h2;
-    // localparam [3:0]   RIB_SLAVE_UART  = 4'h3;
+    localparam [3:0]   RIB_SLAVE_UART  = 4'h3;
     // localparam [3:0]   RIB_SLAVE_GPIO  = 4'h4;
     // localparam [3:0]   RIB_SLAVE_SPI   = 4'h5;
     localparam [3:0]   RIB_SLAVE_NONE  = 4'hf;
@@ -110,12 +119,12 @@ module rib(
         if (m1_mem_r_en_i == `ReadEnable) begin
             case (m1_mem_r_addr_i[31:28])
                 RIB_SLAVE_RAM,
-                RIB_SLAVE_TIMER: begin
+                RIB_SLAVE_TIMER,
+                RIB_SLAVE_UART: begin
                     mem_r_slave_sel = m1_mem_r_addr_i[31:28];
                 end
 
                 // Future slaves are reserved but not implemented yet.
-                // RIB_SLAVE_UART,
                 // RIB_SLAVE_GPIO,
                 // RIB_SLAVE_SPI: begin
                 //     mem_r_slave_sel = m1_mem_r_addr_i[31:28];
@@ -134,12 +143,12 @@ module rib(
         if (m1_mem_w_en_i == `WriteEnable) begin
             case (m1_mem_w_addr_i[31:28])
                 RIB_SLAVE_RAM,
-                RIB_SLAVE_TIMER: begin
+                RIB_SLAVE_TIMER,
+                RIB_SLAVE_UART: begin
                     mem_w_slave_sel = m1_mem_w_addr_i[31:28];
                 end
 
                 // Future slaves are reserved but not implemented yet.
-                // RIB_SLAVE_UART,
                 // RIB_SLAVE_GPIO,
                 // RIB_SLAVE_SPI: begin
                 //     mem_w_slave_sel = m1_mem_w_addr_i[31:28];
@@ -171,17 +180,26 @@ module rib(
         s2_timer_w_addr_o = `ZeroAddr;
         s2_timer_w_data_o = `ZeroWord;
 
+        s3_uart_w_en_o    = `WriteDisable;
+        s3_uart_w_sel_o   = 4'b0;
+        s3_uart_w_addr_o  = `ZeroAddr;
+        s3_uart_w_data_o  = `ZeroWord;
+
         // keep direct read path for zero-wait load timing
         s1_ram_r_addr_o = (mem_grant &&
                            (mem_r_slave_sel == RIB_SLAVE_RAM) &&
                            (m1_mem_r_addr_i < RAM_ADDR_LIMIT)) ? m1_mem_r_addr_i : `ZeroAddr;
         s2_timer_r_addr_o = (mem_grant &&
                              (mem_r_slave_sel == RIB_SLAVE_TIMER)) ? m1_mem_r_addr_i : `ZeroAddr;
+        s3_uart_r_addr_o = (mem_grant &&
+                            (mem_r_slave_sel == RIB_SLAVE_UART)) ? m1_mem_r_addr_i : `ZeroAddr;
         m1_mem_r_data_o = (mem_grant &&
                            (mem_r_slave_sel == RIB_SLAVE_RAM) &&
                            (m1_mem_r_addr_i < RAM_ADDR_LIMIT)) ? s1_ram_r_data_i :
                           (mem_grant &&
-                           (mem_r_slave_sel == RIB_SLAVE_TIMER)) ? s2_timer_r_data_i : `ZeroWord;
+                           (mem_r_slave_sel == RIB_SLAVE_TIMER)) ? s2_timer_r_data_i :
+                          (mem_grant &&
+                           (mem_r_slave_sel == RIB_SLAVE_UART)) ? s3_uart_r_data_i : `ZeroWord;
 
         case (master_grant)
             RIB_GRANT_IF: begin
@@ -206,6 +224,13 @@ module rib(
                         s2_timer_w_sel_o  = m1_mem_w_sel_i;
                         s2_timer_w_addr_o = m1_mem_w_addr_i;
                         s2_timer_w_data_o = m1_mem_w_data_i;
+                    end
+
+                    RIB_SLAVE_UART: begin
+                        s3_uart_w_en_o   = m1_mem_w_en_i;
+                        s3_uart_w_sel_o  = m1_mem_w_sel_i;
+                        s3_uart_w_addr_o = m1_mem_w_addr_i;
+                        s3_uart_w_data_o = m1_mem_w_data_i;
                     end
 
                     default: begin
