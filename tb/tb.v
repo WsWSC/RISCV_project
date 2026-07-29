@@ -13,6 +13,8 @@ module tb;
     reg clk;
     reg rst_n;
     reg external_irq;
+    reg uart_rx;
+    wire uart_tx;
 
     always #10 clk = ~clk;
 
@@ -20,6 +22,7 @@ module tb;
         clk   <= 1'b1;
         rst_n <= 1'b0;
         external_irq <= 1'b0;
+        uart_rx <= 1'b1;
 
         #30
         rst_n <= 1'b1;
@@ -323,9 +326,11 @@ module tb;
 	end
 
     soc soc_inst(
-        .clk        (clk),
-        .rst_n      (rst_n),
-        .external_irq_i(external_irq)
+        .clk            (clk),
+        .rst_n          (rst_n),
+        .external_irq_i (external_irq),
+        .uart_rx_i      (uart_rx),
+        .uart_tx_o      (uart_tx)
     );
 
 endmodule

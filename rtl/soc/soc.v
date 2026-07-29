@@ -6,9 +6,11 @@
 ////////////////////////////////////////////////////////////
 
 module soc(
-    input wire          clk,
-    input wire          rst_n,
-    input wire          external_irq_i
+    input  wire         clk,
+    input  wire         rst_n,
+    input  wire         external_irq_i,
+    input  wire         uart_rx_i,
+    output wire         uart_tx_o
 );
 
     // ============================================================
@@ -56,6 +58,16 @@ module soc(
     wire[3:0]   rib_timer_w_sel_o        ;
     wire[31:0]  rib_timer_w_addr_o       ;
     wire[31:0]  rib_timer_w_data_o       ;
+
+    // rib to uart read
+    wire[31:0]  rib_uart_r_addr_o        ;
+    wire[31:0]  uart_r_data_o            ;
+
+    // rib to uart write
+    wire        rib_uart_w_en_o          ;
+    wire[3:0]   rib_uart_w_sel_o         ;
+    wire[31:0]  rib_uart_w_addr_o        ;
+    wire[31:0]  rib_uart_w_data_o        ;
 
 
     // ============================================================
@@ -134,6 +146,15 @@ module soc(
         .s2_timer_r_addr_o  (rib_timer_r_addr_o     ),
         .s2_timer_r_data_i  (timer_r_data_o         ),
 
+        // slave 3: uart
+        .s3_uart_w_en_o     (rib_uart_w_en_o        ),
+        .s3_uart_w_sel_o    (rib_uart_w_sel_o       ),
+        .s3_uart_w_addr_o   (rib_uart_w_addr_o      ),
+        .s3_uart_w_data_o   (rib_uart_w_data_o      ),
+
+        .s3_uart_r_addr_o   (rib_uart_r_addr_o      ),
+        .s3_uart_r_data_i   (uart_r_data_o          ),
+
         // slave 0: inst_rom
         .s0_rom_r_addr_o    (rib_rom_r_addr_o       ),
         .s0_rom_r_data_i    (inst_rom_r_data_o      )
@@ -170,6 +191,24 @@ module soc(
 
         .r_data_o           (timer_r_data_o             ),
         .timer_irq_o        (timer_irq_o                )
+    );
+
+    uart uart_inst(
+        .clk                (clk                        ),
+        .rst_n              (rst_n                      ),
+
+        // write data
+        .w_en_i             (rib_uart_w_en_o            ),
+        .w_sel_i            (rib_uart_w_sel_o           ),
+        .w_addr_i           (rib_uart_w_addr_o          ),
+        .w_data_i           (rib_uart_w_data_o          ),
+
+        // read data
+        .r_addr_i           (rib_uart_r_addr_o          ),
+
+        .r_data_o           (uart_r_data_o              ),
+        .tx_pin_o           (uart_tx_o                  ),
+        .rx_pin_i           (uart_rx_i                  )
     );
 
 endmodule
