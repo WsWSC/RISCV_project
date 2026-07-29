@@ -1,12 +1,11 @@
 import os
 import subprocess
 import sys
+import tempfile
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from compile_and_sim import compile
-from compile_and_sim import project_root
-from compile_and_sim import sim_dir
+def project_root():
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 
 def encode_i(imm, rs1, funct3, rd, opcode):
@@ -106,94 +105,258 @@ class Program:
         return words
 
 
+def check_eq(program, rd, rs):
+    emit_nops(program, 4)
+    program.branch("fail", "bne", rd, rs)
+
+
+def check_zero(program, rd):
+    emit_nops(program, 4)
+    program.branch("fail", "bne", rd, 0)
+
+
+def check_nonzero(program, rd):
+    emit_nops(program, 4)
+    program.branch("fail", "beq", rd, 0)
+
+
 def uart_mmio_program():
     program = Program()
 
     # x1 = 0x3000_0000 uart base
     program.emit(lui(1, 0x30000))
 
-    # UART_BAUD = 1
+    # UART_BAUD = 1, then read back.
     program.emit(addi(2, 0, 1))
     program.emit(sw(2, 8, 1))
     program.emit(lw(3, 8, 1))
-    emit_nops(program, 4)
-    program.branch("fail", "bne", 3, 2)
+    check_eq(program, 3, 2)
 
-    # UART_CTRL[0] = tx enable
+    # UART_CTRL[0] = tx enable, then read back.
     program.emit(sw(2, 0, 1))
     program.emit(lw(3, 0, 1))
     emit_nops(program, 4)
     program.emit(andi(3, 3, 1))
-    emit_nops(program, 4)
-    program.branch("fail", "bne", 3, 2)
+    check_eq(program, 3, 2)
 
-    # UART_TXDATA = 'H'
+    # UART_TXDATA = 'H'. TX busy should set.
     program.emit(addi(4, 0, 72))
     program.emit(sw(4, 12, 1))
     emit_nops(program, 2)
-
-    # UART_STATUS[0] should set while TX is busy.
     program.emit(lw(5, 4, 1))
     emit_nops(program, 4)
     program.emit(andi(5, 5, 1))
-    emit_nops(program, 4)
-    program.branch("fail", "beq", 5, 0)
+    check_nonzero(program, 5)
+
+    # Writing TXDATA while busy must not replace the active byte.
+    program.emit(addi(4, 0, 88))
+    program.emit(sw(4, 12, 1))
 
     emit_nops(program, 40)
 
-    # UART_STATUS[0] should clear after stop bit.
+    # TX busy should clear after stop bit.
     program.emit(lw(5, 4, 1))
     emit_nops(program, 4)
     program.emit(andi(5, 5, 1))
-    emit_nops(program, 4)
-    program.branch("fail", "bne", 5, 0)
+    check_zero(program, 5)
+
+    # Out-of-range UART offset should read zero.
+    program.emit(lw(6, 32, 1))
+    check_zero(program, 6)
 
     program.label("pass")
-    program.emit(addi(26, 0, 1))
     program.emit(addi(27, 0, 1))
+    program.emit(addi(26, 0, 1))
     program.label("done")
     program.jal("done")
 
     program.label("fail")
-    program.emit(addi(26, 0, 1))
     program.emit(addi(27, 0, 0))
+    program.emit(addi(26, 0, 1))
     program.jal("done")
 
     return program.build()
 
 
-def write_inst_data(words):
-    path = os.path.join(project_root(), "sim", "inst_data.txt")
+def write_inst_file(words, path):
     with open(path, "w") as file_obj:
         for word in words:
             file_obj.write("{:08x}\n".format(word))
 
 
+def testbench_source(inst_path):
+    inst_path = inst_path.replace("\\", "/")
+    return r'''
+`timescale 1ns/1ps
+`include "defines.v"
+
+module tb_uart_mmio;
+    reg clk;
+    reg rst_n;
+    reg external_irq;
+    reg uart_rx;
+    wire uart_tx;
+
+    integer cycle_count;
+    integer char_count;
+    integer errors;
+    reg [7:0] tx_char;
+
+    soc soc_inst(
+        .clk            (clk),
+        .rst_n          (rst_n),
+        .external_irq_i (external_irq),
+        .uart_rx_i      (uart_rx),
+        .uart_tx_o      (uart_tx)
+    );
+
+    always #10 clk = ~clk;
+
+    task sample_uart_char;
+        integer i;
+        reg [7:0] value;
+        begin
+            value = 8'h00;
+            repeat (3) @(posedge clk);
+
+            for (i = 0; i < 8; i = i + 1) begin
+                value[i] = uart_tx;
+                repeat (2) @(posedge clk);
+            end
+
+            tx_char = value;
+            char_count = char_count + 1;
+            $display("UART_MMIO_TX_CHAR: 0x%02h", value);
+            repeat (2) @(posedge clk);
+        end
+    endtask
+
+    initial begin
+        clk = 1'b0;
+        rst_n = 1'b0;
+        external_irq = 1'b0;
+        uart_rx = 1'b1;
+        cycle_count = 0;
+        char_count = 0;
+        errors = 0;
+        tx_char = 8'h00;
+
+        $readmemh("''' + inst_path + r'''", soc_inst.inst_rom_inst.rom_mem);
+
+        repeat (3) @(posedge clk);
+        rst_n = 1'b1;
+    end
+
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            cycle_count <= 0;
+        end else begin
+            cycle_count <= cycle_count + 1;
+
+            if (cycle_count > 1000) begin
+                $display("UART MMIO FAIL: timeout");
+                $finish;
+            end
+
+            if (soc_inst.core_inst.regs_inst.regs[26] == 32'h1) begin
+                if (soc_inst.core_inst.regs_inst.regs[27] == 32'h1 &&
+                    char_count == 1 &&
+                    tx_char == 8'h48) begin
+                    $display("UART MMIO PASS");
+                end else begin
+                    $display("UART MMIO FAIL: x27=%h chars=%0d tx_char=%02h",
+                             soc_inst.core_inst.regs_inst.regs[27],
+                             char_count,
+                             tx_char);
+                end
+                $finish;
+            end
+        end
+    end
+
+    always @(negedge uart_tx) begin
+        if (rst_n) begin
+            sample_uart_char();
+        end
+    end
+endmodule
+'''
+
+
+def compile_cmd(root, out_path, tb_path):
+    return [
+        "iverilog", "-g2012",
+        "-o", out_path,
+        "-I", os.path.join(root, "rtl"),
+        "-I", os.path.join(root, "rtl", "utils"),
+        "-I", os.path.join(root, "rtl", "core"),
+        "-I", os.path.join(root, "rtl", "perips"),
+        "-I", os.path.join(root, "rtl", "soc"),
+        os.path.join(root, "rtl", "utils", "defines.v"),
+        os.path.join(root, "rtl", "utils", "gen_dff.v"),
+        os.path.join(root, "rtl", "core", "core.v"),
+        os.path.join(root, "rtl", "core", "pc_reg.v"),
+        os.path.join(root, "rtl", "core", "regs.v"),
+        os.path.join(root, "rtl", "core", "if_id.v"),
+        os.path.join(root, "rtl", "core", "id.v"),
+        os.path.join(root, "rtl", "core", "id_ex.v"),
+        os.path.join(root, "rtl", "core", "ex.v"),
+        os.path.join(root, "rtl", "core", "mul.v"),
+        os.path.join(root, "rtl", "core", "div.v"),
+        os.path.join(root, "rtl", "core", "csr_reg.v"),
+        os.path.join(root, "rtl", "core", "clint.v"),
+        os.path.join(root, "rtl", "core", "ctrl.v"),
+        os.path.join(root, "rtl", "core", "rib.v"),
+        os.path.join(root, "rtl", "perips", "inst_rom.v"),
+        os.path.join(root, "rtl", "perips", "data_ram.v"),
+        os.path.join(root, "rtl", "perips", "timer.v"),
+        os.path.join(root, "rtl", "perips", "uart.v"),
+        os.path.join(root, "rtl", "soc", "soc.v"),
+        tb_path,
+    ]
+
+
 def main():
-    write_inst_data(uart_mmio_program())
+    root = project_root()
 
-    compile_rc = compile()
-    if compile_rc != 0:
-        return compile_rc
+    with tempfile.TemporaryDirectory() as tmpdir:
+        inst_path = os.path.join(tmpdir, "uart_mmio_inst.txt")
+        tb_path = os.path.join(tmpdir, "tb_uart_mmio.v")
+        out_path = os.path.join(tmpdir, "uart_mmio.vvp")
 
-    result = subprocess.run(
-        ["vvp", "out.vvp"],
-        cwd=sim_dir(),
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        timeout=10,
-    )
+        write_inst_file(uart_mmio_program(), inst_path)
 
-    print(result.stdout.rstrip())
+        with open(tb_path, "w") as file_obj:
+            file_obj.write(testbench_source(inst_path))
 
-    if result.returncode != 0:
-        return result.returncode
-    if "pass" not in result.stdout:
-        return 1
-    if "fail" in result.stdout.lower() or "timeout" in result.stdout.lower():
-        return 1
-    return 0
+        compile_result = subprocess.run(
+            compile_cmd(root, out_path, tb_path),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=30,
+        )
+        if compile_result.returncode != 0:
+            print(compile_result.stdout.rstrip())
+            return compile_result.returncode
+
+        sim_result = subprocess.run(
+            ["vvp", out_path],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=30,
+        )
+
+        print(sim_result.stdout.rstrip())
+
+        if sim_result.returncode != 0:
+            return sim_result.returncode
+        if "UART MMIO PASS" not in sim_result.stdout:
+            return 1
+        if "FAIL" in sim_result.stdout:
+            return 1
+        return 0
 
 
 if __name__ == "__main__":
