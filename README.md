@@ -1,8 +1,8 @@
 # 3-Stage RV32IM Pipeline RISC-V CPU
 
-
-This project implements a modular **3-Stage Pipeline RV32IM RISC-V CPU (Verilog HDL)**,
-with automated verification for ISA, CSR, trap, interrupt, and imported compliance behavior.
+This project implements a modular **3-Stage Pipeline RV32IM RISC-V CPU
+(Verilog HDL)**, with automated verification for ISA, CSR, trap, interrupt, and
+imported compliance behavior.
 
 
 ## Table of Contents
@@ -20,10 +20,10 @@ with automated verification for ISA, CSR, trap, interrupt, and imported complian
 ## Repository Layout
 ```text
 rtl/
-  core/                 # Pipeline core, CSR, and trap modules
-  perips/               # Peripheral modules, including Instruction ROM / Data RAM
+  core/                 # Pipeline core, CSR, CLINT, RIB, and pipeline control
+  perips/               # inst_rom, data_ram, timer, uart
   soc/                  # SoC wrapper
-  utils/                # Shared definitions & utilities
+  utils/                # Shared definitions and utility registers
 
 sim/
   compile_and_sim.py    # Compile and run simulation
@@ -36,7 +36,8 @@ tb/
   tb.v                  # Top-level testbench
 
 img/
-  Architecture diagrams
+  Arichtecture-core.drawio.png
+  Arichtecture.drawio
 ```
 
 ## Architecture
@@ -48,27 +49,34 @@ The processor is a modular 3-stage pipeline core with a small simulation SoC.
 IF -> ID -> EX
 ```
 
-| Stage | Description                         |
-|-------|-------------------------------------|
-| IF    | Instruction Fetch                   |
-| ID    | Instruction Decode / Register Read  |
-| EX    | Execute / Memory / CSR / Write Back |
+| Stage | Description |
+|-------|-------------|
+| IF | Instruction Fetch |
+| ID | Instruction Decode / Register Read |
+| EX | Execute / Memory / CSR / Write Back |
 
 
 ### System Organization
 ![Core Architecture](img/Arichtecture-core.drawio.png)
 
-The SoC view shows the full 3-stage pipeline system in one diagram. The Core
+The SoC view shows the current 3-stage pipeline system in one diagram. The Core
 contains PC generation, IF/ID and ID/EX pipeline registers, decode, register
 file, execute / memory / CSR / write-back logic, multi-cycle MUL / DIV units,
-trap handling, and pipeline control.
+CLINT trap/interrupt handling, and pipeline control.
 
-At the SoC level, the Core is integrated with Instruction ROM, Data RAM, and
-the RIB (RISC-V Internal Bus). The current RTL routes instruction fetch and
-data memory access through `rib` to `inst_rom`, `data_ram`, and MMIO
-peripherals. Data memory access has priority over instruction fetch, so the RIB
-can block IF and inject a fetch bubble while load/store traffic is using the
-bus.
+At the SoC level, the Core connects to `rib` as two active masters:
+instruction fetch and load/store memory access. The RIB then routes requests to
+`inst_rom`, `data_ram`, `timer`, and `uart`. Data memory access has priority
+over instruction fetch, so the RIB can stall IF and inject a fetch bubble while
+load/store traffic is using the bus.
+
+Current SoC external signals:
+
+| Signal | Direction | Description |
+|--------|-----------|-------------|
+| `external_irq_i` | Input | Machine external interrupt source |
+| `uart_rx_i` | Input | UART RX pin |
+| `uart_tx_o` | Output | UART TX pin |
 
 Current RIB MMIO map:
 
@@ -88,29 +96,30 @@ Current RIB MMIO map:
 
 | Item | Status | Completed On | Note |
 |------|--------|--------------|------|
-| 3-stage pipeline structure | ✅ Done | 2026-01-21 | IF / ID / EX architecture organization |
-| RV32I base instructions | ✅ Done | 2026-02-04 | Integer, branch/jump, load/store, write-back |
-| RV32M extension | ✅ Done | 2026-02-10 | RV32M instruction decode / execute support |
-| RV32M multi-cycle MUL | ✅ Done | 2026-03-03 | `MUL`, `MULH`, `MULHSU`, `MULHU` |
-| RV32M multi-cycle DIV | ✅ Done | 2026-05-19 | `DIV`, `DIVU`, `REM`, `REMU` |
-| Forwarding, load-use bubble | ✅ Done | 2026-05-19 | - |
-| Machine CSR, trap, `mret`, MEI | ✅ Done | 2026-06-18 | - |
-| CSR regression | ✅ Done | 2026-06-22 | - |
-| Architecture compliance tests | ✅ Done | 2026-06-22 | ACT4 tests compared against Sail golden signatures |
-| Timer MMIO | ✅ Done | 2026-07-23 | Zero-wait RIB slave at `0x2000_0000` |
-| Timer interrupt | ✅ Done | 2026-07-24 | Timer MTIP / MTIE through CSR and CLINT |
-| UART TX/RX peripheral | ✅ Done | 2026-07-28 | TX/RX FSM and register map |
-| UART RIB slave | ✅ Done | 2026-07-29 | MMIO slave at `0x3000_0000` |
-| Privileged architecture | ⚠️ Partial | - | Machine-mode subset only |
-| RIB | 🔄 Ongoing | - | RISC-V Internal Bus |
+| 3-stage pipeline structure | Done | 2026-01-21 | IF / ID / EX architecture organization |
+| RV32I base instructions | Done | 2026-02-04 | Integer, branch/jump, load/store, write-back |
+| RV32M extension | Done | 2026-02-10 | RV32M instruction decode / execute support |
+| RV32M multi-cycle MUL | Done | 2026-03-03 | `MUL`, `MULH`, `MULHSU`, `MULHU` |
+| RV32M multi-cycle DIV | Done | 2026-05-19 | `DIV`, `DIVU`, `REM`, `REMU` |
+| Forwarding, load-use bubble | Done | 2026-05-19 | - |
+| Machine CSR, trap, `mret`, MEI | Done | 2026-06-18 | - |
+| CSR regression | Done | 2026-06-22 | - |
+| Architecture compliance tests | Done | 2026-06-22 | ACT4 tests compared against Sail golden signatures |
+| RIB grant / MMIO decode | Done | 2026-07-24 | MEM has priority over IF, zero-wait read path kept |
+| Timer MMIO | Done | 2026-07-23 | Zero-wait RIB slave at `0x2000_0000` |
+| Timer interrupt | Done | 2026-07-24 | Timer MTIP / MTIE through CSR and CLINT |
+| UART TX/RX peripheral | Done | 2026-07-28 | TX/RX FSM and register map |
+| UART RIB slave | Done | 2026-07-29 | MMIO slave at `0x3000_0000` |
+| Privileged architecture | Partial | - | Machine-mode subset only |
+| RIB | Ongoing | - | Reserved slots remain for GPIO/SPI/debug expansion |
 
 ### Future Work
 
 | Item | Status | Note |
 |------|--------|------|
-| Vectored `mtvec` | ⛔ Not Implemented | Optional trap mode |
-| GPIO/SPI MMIO | ⛔ Not Implemented | Future RIB peripherals |
-| UART interrupt / FIFO | ⛔ Not Implemented | Future UART extensions |
+| Vectored `mtvec` | Not Implemented | Optional trap mode |
+| GPIO/SPI MMIO | Not Implemented | Future RIB peripherals |
+| UART interrupt / FIFO | Not Implemented | Future UART extensions |
 
 <br>
 
@@ -124,12 +133,12 @@ flows. Peripheral smoke tests can be kept locally under ignored
 ### Test Result Summary
 | Category | Coverage | Status | Note |
 |----------|----------|--------|------|
-| ISA regression | RV32I/RV32M, load/store, branch/jump | ⚠️ | `fence_i` is a known gap |
-| Hazard handling | Forwarding, load-use bubble | ✅ | - |
-| CSR/trap regression | CSR ops, exceptions, `mret` | ✅ | - |
-| Interrupt handling | External interrupt and timer interrupt | ✅ | MEI + MTI machine-mode subset |
-| Peripheral smoke tests | Timer / RIB / UART local checks | ✅ | Local ignored `sim/perips_test/` |
-| ACT4/Sail compliance | Golden signature comparison | ✅ | Local golden files |
+| ISA regression | RV32I/RV32M, load/store, branch/jump | Pass | `fence_i` is a known gap |
+| Hazard handling | Forwarding, load-use bubble | Pass | - |
+| CSR/trap regression | CSR ops, exceptions, `mret` | Pass | - |
+| Interrupt handling | External interrupt and timer interrupt | Pass | MEI + MTI machine-mode subset |
+| Peripheral smoke tests | Timer / RIB / UART local checks | Local | Ignored `sim/perips_test/` |
+| ACT4/Sail compliance | Golden signature comparison | Pass | Local golden files |
 
 Generated files such as `sim/inst_data.txt`, `sim/out.vvp`, waveform files,
 Python cache files, and compliance runtime/golden folders are not part of the
