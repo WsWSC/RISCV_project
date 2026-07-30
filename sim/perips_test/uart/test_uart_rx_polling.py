@@ -17,6 +17,30 @@ from test_uart_mmio import sw
 from test_uart_mmio import write_inst_file
 
 
+def receive_byte(program, wait_label, store_offset):
+    # Poll UART_STATUS[1] until rx done.
+    program.label(wait_label)
+    program.emit(lw(3, 4, 1))
+    emit_nops(program, 4)
+    program.emit(andi(3, 3, 2))
+    emit_nops(program, 4)
+    program.branch(wait_label, "beq", 3, 0)
+
+    # Read UART_RXDATA and store it to data_ram.
+    program.emit(lw(4, 16, 1))
+    emit_nops(program, 4)
+    program.emit(sw(4, store_offset, 0))
+
+    # Clear UART_STATUS[1].
+    program.emit(addi(2, 0, 2))
+    program.emit(sw(2, 4, 1))
+    program.emit(lw(5, 4, 1))
+    emit_nops(program, 4)
+    program.emit(andi(5, 5, 2))
+    emit_nops(program, 4)
+    program.branch("fail", "bne", 5, 0)
+
+
 def uart_rx_polling_program():
     program = Program()
 
@@ -32,27 +56,8 @@ def uart_rx_polling_program():
     program.emit(sw(2, 0, 1))
     emit_nops(program, 4)
 
-    # Poll UART_STATUS[1] until rx done.
-    program.label("wait_rx_done")
-    program.emit(lw(3, 4, 1))
-    emit_nops(program, 4)
-    program.emit(andi(3, 3, 2))
-    emit_nops(program, 4)
-    program.branch("wait_rx_done", "beq", 3, 0)
-
-    # Read UART_RXDATA and store it to data_ram[0x100].
-    program.emit(lw(4, 16, 1))
-    emit_nops(program, 4)
-    program.emit(sw(4, 256, 0))
-
-    # Clear UART_STATUS[1].
-    program.emit(addi(2, 0, 2))
-    program.emit(sw(2, 4, 1))
-    program.emit(lw(5, 4, 1))
-    emit_nops(program, 4)
-    program.emit(andi(5, 5, 2))
-    emit_nops(program, 4)
-    program.branch("fail", "bne", 5, 0)
+    receive_byte(program, "wait_rx_first", 256)
+    receive_byte(program, "wait_rx_second", 260)
 
     program.label("pass")
     program.emit(addi(27, 0, 1))
@@ -127,6 +132,8 @@ module tb_uart_rx_polling;
 
         repeat (60) @(posedge clk);
         drive_uart_byte(8'h5a);
+        repeat (80) @(posedge clk);
+        drive_uart_byte(8'ha5);
     end
 
     always @(posedge clk) begin
@@ -142,12 +149,14 @@ module tb_uart_rx_polling;
 
             if (soc_inst.core_inst.regs_inst.regs[26] == 32'h1) begin
                 if (soc_inst.core_inst.regs_inst.regs[27] == 32'h1 &&
-                    soc_inst.data_ram_inst.ram[64] == 32'h0000_005a) begin
+                    soc_inst.data_ram_inst.ram[64] == 32'h0000_005a &&
+                    soc_inst.data_ram_inst.ram[65] == 32'h0000_00a5) begin
                     $display("UART RX POLLING PASS");
                 end else begin
-                    $display("UART RX POLLING FAIL: x27=%h ram100=%h",
+                    $display("UART RX POLLING FAIL: x27=%h ram100=%h ram104=%h",
                              soc_inst.core_inst.regs_inst.regs[27],
-                             soc_inst.data_ram_inst.ram[64]);
+                             soc_inst.data_ram_inst.ram[64],
+                             soc_inst.data_ram_inst.ram[65]);
                 end
                 $finish;
             end
