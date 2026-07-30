@@ -58,6 +58,8 @@ def uart_rx_polling_program():
 
     receive_byte(program, "wait_rx_first", 256)
     receive_byte(program, "wait_rx_second", 260)
+    receive_byte(program, "wait_rx_third", 264)
+    receive_byte(program, "wait_rx_fourth", 268)
 
     program.label("pass")
     program.emit(addi(27, 0, 1))
@@ -134,6 +136,10 @@ module tb_uart_rx_polling;
         drive_uart_byte(8'h5a);
         repeat (80) @(posedge clk);
         drive_uart_byte(8'ha5);
+        repeat (80) @(posedge clk);
+        drive_uart_byte(8'h3c);
+        repeat (80) @(posedge clk);
+        drive_uart_byte(8'hc3);
     end
 
     always @(posedge clk) begin
@@ -150,13 +156,17 @@ module tb_uart_rx_polling;
             if (soc_inst.core_inst.regs_inst.regs[26] == 32'h1) begin
                 if (soc_inst.core_inst.regs_inst.regs[27] == 32'h1 &&
                     soc_inst.data_ram_inst.ram[64] == 32'h0000_005a &&
-                    soc_inst.data_ram_inst.ram[65] == 32'h0000_00a5) begin
+                    soc_inst.data_ram_inst.ram[65] == 32'h0000_00a5 &&
+                    soc_inst.data_ram_inst.ram[66] == 32'h0000_003c &&
+                    soc_inst.data_ram_inst.ram[67] == 32'h0000_00c3) begin
                     $display("UART RX POLLING PASS");
                 end else begin
-                    $display("UART RX POLLING FAIL: x27=%h ram100=%h ram104=%h",
+                    $display("UART RX POLLING FAIL: x27=%h ram100=%h ram104=%h ram108=%h ram10c=%h",
                              soc_inst.core_inst.regs_inst.regs[27],
                              soc_inst.data_ram_inst.ram[64],
-                             soc_inst.data_ram_inst.ram[65]);
+                             soc_inst.data_ram_inst.ram[65],
+                             soc_inst.data_ram_inst.ram[66],
+                             soc_inst.data_ram_inst.ram[67]);
                 end
                 $finish;
             end

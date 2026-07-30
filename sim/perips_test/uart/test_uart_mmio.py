@@ -165,11 +165,16 @@ def uart_mmio_program():
 
     wait_tx_idle(program, "wait_h_done")
 
-    # Send another byte after idle.
+    # Send more bytes after idle.
     program.emit(addi(4, 0, 73))
     program.emit(sw(4, 12, 1))
 
     wait_tx_idle(program, "wait_i_done")
+
+    program.emit(addi(4, 0, 33))
+    program.emit(sw(4, 12, 1))
+
+    wait_tx_idle(program, "wait_bang_done")
 
     # Out-of-range UART offset should read zero.
     program.emit(lw(6, 32, 1))
@@ -211,7 +216,7 @@ module tb_uart_mmio;
     integer cycle_count;
     integer char_count;
     integer errors;
-    reg [7:0] tx_chars [0:1];
+    reg [7:0] tx_chars [0:2];
 
     soc soc_inst(
         .clk            (clk),
@@ -235,7 +240,7 @@ module tb_uart_mmio;
                 repeat (2) @(posedge clk);
             end
 
-            if (char_count < 2) begin
+            if (char_count < 3) begin
                 tx_chars[char_count] = value;
             end
             char_count = char_count + 1;
@@ -254,6 +259,7 @@ module tb_uart_mmio;
         errors = 0;
         tx_chars[0] = 8'h00;
         tx_chars[1] = 8'h00;
+        tx_chars[2] = 8'h00;
 
         $readmemh("''' + inst_path + r'''", soc_inst.inst_rom_inst.rom_mem);
 
@@ -274,16 +280,18 @@ module tb_uart_mmio;
 
             if (soc_inst.core_inst.regs_inst.regs[26] == 32'h1) begin
                 if (soc_inst.core_inst.regs_inst.regs[27] == 32'h1 &&
-                    char_count == 2 &&
+                    char_count == 3 &&
                     tx_chars[0] == 8'h48 &&
-                    tx_chars[1] == 8'h49) begin
+                    tx_chars[1] == 8'h49 &&
+                    tx_chars[2] == 8'h21) begin
                     $display("UART MMIO PASS");
                 end else begin
-                    $display("UART MMIO FAIL: x27=%h chars=%0d data=%02h_%02h",
+                    $display("UART MMIO FAIL: x27=%h chars=%0d data=%02h_%02h_%02h",
                              soc_inst.core_inst.regs_inst.regs[27],
                              char_count,
                              tx_chars[0],
-                             tx_chars[1]);
+                             tx_chars[1],
+                             tx_chars[2]);
                 end
                 $finish;
             end
