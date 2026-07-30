@@ -42,7 +42,6 @@ vsim -version
 |--------|---------|---------|
 | `isa_test/` | Normal RV32I/RV32M instruction regression. | [isa_test/README.md](isa_test/README.md) |
 | `csr_test/` | CSR, exception, trap, `mret`, and external interrupt regression. | [csr_test/README.md](csr_test/README.md) |
-| `perips_test/` | Local peripheral and MMIO smoke tests, ignored by git. | `python sim\perips_test\test_all.py` if kept locally |
 | `compliance_test/` | Imported ACT4/Sail golden signature comparison. | [compliance_test/README.md](compliance_test/README.md) |
 
 Each test folder documents its own setup, required files, and run commands.

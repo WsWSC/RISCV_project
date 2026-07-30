@@ -30,7 +30,6 @@ sim/
   isa_test/             # RV32I / RV32M regression runners and binaries
   csr_test/             # CSR / trap / interrupt regression runner and binaries
   compliance_test/      # Compliance runner and local generated data
-  perips_test/          # Local peripheral smoke tests, ignored by git
 
 tb/
   tb.v                  # Top-level testbench
@@ -126,8 +125,7 @@ Current RIB MMIO map:
 ## Simulation & Verification
 The design is validated through Python-driven Icarus Verilog regression tests.
 See [sim/README.md](sim/README.md) for the ISA, CSR, and ACT4/Sail compliance
-flows. Peripheral smoke tests can be kept locally under ignored
-`sim/perips_test/` when needed.
+flows.
 
 
 ### Test Result Summary
@@ -137,7 +135,6 @@ flows. Peripheral smoke tests can be kept locally under ignored
 | Hazard handling | Forwarding, load-use bubble | Pass | - |
 | CSR/trap regression | CSR ops, exceptions, `mret` | Pass | - |
 | Interrupt handling | External interrupt and timer interrupt | Pass | MEI + MTI machine-mode subset |
-| Peripheral smoke tests | Timer / RIB / UART local checks | Local | Ignored `sim/perips_test/` |
 | ACT4/Sail compliance | Golden signature comparison | Pass | Local golden files |
 
 Generated files such as `sim/inst_data.txt`, `sim/out.vvp`, waveform files,
