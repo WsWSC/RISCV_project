@@ -15,12 +15,11 @@ def run_test(label, script_path):
         stderr=subprocess.STDOUT,
     )
 
-    print(result.stdout.rstrip())
-
     if result.returncode == 0:
         print("perips test:  [ {0:<24} ]    PASS".format(label))
     else:
         print("perips test:  [ {0:<24} ]    !!!FAIL!!!".format(label))
+        print(result.stdout.rstrip())
 
     return result.returncode
 

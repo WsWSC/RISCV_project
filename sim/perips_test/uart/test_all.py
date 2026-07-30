@@ -16,12 +16,11 @@ def run_test(script_name):
         stderr=subprocess.STDOUT,
     )
 
-    print(result.stdout.rstrip())
-
     if result.returncode == 0:
         print("uart test:    [ {0:<24} ]    PASS".format(script_name))
     else:
         print("uart test:    [ {0:<24} ]    !!!FAIL!!!".format(script_name))
+        print(result.stdout.rstrip())
 
     return result.returncode
 
