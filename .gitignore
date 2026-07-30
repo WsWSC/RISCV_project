@@ -15,6 +15,7 @@ __pycache__/
 # Simulation runtime artifacts
 sim/*.vvp
 sim/inst_data.txt
+sim/perips_test/
 *.vcd
 
 # Waveform / simulator logs

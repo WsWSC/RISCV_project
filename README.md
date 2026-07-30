@@ -30,6 +30,7 @@ sim/
   isa_test/             # RV32I / RV32M regression runners and binaries
   csr_test/             # CSR / trap / interrupt regression runner and binaries
   compliance_test/      # Compliance runner and local generated data
+  perips_test/          # Local peripheral smoke tests, ignored by git
 
 tb/
   tb.v                  # Top-level testbench
@@ -77,6 +78,11 @@ Current RIB MMIO map:
 | `0x2000_0004` | `TIMER_COUNT` | RW | Current timer counter |
 | `0x2000_0008` | `TIMER_COMPARE` | RW | Compare threshold |
 | `0x2000_000c` | `TIMER_STATUS` | RO | `[0] count >= compare` |
+| `0x3000_0000` | `UART_CTRL` | RW | `[0] TX enable`, `[1] RX enable` |
+| `0x3000_0004` | `UART_STATUS` | RW/RO | `[0] TX busy`, `[1] RX done / clear` |
+| `0x3000_0008` | `UART_BAUD` | RW | UART baud divider |
+| `0x3000_000c` | `UART_TXDATA` | WO | TX byte write |
+| `0x3000_0010` | `UART_RXDATA` | RO | RX byte read |
 
 ## Implementation Status
 
@@ -93,6 +99,8 @@ Current RIB MMIO map:
 | Architecture compliance tests | ✅ Done | 2026-06-22 | ACT4 tests compared against Sail golden signatures |
 | Timer MMIO | ✅ Done | 2026-07-23 | Zero-wait RIB slave at `0x2000_0000` |
 | Timer interrupt | ✅ Done | 2026-07-24 | Timer MTIP / MTIE through CSR and CLINT |
+| UART TX/RX peripheral | ✅ Done | 2026-07-28 | TX/RX FSM and register map |
+| UART RIB slave | ✅ Done | 2026-07-29 | MMIO slave at `0x3000_0000` |
 | Privileged architecture | ⚠️ Partial | - | Machine-mode subset only |
 | RIB | 🔄 Ongoing | - | RISC-V Internal Bus |
 
@@ -101,14 +109,16 @@ Current RIB MMIO map:
 | Item | Status | Note |
 |------|--------|------|
 | Vectored `mtvec` | ⛔ Not Implemented | Optional trap mode |
-| UART/GPIO/SPI MMIO | ⛔ Not Implemented | Future RIB peripherals |
+| GPIO/SPI MMIO | ⛔ Not Implemented | Future RIB peripherals |
+| UART interrupt / FIFO | ⛔ Not Implemented | Future UART extensions |
 
 <br>
 
 ## Simulation & Verification
 The design is validated through Python-driven Icarus Verilog regression tests.
 See [sim/README.md](sim/README.md) for the ISA, CSR, and ACT4/Sail compliance
-flows.
+flows. Peripheral smoke tests can be kept locally under ignored
+`sim/perips_test/` when needed.
 
 
 ### Test Result Summary
@@ -118,6 +128,7 @@ flows.
 | Hazard handling | Forwarding, load-use bubble | ✅ | - |
 | CSR/trap regression | CSR ops, exceptions, `mret` | ✅ | - |
 | Interrupt handling | External interrupt and timer interrupt | ✅ | MEI + MTI machine-mode subset |
+| Peripheral smoke tests | Timer / RIB / UART local checks | ✅ | Local ignored `sim/perips_test/` |
 | ACT4/Sail compliance | Golden signature comparison | ✅ | Local golden files |
 
 Generated files such as `sim/inst_data.txt`, `sim/out.vvp`, waveform files,
