@@ -120,6 +120,15 @@ def check_nonzero(program, rd):
     program.branch("fail", "beq", rd, 0)
 
 
+def wait_tx_idle(program, label):
+    program.label(label)
+    program.emit(lw(5, 4, 1))
+    emit_nops(program, 4)
+    program.emit(andi(5, 5, 1))
+    emit_nops(program, 4)
+    program.branch(label, "bne", 5, 0)
+
+
 def uart_mmio_program():
     program = Program()
 
@@ -154,11 +163,18 @@ def uart_mmio_program():
 
     emit_nops(program, 40)
 
-    # TX busy should clear after stop bit.
-    program.emit(lw(5, 4, 1))
-    emit_nops(program, 4)
-    program.emit(andi(5, 5, 1))
-    check_zero(program, 5)
+    wait_tx_idle(program, "wait_h_done")
+
+    # Send more bytes after idle.
+    program.emit(addi(4, 0, 73))
+    program.emit(sw(4, 12, 1))
+
+    wait_tx_idle(program, "wait_i_done")
+
+    program.emit(addi(4, 0, 33))
+    program.emit(sw(4, 12, 1))
+
+    wait_tx_idle(program, "wait_bang_done")
 
     # Out-of-range UART offset should read zero.
     program.emit(lw(6, 32, 1))
@@ -200,7 +216,7 @@ module tb_uart_mmio;
     integer cycle_count;
     integer char_count;
     integer errors;
-    reg [7:0] tx_char;
+    reg [7:0] tx_chars [0:2];
 
     soc soc_inst(
         .clk            (clk),
@@ -224,7 +240,9 @@ module tb_uart_mmio;
                 repeat (2) @(posedge clk);
             end
 
-            tx_char = value;
+            if (char_count < 3) begin
+                tx_chars[char_count] = value;
+            end
             char_count = char_count + 1;
             $display("UART_MMIO_TX_CHAR: 0x%02h", value);
             repeat (2) @(posedge clk);
@@ -239,7 +257,9 @@ module tb_uart_mmio;
         cycle_count = 0;
         char_count = 0;
         errors = 0;
-        tx_char = 8'h00;
+        tx_chars[0] = 8'h00;
+        tx_chars[1] = 8'h00;
+        tx_chars[2] = 8'h00;
 
         $readmemh("''' + inst_path + r'''", soc_inst.inst_rom_inst.rom_mem);
 
@@ -260,14 +280,18 @@ module tb_uart_mmio;
 
             if (soc_inst.core_inst.regs_inst.regs[26] == 32'h1) begin
                 if (soc_inst.core_inst.regs_inst.regs[27] == 32'h1 &&
-                    char_count == 1 &&
-                    tx_char == 8'h48) begin
+                    char_count == 3 &&
+                    tx_chars[0] == 8'h48 &&
+                    tx_chars[1] == 8'h49 &&
+                    tx_chars[2] == 8'h21) begin
                     $display("UART MMIO PASS");
                 end else begin
-                    $display("UART MMIO FAIL: x27=%h chars=%0d tx_char=%02h",
+                    $display("UART MMIO FAIL: x27=%h chars=%0d data=%02h_%02h_%02h",
                              soc_inst.core_inst.regs_inst.regs[27],
                              char_count,
-                             tx_char);
+                             tx_chars[0],
+                             tx_chars[1],
+                             tx_chars[2]);
                 end
                 $finish;
             end
