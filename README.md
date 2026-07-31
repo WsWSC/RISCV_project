@@ -14,7 +14,7 @@ imported compliance behavior.
   - [Future Work](#future-work)
 - [Simulation & Verification](#simulation--verification)
   - [Test Result Summary](#test-result-summary)
-- [Reference](#reference)
+- [References](#references)
 
 
 ## Repository Layout
@@ -39,6 +39,8 @@ img/
   Arichtecture.drawio
 ```
 
+<br>
+
 ## Architecture
 The processor is a modular 3-stage pipeline core with a small simulation SoC.
 
@@ -58,59 +60,48 @@ IF -> ID -> EX
 ### System Organization
 ![Core Architecture](img/Arichtecture-core.drawio.png)
 
-The SoC view shows the current 3-stage pipeline system in one diagram. The Core
-contains PC generation, IF/ID and ID/EX pipeline registers, decode, register
-file, execute / memory / CSR / write-back logic, multi-cycle MUL / DIV units,
-CLINT trap/interrupt handling, and pipeline control.
+The diagram shows the 3-stage core, RIB, and current SoC peripherals. The Core
+handles instruction flow, execution, CSR/trap control, MUL/DIV, and memory
+access. The RIB routes instruction fetch and load/store requests to `inst_rom`,
+`data_ram`, `timer`, and `uart`; load/store access has priority over
+instruction fetch.
 
-At the SoC level, the Core connects to `rib` as two active masters:
-instruction fetch and load/store memory access. The RIB then routes requests to
-`inst_rom`, `data_ram`, `timer`, and `uart`. Data memory access has priority
-over instruction fetch, so the RIB can stall IF and inject a fetch bubble while
-load/store traffic is using the bus.
+Current memory access regions:
 
-Current SoC external signals:
+| Region | Address Range | Description |
+|--------|---------------|-------------|
+| `inst_rom` | IF path from `0x0000_0000` | Instruction fetch target |
+| `data_ram` | MEM path from `0x0000_0000` | Load/store data memory |
+| `timer` | MEM path from `0x2000_0000` | MMIO timer with interrupt output |
+| `uart` | MEM path from `0x3000_0000` | MMIO UART TX/RX |
 
-| Signal | Direction | Description |
-|--------|-----------|-------------|
-| `external_irq_i` | Input | Machine external interrupt source |
-| `uart_rx_i` | Input | UART RX pin |
-| `uart_tx_o` | Output | UART TX pin |
+The SoC also exposes an external interrupt input and UART RX/TX pins.
 
-Current RIB MMIO map:
-
-| Address | Register | Access | Description |
-|---------|----------|--------|-------------|
-| `0x2000_0000` | `TIMER_CTRL` | RW | `[0] enable`, `[1] clear count` |
-| `0x2000_0004` | `TIMER_COUNT` | RW | Current timer counter |
-| `0x2000_0008` | `TIMER_COMPARE` | RW | Compare threshold |
-| `0x2000_000c` | `TIMER_STATUS` | RO | `[0] count >= compare` |
-| `0x3000_0000` | `UART_CTRL` | RW | `[0] TX enable`, `[1] RX enable` |
-| `0x3000_0004` | `UART_STATUS` | RW/RO | `[0] TX busy`, `[1] RX done / clear` |
-| `0x3000_0008` | `UART_BAUD` | RW | UART baud divider |
-| `0x3000_000c` | `UART_TXDATA` | WO | TX byte write |
-| `0x3000_0010` | `UART_RXDATA` | RO | RX byte read |
+<br>
 
 ## Implementation Status
 
-| Item | Status | Completed On | Note |
-|------|--------|--------------|------|
-| 3-stage pipeline structure | Done | 2026-01-21 | IF / ID / EX architecture organization |
-| RV32I base instructions | Done | 2026-02-04 | Integer, branch/jump, load/store, write-back |
-| RV32M extension | Done | 2026-02-10 | RV32M instruction decode / execute support |
-| RV32M multi-cycle MUL | Done | 2026-03-03 | `MUL`, `MULH`, `MULHSU`, `MULHU` |
-| RV32M multi-cycle DIV | Done | 2026-05-19 | `DIV`, `DIVU`, `REM`, `REMU` |
-| Forwarding, load-use bubble | Done | 2026-05-19 | - |
-| Machine CSR, trap, `mret`, MEI | Done | 2026-06-18 | - |
-| CSR regression | Done | 2026-06-22 | - |
-| Architecture compliance tests | Done | 2026-06-22 | ACT4 tests compared against Sail golden signatures |
-| RIB grant / MMIO decode | Done | 2026-07-24 | MEM has priority over IF, zero-wait read path kept |
-| Timer MMIO | Done | 2026-07-23 | Zero-wait RIB slave at `0x2000_0000` |
-| Timer interrupt | Done | 2026-07-24 | Timer MTIP / MTIE through CSR and CLINT |
-| UART TX/RX peripheral | Done | 2026-07-28 | TX/RX FSM and register map |
-| UART RIB slave | Done | 2026-07-29 | MMIO slave at `0x3000_0000` |
-| Privileged architecture | Partial | - | Machine-mode subset only |
-| RIB | Ongoing | - | Reserved slots remain for GPIO/SPI/debug expansion |
+### Timeline View
+
+| Completed On | Category | Item | Status | Note |
+|--------------|----------|------|--------|------|
+| 2026-01-21 | Core | 3-stage pipeline structure | Done | IF / ID / EX architecture organization |
+| 2026-02-04 | ISA | RV32I base instructions | Done | Integer, branch/jump, load/store, write-back |
+| 2026-02-10 | ISA | RV32M extension | Done | RV32M instruction decode / execute support |
+| 2026-03-03 | ISA | RV32M multi-cycle MUL | Done | `MUL`, `MULH`, `MULHSU`, `MULHU` |
+| 2026-05-19 | ISA | RV32M multi-cycle DIV | Done | `DIV`, `DIVU`, `REM`, `REMU` |
+| 2026-05-19 | Pipeline Control | Forwarding, load-use bubble | Done | - |
+| 2026-06-18 | Interrupt / CSR | Machine CSR, trap, `mret`, MEI | Done | Machine-mode subset |
+| 2026-06-22 | Verification | ISA regression | Done | RV32I / RV32M regression tests |
+| 2026-06-22 | Verification | CSR regression | Done | - |
+| 2026-06-22 | Verification | Architecture compliance tests | Done | ACT4 tests compared against Sail golden signatures |
+| 2026-07-23 | RIB / MMIO | Timer MMIO slave | Done | Zero-wait RIB slave at `0x2000_0000` |
+| 2026-07-24 | Interrupt / CSR | Timer interrupt | Done | Timer MTIP / MTIE through CSR and CLINT |
+| 2026-07-24 | RIB / MMIO | RIB grant / MMIO decode | Done | MEM has priority over IF, zero-wait read path kept |
+| 2026-07-28 | Peripheral | UART TX/RX | Done | TX/RX FSM and register map |
+| 2026-07-29 | RIB / MMIO | UART MMIO slave | Done | MMIO slave at `0x3000_0000` |
+| - | Privileged | Privileged architecture | Partial | Machine-mode subset only |
+| - | RIB / MMIO | RIB expansion | Ongoing | Reserved slots remain for GPIO/SPI/debug expansion |
 
 ### Future Work
 
@@ -141,5 +132,17 @@ Generated files such as `sim/inst_data.txt`, `sim/out.vvp`, waveform files,
 Python cache files, and compliance runtime/golden folders are not part of the
 source code.
 
-## Reference
-[1] [SI-RISCV Project](https://github.com/SI-RISCV/e200_opensource)
+<br>
+
+## References
+
+### Specifications
+
+- [RISC-V GitHub Organization](https://github.com/riscv) - Official RISC-V specifications and architecture test resources.
+- [RISC-V ISA Manual](https://github.com/riscv/riscv-isa-manual) - RISC-V unprivileged and privileged architecture manuals.
+- [RISC-V Architecture Tests](https://github.com/riscv-non-isa/riscv-arch-test) - Official architecture compliance test suite.
+
+### Reference Projects
+
+- [SI-RISCV Project](https://github.com/SI-RISCV/e200_opensource) - Reference open-source RISC-V core project.
+- [TinyRISC-V](https://gitee.com/liangkangnan/tinyriscv) - Small RV32IM core used as a practical reference for RIB and peripherals.
