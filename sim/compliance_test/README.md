@@ -24,6 +24,8 @@ The generated folders come from:
 
 For generator internals and troubleshooting, see the generator repo README.
 
+<br>
+
 ## Generate Golden Files
 
 Run these steps in WSL.
@@ -75,6 +77,8 @@ sim/compliance_test/DUT_runtime/data/*.data
 
 Expected count: `47` files in each output group.
 
+<br>
+
 ## Run Compliance Tests
 
 Run these steps from Windows PowerShell at the CPU repo root.
@@ -112,6 +116,8 @@ Useful debug options:
 | `--verbose` | Print simulator output for passing tests. |
 | `--timeout-cycles N` | Override the simulation timeout cycle count. |
 | `--smoke` | Allow signature dump without golden comparison. |
+
+<br>
 
 ## Common Failures
 

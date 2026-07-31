@@ -15,6 +15,8 @@ sim/
     rv32csr-p-*.bin
 ```
 
+<br>
+
 ## File Names
 
 CSR instruction tests:
@@ -70,6 +72,8 @@ rv32csr-p-external_irq_masked.bin
 rv32csr-p-external_irq_pending_latch.bin
 ```
 
+<br>
+
 ## Pass/Fail Convention
 
 CSR binaries follow the existing testbench convention:
@@ -80,6 +84,8 @@ x27 = 1: pass
 x27 = 0: fail
 x3      : fail case id
 ```
+
+<br>
 
 ## Regression Policy
 
@@ -92,6 +98,8 @@ python sim\csr_test\test_all.py
 ```
 
 That runner scans only this folder and should not affect normal RV32I/RV32M regression.
+
+<br>
 
 ## Generated Files
 

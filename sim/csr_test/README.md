@@ -18,6 +18,8 @@ rv32csr-p-*.bin
 
 Current tracked coverage is 33 binaries.
 
+<br>
+
 ## Required Files
 
 Required inputs:
@@ -32,6 +34,8 @@ rtl/
 The `.bin` files are committed test inputs. Runtime outputs stay under `sim/`
 and are ignored.
 
+<br>
+
 ## Commands
 
 Run commands from the repo root:
@@ -41,6 +45,8 @@ Run all tests:
 ```powershell
 python sim\csr_test\test_all.py
 ```
+
+<br>
 
 ## Debug Options
 
@@ -58,6 +64,8 @@ python sim\csr_test\test_all.py --dump
 python sim\csr_test\test_all.py --timeout-cycles 2000
 ```
 
+<br>
+
 ## Testbench Convention
 
 CSR binaries use the existing testbench pass/fail convention:
@@ -71,6 +79,8 @@ x3      : fail case id
 
 External interrupt tests pass extra plusargs from `test_all.py`, for example
 `+external_irq_cycle`.
+
+<br>
 
 ## Generated Files
 

@@ -21,6 +21,8 @@ rv32um-p-*.bin
 Current tracked coverage is 47 binaries: RV32I base instruction tests plus
 RV32M multiply/divide tests.
 
+<br>
+
 ## Required Files
 
 Required inputs:
@@ -34,6 +36,8 @@ rtl/
 
 The `.bin` files are committed test inputs. Runtime outputs stay under `sim/`
 and are ignored.
+
+<br>
 
 ## Commands
 
@@ -54,6 +58,8 @@ python sim\isa_test\test_one.py addi
 The test name is matched against files under `sim/isa_test/test_bin/`. Use a
 specific instruction name such as `addi`, `lw`, `mul`, or `remu`.
 
+<br>
+
 ## Debug Options
 
 | Option | Effect |
@@ -70,6 +76,8 @@ python sim\isa_test\test_all.py --verbose
 python sim\isa_test\test_one.py addi --timeout-cycles 2000
 ```
 
+<br>
+
 ## Testbench Convention
 
 ISA binaries use the existing testbench pass/fail convention:
@@ -80,6 +88,8 @@ x27 = 1 : pass
 x27 = 0 : fail
 x3      : fail case id
 ```
+
+<br>
 
 ## Generated Files
 

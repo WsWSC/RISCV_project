@@ -24,6 +24,8 @@ vvp -V
 vsim -version
 ```
 
+<br>
+
 ## Shared Helper
 
 `compile_and_sim.py` compiles the RTL with Icarus Verilog, converts one `.bin`
@@ -39,6 +41,8 @@ python sim\compile_and_sim.py sim\isa_test\test_bin\rv32ui-p-addi.bin --dump
 
 `sim/inst_data.txt`, `sim/out.vvp`, and waveform files are generated runtime
 files and should not be committed.
+
+<br>
 
 ## Test Flows
 
