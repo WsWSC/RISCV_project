@@ -1,6 +1,6 @@
 # CSR / Trap Regression Tests
 
-This folder contains the CSR/trap/interrupt regression flow.
+This folder contains the tracked CSR/trap/interrupt regression flow.
 
 ## Layout
 
@@ -16,6 +16,8 @@ Test binaries:
 rv32csr-p-*.bin
 ```
 
+Current tracked coverage is 33 binaries.
+
 ## Required Files
 
 Required inputs:
@@ -27,7 +29,8 @@ tb/tb.v
 rtl/
 ```
 
-The `.bin` files are repo files. Runtime outputs stay under `sim/` and are ignored.
+The `.bin` files are committed test inputs. Runtime outputs stay under `sim/`
+and are ignored.
 
 ## Commands
 
@@ -44,7 +47,7 @@ python sim\csr_test\test_all.py
 | Option | Effect |
 | --- | --- |
 | `--trace` | Print per-cycle CPU trace from `tb.v`. |
-| `--dump` | Generate `tb.vcd` waveform. |
+| `--dump` | Generate `sim/tb.vcd` waveform. |
 | `--verbose` | Print simulator output for passing tests. |
 | `--timeout-cycles N` | Override the testbench timeout cycle count. |
 
@@ -66,7 +69,8 @@ x27 = 0 : fail
 x3      : fail case id
 ```
 
-Some interrupt tests pass extra plusargs from `test_all.py`, for example `+external_irq_cycle`.
+External interrupt tests pass extra plusargs from `test_all.py`, for example
+`+external_irq_cycle`.
 
 ## Generated Files
 
@@ -76,4 +80,5 @@ The runner converts each selected `.bin` into:
 sim/inst_data.txt
 ```
 
-`tb/tb.v` reads that file. Do not commit generated files such as `sim/inst_data.txt`, `sim/out.vvp`, waveform files, or Python cache files.
+`tb/tb.v` reads that file. Do not commit generated files such as
+`sim/inst_data.txt`, `sim/out.vvp`, `sim/tb.vcd`, or Python cache files.

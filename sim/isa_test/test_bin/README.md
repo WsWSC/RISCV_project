@@ -51,9 +51,9 @@ sim/inst_data.txt
 The testbench reads that generated file. Do not commit generated files such as:
 
 ```text
-inst_data.txt
-*.dump
-*.txt
-*.verilog
+sim/inst_data.txt
+sim/out.vvp
+sim/tb.vcd
+__pycache__/
 ```
 

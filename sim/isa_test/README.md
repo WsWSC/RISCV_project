@@ -1,6 +1,6 @@
 # ISA Regression Tests
 
-This folder contains the RV32I/RV32M instruction regression flow.
+This folder contains the tracked RV32I/RV32M instruction regression flow.
 
 ## Layout
 
@@ -18,6 +18,9 @@ rv32ui-p-*.bin
 rv32um-p-*.bin
 ```
 
+Current tracked coverage is 47 binaries: RV32I base instruction tests plus
+RV32M multiply/divide tests.
+
 ## Required Files
 
 Required inputs:
@@ -29,7 +32,8 @@ tb/tb.v
 rtl/
 ```
 
-The `.bin` files are repo files. Runtime outputs stay under `sim/` and are ignored.
+The `.bin` files are committed test inputs. Runtime outputs stay under `sim/`
+and are ignored.
 
 ## Commands
 
@@ -47,12 +51,15 @@ Run one test:
 python sim\isa_test\test_one.py addi
 ```
 
+The test name is matched against files under `sim/isa_test/test_bin/`. Use a
+specific instruction name such as `addi`, `lw`, `mul`, or `remu`.
+
 ## Debug Options
 
 | Option | Effect |
 | --- | --- |
 | `--trace` | Print per-cycle CPU trace from `tb.v`. |
-| `--dump` | Generate `tb.vcd` waveform. |
+| `--dump` | Generate `sim/tb.vcd` waveform. |
 | `--verbose` | Print simulator output for passing tests. |
 | `--timeout-cycles N` | Override the testbench timeout cycle count. |
 
@@ -82,4 +89,5 @@ The runner converts each selected `.bin` into:
 sim/inst_data.txt
 ```
 
-`tb/tb.v` reads that file. Do not commit generated files such as `sim/inst_data.txt`, `sim/out.vvp`, waveform files, or Python cache files.
+`tb/tb.v` reads that file. Do not commit generated files such as
+`sim/inst_data.txt`, `sim/out.vvp`, `sim/tb.vcd`, or Python cache files.

@@ -19,7 +19,7 @@ sim/compliance_test/
 
 The generated folders come from:
 
-- [riscv/riscv-arch-test](https://github.com/riscv/riscv-arch-test)
+- [riscv-non-isa/riscv-arch-test](https://github.com/riscv-non-isa/riscv-arch-test)
 - [WsWSC/3-stage-riscv-golden-generator](https://github.com/WsWSC/3-stage-riscv-golden-generator)
 
 For generator internals and troubleshooting, see the generator repo README.
@@ -33,7 +33,7 @@ Step 1. Clone the official ACT4 repo:
 ```bash
 mkdir -p ~/risc-v
 cd ~/risc-v
-git clone https://github.com/riscv/riscv-arch-test.git
+git clone https://github.com/riscv-non-isa/riscv-arch-test.git
 ```
 
 Step 2. Clone the golden generator repo:
@@ -90,6 +90,10 @@ python sim\compliance_test\test_one.py add
 python sim\compliance_test\test_one.py beq
 ```
 
+`test_one.py` requires the name to resolve to exactly one compliance test. The
+name can be a full test name such as `rv32i-I-add-00` or a short name such as
+`add`.
+
 Run all compliance tests:
 
 ```powershell
@@ -99,10 +103,21 @@ python sim\compliance_test\test_all.py
 Do not run multiple compliance commands in parallel. These scripts share
 `sim/inst_data.txt` and `sim/out.vvp`.
 
+Useful debug options:
+
+| Option | Effect |
+| --- | --- |
+| `--trace` | Print per-cycle CPU trace. |
+| `--dump` | Generate `sim/tb.vcd` waveform. |
+| `--verbose` | Print simulator output for passing tests. |
+| `--timeout-cycles N` | Override the simulation timeout cycle count. |
+| `--smoke` | Allow signature dump without golden comparison. |
+
 ## Common Failures
 
 | Message / Symptom | Fix |
 | --- | --- |
-| `missing compliance runtime binary` | Run the WSL golden generator. |
+| `missing compliance DUT runtime binaries` | Run the WSL golden generator. |
+| `ambiguous compliance test name` | Use the full test name, for example `rv32i-I-add-00`. |
 | Stale golden files | Regenerate golden files, then rerun the Windows test. |
 | Generator setup or tool errors | See the generator repo README. |
