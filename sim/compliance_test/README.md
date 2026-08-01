@@ -26,6 +26,30 @@ For generator internals and troubleshooting, see the generator repo README.
 
 <br>
 
+## Compliance Flow
+
+Each ACT4 test starts from the same `.S` source and is compiled into one `.elf`.
+
+The `.elf` is then used in two paths:
+
+1. DUT path:
+   - Extract instruction sections into `.bin`.
+   - Extract data sections into `.data`.
+   - Run the Verilog DUT with `.bin` and `.data`.
+   - Dump the DUT result as `current.sig`.
+
+2. Golden path:
+   - Run the same `.elf` with Sail.
+   - Dump the reference signature as `golden.sig`.
+
+A test passes when:
+
+```text
+current.sig == golden.sig
+```
+
+<br>
+
 ## Generate Golden Files
 
 Run these steps in WSL.
