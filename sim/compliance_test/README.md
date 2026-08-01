@@ -20,7 +20,7 @@ sim/compliance_test/
 The generated folders come from:
 
 - [riscv-non-isa/riscv-arch-test](https://github.com/riscv-non-isa/riscv-arch-test)
-- [WsWSC/3-stage-riscv-golden-generator](https://github.com/WsWSC/3-stage-riscv-golden-generator)
+- [WsWSC/3-Stage-RISC-V-Golden-Generator](https://github.com/WsWSC/3-Stage-RISC-V-Golden-Generator)
 
 For generator internals and troubleshooting, see the generator repo README.
 
@@ -42,17 +42,17 @@ Step 2. Clone the golden generator repo:
 
 ```bash
 cd ~/risc-v
-git clone https://github.com/WsWSC/3-stage-riscv-golden-generator.git
+git clone https://github.com/WsWSC/3-Stage-RISC-V-Golden-Generator.git
 ```
 
 Step 3. Create the generator config:
 
 ```bash
-cd ~/risc-v/3-stage-riscv-golden-generator
-cp config.env.example config.env
+cd ~/risc-v/3-Stage-RISC-V-Golden-Generator
+cp Config/config.env.example Config/config.env
 ```
 
-Step 4. Edit `config.env` and point `TARGET_REPO` to this CPU repo as seen
+Step 4. Edit `Config/config.env` and point `TARGET_REPO` to this CPU repo as seen
 from WSL:
 
 ```bash
@@ -62,8 +62,8 @@ TARGET_REPO=/mnt/c/Users/<windows_user>/Documents/3-stage_RISC-V
 Step 5. Generate golden files:
 
 ```bash
-cd ~/risc-v/3-stage-riscv-golden-generator
-./generate_golden.sh
+cd ~/risc-v/3-Stage-RISC-V-Golden-Generator
+./00_Scripts/generate_golden.sh
 ```
 
 Expected output in this CPU repo:
