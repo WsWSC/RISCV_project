@@ -13,8 +13,8 @@ module rib(
 
     // master 0: instruction fetch
     input  wire [`MemAddrBus]   m0_if_r_addr_i,
-    output reg  [`MemDataBus]   m0_if_r_data_o,
     output reg                  m0_if_stall_o,
+    output reg  [`MemDataBus]   m0_if_r_data_o,
 
     // master 1: load/store memory access
     input  wire                 m1_mem_r_en_i,
@@ -26,36 +26,36 @@ module rib(
     input  wire [`MemAddrBus]   m1_mem_w_addr_i,
     input  wire [`MemDataBus]   m1_mem_w_data_i,
 
+    // slave 0: inst_rom
+    input  wire [`MemDataBus]   s0_rom_r_data_i,
+    output reg  [`MemAddrBus]   s0_rom_r_addr_o,
+
     // slave 1: data_ram
+    input  wire [`MemDataBus]   s1_ram_r_data_i,
+    output reg  [`MemAddrBus]   s1_ram_r_addr_o,
+
     output reg                  s1_ram_w_en_o,
     output reg  [3:0]           s1_ram_w_sel_o,
     output reg  [`MemAddrBus]   s1_ram_w_addr_o,
     output reg  [`MemDataBus]   s1_ram_w_data_o,
 
-    output reg  [`MemAddrBus]   s1_ram_r_addr_o,
-    input  wire [`MemDataBus]   s1_ram_r_data_i,
-
     // slave 2: timer
+    input  wire [`MemDataBus]   s2_timer_r_data_i,
+    output reg  [`MemAddrBus]   s2_timer_r_addr_o,
+
     output reg                  s2_timer_w_en_o,
     output reg  [3:0]           s2_timer_w_sel_o,
     output reg  [`MemAddrBus]   s2_timer_w_addr_o,
     output reg  [`MemDataBus]   s2_timer_w_data_o,
 
-    output reg  [`MemAddrBus]   s2_timer_r_addr_o,
-    input  wire [`MemDataBus]   s2_timer_r_data_i,
-
     // slave 3: uart
+    input  wire [`MemDataBus]   s3_uart_r_data_i,
+    output reg  [`MemAddrBus]   s3_uart_r_addr_o,
+
     output reg                  s3_uart_w_en_o,
     output reg  [3:0]           s3_uart_w_sel_o,
     output reg  [`MemAddrBus]   s3_uart_w_addr_o,
-    output reg  [`MemDataBus]   s3_uart_w_data_o,
-
-    output reg  [`MemAddrBus]   s3_uart_r_addr_o,
-    input  wire [`MemDataBus]   s3_uart_r_data_i,
-
-    // slave 0: inst_rom
-    output reg  [`MemAddrBus]   s0_rom_r_addr_o,
-    input  wire [`MemDataBus]   s0_rom_r_data_i
+    output reg  [`MemDataBus]   s3_uart_w_data_o
 );
 
     // ============================================================
