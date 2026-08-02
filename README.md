@@ -70,8 +70,8 @@ Current memory access regions:
 
 | Region | Address Range | Description |
 |--------|---------------|-------------|
-| `inst_rom` | IF path from `0x0000_0000` | Instruction fetch target |
-| `data_ram` | MEM path from `0x0000_0000` | Load/store data memory |
+| `inst_rom` | `0x0000_0000` | Read-only instruction and constant memory |
+| `data_ram` | `0x1000_0000` | Load/store data memory |
 | `timer` | MEM path from `0x2000_0000` | MMIO timer with interrupt output |
 | `uart` | MEM path from `0x3000_0000` | MMIO UART TX/RX |
 

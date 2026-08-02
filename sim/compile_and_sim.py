@@ -141,7 +141,7 @@ def sim(vvp_args=None, iverilog_defines=None, vvp_timeout=10, compile_timeout=60
     return process.returncode
 
 
-def run(test_binfile, trace=False, dump=False, timeout_cycles=None):
+def run(test_binfile, trace=False, dump=False, timeout_cycles=None, legacy_harvard_map=False):
     # get project root directory
     rtl_dir = project_root()
 
@@ -160,7 +160,8 @@ def run(test_binfile, trace=False, dump=False, timeout_cycles=None):
         vvp_args.append('+timeout_cycles=' + str(timeout_cycles))
 
     # run simulation
-    return sim(vvp_args)
+    iverilog_defines = ['LEGACY_HARVARD_MAP'] if legacy_harvard_map else None
+    return sim(vvp_args, iverilog_defines=iverilog_defines)
 
 
 def parse_args():
@@ -169,9 +170,10 @@ def parse_args():
     parser.add_argument('--trace', action='store_true', help='Print per-cycle CPU trace from tb.v.')
     parser.add_argument('--dump', action='store_true', help='Dump tb.vcd for waveform debug.')
     parser.add_argument('--timeout-cycles', type=int, help='Override tb.v simulation timeout in cycles.')
+    parser.add_argument('--legacy-harvard-map', action='store_true', help='Use the original low-address Data RAM map for legacy test binaries.')
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_args()
-    sys.exit(run(args.test_binfile, args.trace, args.dump, args.timeout_cycles))
+    sys.exit(run(args.test_binfile, args.trace, args.dump, args.timeout_cycles, args.legacy_harvard_map))

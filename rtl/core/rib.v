@@ -63,19 +63,33 @@ module rib(
     // ============================================================
     // Address map:
     // m1_mem addr[31:28] selects the slave.
-    // 4'h0: data_ram
+    // 4'h0: inst_rom (read only)
+    // 4'h1: data_ram
     // 4'h2: timer
     // 4'h3: UART
     // Future reserved slaves (not implemented yet):
     // 4'h4: GPIO
     // 4'h5: SPI
     // others: read zero, ignore write
-    localparam [31:0]  RAM_ADDR_LIMIT  = (`MemNum << 2);
+`ifdef LEGACY_HARVARD_MAP
+    // Tracked regression binaries use the original Harvard data address space.
+    localparam [31:0]  RAM_BASE        = 32'h0000_0000;
+`else
+    localparam [31:0]  RAM_BASE        = 32'h1000_0000;
+`endif
+    localparam [31:0]  ROM_SIZE        = (`MemNum << 2);
+    localparam [31:0]  RAM_SIZE        = (`MemNum << 2);
+    localparam [31:0]  RAM_END         = RAM_BASE + RAM_SIZE;
 
     localparam [1:0]   RIB_GRANT_IF    = 2'b00;
     localparam [1:0]   RIB_GRANT_MEM   = 2'b01;
 
+    localparam [3:0]   RIB_SLAVE_ROM   = 4'h0;
+`ifdef LEGACY_HARVARD_MAP
     localparam [3:0]   RIB_SLAVE_RAM   = 4'h0;
+`else
+    localparam [3:0]   RIB_SLAVE_RAM   = 4'h1;
+`endif
     localparam [3:0]   RIB_SLAVE_TIMER = 4'h2;
     localparam [3:0]   RIB_SLAVE_UART  = 4'h3;
     // localparam [3:0]   RIB_SLAVE_GPIO  = 4'h4;
@@ -90,11 +104,30 @@ module rib(
     reg  [3:0]         mem_r_slave_sel  ;
     reg  [3:0]         mem_w_slave_sel  ;
 
+    wire               mem_rom_read_sel;
+    wire               mem_ram_read_sel;
+    wire [`MemAddrBus] mem_ram_r_addr  ;
+    wire [`MemAddrBus] mem_ram_w_addr  ;
+
     assign if_req = 1'b1;
 
     assign mem_req = (m1_mem_r_en_i == `ReadEnable) ||
                      (m1_mem_w_en_i == `WriteEnable);
     assign mem_grant = (master_grant == RIB_GRANT_MEM);
+
+`ifdef LEGACY_HARVARD_MAP
+    assign mem_rom_read_sel = 1'b0;
+`else
+    assign mem_rom_read_sel = mem_grant &&
+                              (mem_r_slave_sel == RIB_SLAVE_ROM) &&
+                              (m1_mem_r_addr_i < ROM_SIZE);
+`endif
+    assign mem_ram_read_sel = mem_grant &&
+                              (mem_r_slave_sel == RIB_SLAVE_RAM) &&
+                              (m1_mem_r_addr_i >= RAM_BASE) &&
+                              (m1_mem_r_addr_i < RAM_END);
+    assign mem_ram_r_addr = m1_mem_r_addr_i - RAM_BASE;
+    assign mem_ram_w_addr = m1_mem_w_addr_i - RAM_BASE;
 
     // ============================================================
     //  Master Grant
@@ -118,6 +151,9 @@ module rib(
 
         if (m1_mem_r_en_i == `ReadEnable) begin
             case (m1_mem_r_addr_i[31:28])
+`ifndef LEGACY_HARVARD_MAP
+                RIB_SLAVE_ROM,
+`endif
                 RIB_SLAVE_RAM,
                 RIB_SLAVE_TIMER,
                 RIB_SLAVE_UART: begin
@@ -168,7 +204,7 @@ module rib(
         m0_if_stall_o    = `StallEnable;
         m0_if_r_data_o   = `INST_NOP;
 
-        s0_rom_r_addr_o  = `ZeroAddr;
+        s0_rom_r_addr_o  = mem_rom_read_sel ? m1_mem_r_addr_i : `ZeroAddr;
 
         s1_ram_w_en_o    = `WriteDisable;
         s1_ram_w_sel_o   = 4'b0;
@@ -186,16 +222,13 @@ module rib(
         s3_uart_w_data_o  = `ZeroWord;
 
         // keep direct read path for zero-wait load timing
-        s1_ram_r_addr_o = (mem_grant &&
-                           (mem_r_slave_sel == RIB_SLAVE_RAM) &&
-                           (m1_mem_r_addr_i < RAM_ADDR_LIMIT)) ? m1_mem_r_addr_i : `ZeroAddr;
+        s1_ram_r_addr_o = mem_ram_read_sel ? mem_ram_r_addr : `ZeroAddr;
         s2_timer_r_addr_o = (mem_grant &&
                              (mem_r_slave_sel == RIB_SLAVE_TIMER)) ? m1_mem_r_addr_i : `ZeroAddr;
         s3_uart_r_addr_o = (mem_grant &&
                             (mem_r_slave_sel == RIB_SLAVE_UART)) ? m1_mem_r_addr_i : `ZeroAddr;
-        m1_mem_r_data_o = (mem_grant &&
-                           (mem_r_slave_sel == RIB_SLAVE_RAM) &&
-                           (m1_mem_r_addr_i < RAM_ADDR_LIMIT)) ? s1_ram_r_data_i :
+        m1_mem_r_data_o = mem_rom_read_sel ? s0_rom_r_data_i :
+                          mem_ram_read_sel ? s1_ram_r_data_i :
                           (mem_grant &&
                            (mem_r_slave_sel == RIB_SLAVE_TIMER)) ? s2_timer_r_data_i :
                           (mem_grant &&
@@ -211,10 +244,11 @@ module rib(
             RIB_GRANT_MEM: begin
                 case (mem_w_slave_sel)
                     RIB_SLAVE_RAM: begin
-                        if (m1_mem_w_addr_i < RAM_ADDR_LIMIT) begin
+                        if ((m1_mem_w_addr_i >= RAM_BASE) &&
+                            (m1_mem_w_addr_i < RAM_END)) begin
                             s1_ram_w_en_o   = m1_mem_w_en_i;
                             s1_ram_w_sel_o  = m1_mem_w_sel_i;
-                            s1_ram_w_addr_o = m1_mem_w_addr_i;
+                            s1_ram_w_addr_o = mem_ram_w_addr;
                             s1_ram_w_data_o = m1_mem_w_data_i;
                         end
                     end

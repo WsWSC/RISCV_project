@@ -22,7 +22,7 @@ def parse_args():
 
 
 def run_one(file_bin, args):
-    cmd = [sys.executable, 'compile_and_sim.py', file_bin]
+    cmd = [sys.executable, 'compile_and_sim.py', file_bin, '--legacy-harvard-map']
     if args.trace:
         cmd.append('--trace')
     if args.dump:
