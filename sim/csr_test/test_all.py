@@ -52,7 +52,7 @@ def run_one(file_bin, args):
     cmd = [
         sys.executable,
         "-c",
-        "import sys, compile_and_sim; sys.exit(compile_and_sim.sim(sys.argv[1:], iverilog_defines=['LEGACY_HARVARD_MAP']))",
+        "import sys, compile_and_sim; sys.exit(compile_and_sim.sim(sys.argv[1:], iverilog_defines=['TEST_ZERO_BASED_RAM_MAP']))",
     ]
     cmd.extend(vvp_args)
 

@@ -54,7 +54,7 @@ def main(name='addi', trace=False, dump=False, timeout_cycles=None):
     if timeout_cycles is not None:
         vvp_args.append('+timeout_cycles=' + str(timeout_cycles))
 
-    return sim(vvp_args, iverilog_defines=['LEGACY_HARVARD_MAP'])
+    return sim(vvp_args, iverilog_defines=['TEST_ZERO_BASED_RAM_MAP'])
 
     # Optional: open waveform viewer
     # gtkwave_cmd = [r'gtkwave']

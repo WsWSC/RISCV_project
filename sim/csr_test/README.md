@@ -35,7 +35,7 @@ The `.bin` files are committed test inputs. Runtime outputs stay under `sim/`
 and are ignored.
 
 These legacy binaries use the original Harvard data address space. The CSR
-runner compiles the RTL with `LEGACY_HARVARD_MAP`; new software should use the
+runner compiles the RTL with `TEST_ZERO_BASED_RAM_MAP`; new software should use the
 default SoC map with Data RAM at `0x1000_0000`.
 
 <br>

@@ -71,8 +71,8 @@ module rib(
     // 4'h4: GPIO
     // 4'h5: SPI
     // others: read zero, ignore write
-`ifdef LEGACY_HARVARD_MAP
-    // Tracked regression binaries use the original Harvard data address space.
+`ifdef TEST_ZERO_BASED_RAM_MAP
+    // Tracked regression binaries use the original low-address Data RAM map.
     localparam [31:0]  RAM_BASE        = 32'h0000_0000;
 `else
     localparam [31:0]  RAM_BASE        = 32'h1000_0000;
@@ -85,7 +85,7 @@ module rib(
     localparam [1:0]   RIB_GRANT_MEM   = 2'b01;
 
     localparam [3:0]   RIB_SLAVE_ROM   = 4'h0;
-`ifdef LEGACY_HARVARD_MAP
+`ifdef TEST_ZERO_BASED_RAM_MAP
     localparam [3:0]   RIB_SLAVE_RAM   = 4'h0;
 `else
     localparam [3:0]   RIB_SLAVE_RAM   = 4'h1;
@@ -115,7 +115,7 @@ module rib(
                      (m1_mem_w_en_i == `WriteEnable);
     assign mem_grant = (master_grant == RIB_GRANT_MEM);
 
-`ifdef LEGACY_HARVARD_MAP
+`ifdef TEST_ZERO_BASED_RAM_MAP
     assign mem_rom_read_sel = 1'b0;
 `else
     assign mem_rom_read_sel = mem_grant &&
@@ -151,7 +151,7 @@ module rib(
 
         if (m1_mem_r_en_i == `ReadEnable) begin
             case (m1_mem_r_addr_i[31:28])
-`ifndef LEGACY_HARVARD_MAP
+`ifndef TEST_ZERO_BASED_RAM_MAP
                 RIB_SLAVE_ROM,
 `endif
                 RIB_SLAVE_RAM,

@@ -106,7 +106,7 @@ Expected count: `47` files in each output group.
 ## Run Compliance Tests
 
 The current generated compliance binaries use the original Harvard data
-address space. The runner compiles the RTL with `LEGACY_HARVARD_MAP`; new
+address space. The runner compiles the RTL with `TEST_ZERO_BASED_RAM_MAP`; new
 software should use the default SoC map with Data RAM at `0x1000_0000`.
 
 Run these steps from Windows PowerShell at the CPU repo root.
