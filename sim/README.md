@@ -39,6 +39,23 @@ python sim\compile_and_sim.py sim\isa_test\test_bin\rv32ui-p-addi.bin --trace
 python sim\compile_and_sim.py sim\isa_test\test_bin\rv32ui-p-addi.bin --dump
 ```
 
+The default simulation uses the SoC memory map:
+
+```text
+0x0000_0000 -> inst_rom
+0x1000_0000 -> data_ram
+0x2000_0000 -> timer
+0x3000_0000 -> uart
+```
+
+Prebuilt ISA, CSR, and compliance regression binaries use the zero-based Data
+RAM test map. Use `--test-zero-based-ram-map` when running those binaries
+through `compile_and_sim.py` directly:
+
+```powershell
+python sim\compile_and_sim.py sim\isa_test\test_bin\rv32ui-p-addi.bin --test-zero-based-ram-map
+```
+
 `sim/inst_data.txt`, `sim/out.vvp`, and waveform files are generated runtime
 files and should not be committed.
 

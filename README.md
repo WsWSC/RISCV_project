@@ -66,7 +66,7 @@ access. The RIB routes instruction fetch and load/store requests to `inst_rom`,
 `data_ram`, `timer`, and `uart`; load/store access has priority over
 instruction fetch.
 
-Current memory access regions:
+Default RIB memory map:
 
 | Region | Address Range | Description |
 |--------|---------------|-------------|
@@ -74,6 +74,20 @@ Current memory access regions:
 | `data_ram` | `0x1000_0000` | Load/store data memory |
 | `timer` | MEM path from `0x2000_0000` | MMIO timer with interrupt output |
 | `uart` | MEM path from `0x3000_0000` | MMIO UART TX/RX |
+
+The default map uses `addr[31:28]` as the RIB slave select:
+
+```text
+4'h0 -> inst_rom
+4'h1 -> data_ram
+4'h2 -> timer
+4'h3 -> uart
+```
+
+Tracked ISA, CSR, and compliance binaries still use the zero-based Data RAM
+test map. Their runners compile the RTL with `TEST_ZERO_BASED_RAM_MAP`, which
+keeps Data RAM at `0x0000_0000` for those prebuilt test binaries. New
+bare-metal software should use the default SoC map above.
 
 The SoC also exposes an external interrupt input and UART RX/TX pins.
 
@@ -85,21 +99,15 @@ The SoC also exposes an external interrupt input and UART RX/TX pins.
 
 | Completed On | Category | Item | Status | Note |
 |--------------|----------|------|--------|------|
-| 2026-01-21 | Core | 3-stage pipeline structure | Done | IF / ID / EX architecture organization |
-| 2026-02-04 | ISA | RV32I base instructions | Done | Integer, branch/jump, load/store, write-back |
-| 2026-02-10 | ISA | RV32M extension | Done | RV32M instruction decode / execute support |
-| 2026-03-03 | ISA | RV32M multi-cycle MUL | Done | `MUL`, `MULH`, `MULHSU`, `MULHU` |
-| 2026-05-19 | ISA | RV32M multi-cycle DIV | Done | `DIV`, `DIVU`, `REM`, `REMU` |
-| 2026-05-19 | Pipeline Control | Forwarding, load-use bubble | Done | - |
-| 2026-06-18 | Interrupt / CSR | Machine CSR, trap, `mret`, MEI | Done | Machine-mode subset |
-| 2026-06-22 | Verification | ISA regression | Done | RV32I / RV32M regression tests |
-| 2026-06-22 | Verification | CSR regression | Done | - |
-| 2026-06-22 | Verification | Architecture compliance tests | Done | ACT4 tests compared against Sail golden signatures |
-| 2026-07-23 | RIB / MMIO | Timer MMIO slave | Done | Zero-wait RIB slave at `0x2000_0000` |
-| 2026-07-24 | Interrupt / CSR | Timer interrupt | Done | Timer MTIP / MTIE through CSR and CLINT |
-| 2026-07-24 | RIB / MMIO | RIB grant / MMIO decode | Done | MEM has priority over IF, zero-wait read path kept |
-| 2026-07-28 | Peripheral | UART TX/RX | Done | TX/RX FSM and register map |
-| 2026-07-29 | RIB / MMIO | UART MMIO slave | Done | MMIO slave at `0x3000_0000` |
+| 2026-01 | Core | 3-stage pipeline core | Done | IF / ID / EX, forwarding, load-use handling |
+| 2026-02 | ISA | RV32I / RV32M instruction support | Done | Integer, branch/jump, load/store, RV32M decode |
+| 2026-03 | RV32M | Multi-cycle MUL unit | Done | `MUL`, `MULH`, `MULHSU`, `MULHU` |
+| 2026-05 | RV32M | Multi-cycle DIV unit | Done | `DIV`, `DIVU`, `REM`, `REMU` |
+| 2026-06 | CSR / Trap | Machine-mode CSR and trap flow | Done | CSR ops, exceptions, `mret`, MEI / MTI subset |
+| 2026-07 | RIB | RIB grant and address decode | Done | MEM has priority over IF, zero-wait read path kept |
+| 2026-07 | MMIO | Timer and UART peripherals | Done | Timer at `0x2000_0000`, UART at `0x3000_0000` |
+| 2026-08 | RIB / Memory Map | Unified default SoC memory map | Done | `inst_rom` at `0x0000_0000`, `data_ram` at `0x1000_0000` |
+| 2026-08 | Verification | ISA / CSR / compliance regression | Done | Includes `TEST_ZERO_BASED_RAM_MAP` for prebuilt binaries |
 | - | Privileged | Privileged architecture | Partial | Machine-mode subset only |
 | - | RIB / MMIO | RIB expansion | Ongoing | Reserved slots remain for GPIO/SPI/debug expansion |
 
@@ -107,6 +115,7 @@ The SoC also exposes an external interrupt input and UART RX/TX pins.
 
 | Item | Status | Note |
 |------|--------|------|
+| Bare-metal C runtime / UART print | Planned | Target flow: C program -> ELF/BIN -> DUT UART output |
 | Vectored `mtvec` | Not Implemented | Optional trap mode |
 | GPIO/SPI MMIO | Not Implemented | Future RIB peripherals |
 | UART interrupt / FIFO | Not Implemented | Future UART extensions |
