@@ -68,6 +68,7 @@ files and should not be committed.
 | `isa_test/` | RV32I/RV32M instruction regression. | [isa_test/README.md](isa_test/README.md) |
 | `csr_test/` | CSR, exception, trap, `mret`, and external interrupt regression. | [csr_test/README.md](csr_test/README.md) |
 | `compliance_test/` | ACT4/Sail golden signature comparison. | [compliance_test/README.md](compliance_test/README.md) |
+| `sw_test/` | WSL-built bare-metal software binaries run on the DUT. | [sw_test/README.md](sw_test/README.md) |
 
 Each test folder documents its own setup, required files, and run commands.
 
